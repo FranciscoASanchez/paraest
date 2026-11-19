@@ -18,7 +18,8 @@ ifeq ($(origin FC),default)
 endif
 
 # --- Archivos fuente, por capa ----------------------------------------------
-PRINCIPAL    = src/principal/paraest.f90
+PRINCIPAL    = src/principal/utilidades.f90              \
+               src/principal/paraest.f90
 
 OPTIMIZACION = src/optimizacion/zxssq.f90
 

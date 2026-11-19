@@ -347,6 +347,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 &	                NCXP,IOPT,IOBJSAT,NUMDC,IDDC,numTc,idTc,wSat,wBin,wTer,wEx,wGam, &
 
 &	                DHfu, Tfu, DCpfu, Dvfu, TtrSS, DHss, Pfu)
+	use utilidades, only: i2s
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
 !
@@ -432,17 +433,20 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	dimension wSat(NDM), wBin(2,NDM), wTer(2,NDM), wEx(NDM), wGam(3,NDM)
 
 !
-	OPEN(UNIT=1,TYPE='OLD',NAME='paraest.dat',FORM='FORMATTED',ACCESS='SEQUENTIAL')
+	OPEN(UNIT=1,STATUS='OLD',FILE='paraest.dat',FORM='FORMATTED',ACCESS='SEQUENTIAL')
 	READ (1, *) W1
 	read (1, *) W2, W3, W4, W5, W6, W7
 	read (1, *) W8, W9, W10
 	read (1, *) W11, W12
 	read (1, *) w13
-	read (1, *) PARM(1),PARM(2),IOPT
-	write(*,'(13F10.4,3I2)')W1,W2,W3,W4,W5,W6,W7,W8,W9,W10,W11,W12,w13,PARM(1),PARM(2),IOPT
+	! IOPT se lee como real porque los archivos de datos suelen traer "2." (ifx lo
+	! acepta para un entero, gfortran no).
+	read (1, *) PARM(1),PARM(2),aIOPT
+	IOPT = nint(aIOPT)
+	write(*,'(15F10.4,I2)')W1,W2,W3,W4,W5,W6,W7,W8,W9,W10,W11,W12,w13,PARM(1),PARM(2),IOPT
 !
 1	FORMAT(8F10.4)
-2	FORMAT(<NCM>I3)
+2	FORMAT(*(I3))
 !
 	READ(1,*) NC,NG,NGA,NSIG
 	write(*,'(4I3)')NC,NG,NGA,NSIG
@@ -454,11 +458,11 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	IF(ISAT.NE.0)then
 
 	  READ(1,*) (IDSAT(I), I=1,ISAT)
-	  write(*,'(<iSat>(I3,X))') (IDSAT(I), I=1,ISAT)
+	  write(*,'(*(I3,X))') (IDSAT(I), I=1,ISAT)
 	  READ(1,*) (NSAT(IDSAT(I)), I=1,ISAT)
-	  write(*,'(<iSat>(I3,X))')(NSAT(IDSAT(I)), I=1,ISAT)
+	  write(*,'(*(I3,X))')(NSAT(IDSAT(I)), I=1,ISAT)
 	  READ(1,*) (IOBJSAT(IDSAT(I)), I=1,ISAT)
-	  write(*,'(<iSat>(I3,X),/)') (IOBJSAT(IDSAT(I)), I=1,ISAT)
+	  write(*,'('//i2s(iSat)//'(I3,X),/)') (IOBJSAT(IDSAT(I)), I=1,ISAT)
 !
 	  DO I=1,ISAT
 
@@ -479,7 +483,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	      if(iObjSat(idSat(i)).NE.81)then
 	        READ(1,*) TEXP(J),PEXP(J),wSat(j)
-	        write(*,'(F7.2,F12.8,i)') TEXP(J),PEXP(J), j
+	        write(*,'(F7.2,F12.8,I12)') TEXP(J),PEXP(J), j
 	      else
 	        READ(1,*) TEXP(J),PEXP(J),rhoExp(j),wSat(j)
 	        write(*,'(F7.2,2(F12.8,X))') TEXP(J),PEXP(J),rhoExp(j)
@@ -502,13 +506,13 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	END DO
 !	Lectura de energía de segmento de grupo
 	READ(1,*) (GSTR(I), I=1,NG)
-	write(*,'(/,<NG>(F7.0,2X),"   !g*")')(GSTR(I), I=1,NG)
+	write(*,'(/,'//i2s(NG)//'(F7.0,2X),"   !g*")')(GSTR(I), I=1,NG)
 !
 	READ(1,*) (GDOT(I), I=1,NG)
-	write(*,'(<NG>(F7.4,2X),"   !g`")')(GDOT(I), I=1,NG)
+	write(*,'('//i2s(NG)//'(F7.4,2X),"   !g`")')(GDOT(I), I=1,NG)
 !
 	READ(1,*) (GDDOT(I), I=1,NG)
-	write(*,'(<NG>(F7.4,2X),"   !g``",//)')(GDdOT(I), I=1,NG)
+	write(*,'('//i2s(NG)//'(F7.4,2X),"   !g``",//)')(GDdOT(I), I=1,NG)
 !
 !	Parámetros de interacción binaria: k*
 	DO I=1,NG
@@ -516,11 +520,11 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	  READ(1,*) (RKIJ(I,J), J=1,NG)
 	  if(i.EQ.1)then
 
-	    write(*,'(/,<NG>(F6.4,2X),"  !k*")')(RKIJ(I,J), J=1,NG)
+	    write(*,'(/,'//i2s(NG)//'(F6.4,2X),"  !k*")')(RKIJ(I,J), J=1,NG)
 
 	  else
 
-	    write(*,'(<NG>(F6.4,2X))')(RKIJ(I,J), J=1,NG)
+	    write(*,'(*(F6.4,2X))')(RKIJ(I,J), J=1,NG)
 
 	  endif
 
@@ -532,11 +536,11 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	  READ(1,*) (RKTIJ(I,J), J=1,NG)
 	  if(i.EQ.1)then
 
-	    write(*,'(/,<NG>(F6.4,2X),"  !k`")')(RKTIJ(I,J), J=1,NG)
+	    write(*,'(/,'//i2s(NG)//'(F6.4,2X),"  !k`")')(RKTIJ(I,J), J=1,NG)
 
 	  else
 
-	    write(*,'(<NG>(F6.4,2X))')(RKTIJ(I,J), J=1,NG)
+	    write(*,'(*(F6.4,2X))')(RKTIJ(I,J), J=1,NG)
 
 	  endif
 
@@ -547,11 +551,11 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	  READ(1,*) (ALFAIJ(I,J), J=1,NG)
 	  if(i.EQ.1)then
 
-	    write(*,'(/,<NG>(F6.4,2X),"  !alfa")')(alfaIJ(I,J), J=1,NG)
+	    write(*,'(/,'//i2s(NG)//'(F6.4,2X),"  !alfa")')(alfaIJ(I,J), J=1,NG)
 
 	  else
 
-	    write(*,'(<NG>(F6.4,2X))')(alfaIJ(I,J), J=1,NG)
+	    write(*,'(*(F6.4,2X))')(alfaIJ(I,J), J=1,NG)
 
 	  endif
 
@@ -562,7 +566,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 !	  Contribución asociativa
 !	  Lectura de vector de sitios de asociación:
 	  READ(1,*) (MASSOC(I),I=1,NGA)
-	  write(*,'(//,<NGA>(I2,2X),5X,"! Vector de sitios de asociación",/)') (MASSOC(I),I=1,NGA)
+	  write(*,'(//,'//i2s(NGA)//'(I2,2X),5X,"! Vector de sitios de asociación",/)') (MASSOC(I),I=1,NGA)
 
 !	  Lectura de energía y volumen de asociación en una misma línea
 	  NST = 0
@@ -605,7 +609,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	DO I=1,NC
 
 	  READ (1,*) TEMPCRIT(I), PRCRIT(I), TSAT(I), PSAT(I), DC(I), Tfu(i), DHfu(i), DCpfu(i), TtrSS(i), DHss(i), DVfu(i), Pfu(i)
-	  write(*,'(2(F7.2,2X,F12.6,2X),"! Comp. Nro.",I2)')TEMPCRIT(I),PRCRIT(I),TSAT(I),PSAT(I),DC(I),i
+	  write(*,'(2(F7.2,2X,F12.6,2X),F9.5,2X,"! Comp. Nro.",I2)')TEMPCRIT(I),PRCRIT(I),TSAT(I),PSAT(I),DC(I),i
 
 	END DO
 	write(*,'(//)')
@@ -617,11 +621,11 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	  READ(1,*) (NU(I,J), J=1,NC)
 	  if(i.EQ.1)then
 
-	    write(*,'(//,<NC>(I2,4X),"!  Grupo disp. Nro.",I2,"   Configuración grupal dispersiva")')(NU(I,J), J=1,NC),I
+	    write(*,'(//,'//i2s(NC)//'(I2,4X),"!  Grupo disp. Nro.",I2,"   Configuración grupal dispersiva")')(NU(I,J), J=1,NC),I
 
 	  else
 
-	    write(*,'(<NC>(I2,4X),"!  Grupo disp. Nro.",I2)')(NU(I,J), J=1,NC),I
+	    write(*,'('//i2s(NC)//'(I2,4X),"!  Grupo disp. Nro.",I2)')(NU(I,J), J=1,NC),I
 
 	  endif
 !
@@ -637,11 +641,11 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	    READ(1,*) (ONUASOC(I,J), J=1,NC)
 	    if(i.EQ.1)then
 
-	      write(*,'(/,<NC>(F2.0,4X),"!  Grupo asoc. Nro.",I2,"   Configuración grupal asocitiva")')(oNUAsoc(I,J), J=1,NC),I
+	      write(*,'(/,'//i2s(NC)//'(F2.0,4X),"!  Grupo asoc. Nro.",I2,"   Configuración grupal asocitiva")')(oNUAsoc(I,J), J=1,NC),I
 
 	    else
 
-	      write(*,'(<NC>(F2.0,4X),"!  Grupo asoc. Nro.",I2)')(oNUAsoc(I,J), J=1,NC),I
+	      write(*,'('//i2s(NC)//'(F2.0,4X),"!  Grupo asoc. Nro.",I2)')(oNUAsoc(I,J), J=1,NC),I
 
 	    endif
 
@@ -712,7 +716,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 !	    elseif(mez(i)==3)then
 !	      READ(1,*) IDC(I,1),IDC(I,2),IDC(i,3),NOBS(I)
 !	    end if
-	    write(*,'(<mez(i)+1>(I2,2X))')(idC(i,j),j=1,mez(i)),nObs(i)
+	    write(*,'(*(I2,2X))')(idC(i,j),j=1,mez(i)),nObs(i)
 
 	  END IF
         READ(1,23) (NTEXT(I,J),J=1,65)
@@ -790,13 +794,13 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 !
 !	  Lectura de identificación de parámetros de interacción dispertiva a ser ajustados: g(i,i) y k(i,j)
 	  READ(1,*) (IDG(I,1),IDG(I,2),I=1,NNP)
-	  write(*,'(<NNP>(2(I2,X),4X))')(IDG(I,1),IDG(I,2),I=1,NNP)
+	  write(*,'(*(2(I2,X),4X))')(IDG(I,1),IDG(I,2),I=1,NNP)
 !
 	  READ(1,*) (ITEMP(I), I=1,NNP)
-	  write(*,'(<NNP>(I2,6X))')(ITEMP(I), I=1,NNP)
+	  write(*,'(*(I2,6X))')(ITEMP(I), I=1,NNP)
 !
 	  READ(1,*) (NIDG(I), I=1,NNP)
-	  write(*,'(<NNP>(I2,6X))')(NIDG(I), I=1,NNP)
+	  write(*,'(*(I2,6X))')(NIDG(I), I=1,NNP)
 !
 	  NSSS = 0
 !	  Lectura de parámetros idénticos:
@@ -806,7 +810,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 !
 	      READ(1,*) (IDIDG(J,1), IDIDG(J,2),J=(1+NSSS),(NIDG(L)+NSSS))
 !	      NumIde = (NIDG(L)+NSSS) - (1+NSSS)
-	      write(*,'(<NCM>(I2,X))')(IDIDG(J,1), IDIDG(J,2),J=(1+NSSS),(NIDG(L)+NSSS))
+	      write(*,'(*(I2,X))')(IDIDG(J,1), IDIDG(J,2),J=(1+NSSS),(NIDG(L)+NSSS))
 	      NSSS = NSSS + NIDG(L)
 !
 	    end if
@@ -819,7 +823,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	if(NNQ.NE.0)then
 
 	  READ(1,*) (IDQ(I), I=1,NNQ)
-	  write(*,'(<NNQ>(I2,X))') (IDQ(I), I=1,NNQ)
+	  write(*,'(*(I2,X))') (IDQ(I), I=1,NNQ)
 
 	endif
 !
@@ -827,10 +831,10 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	if(NALFA.NE.0) then
 !
 	  READ(1,*) (IDALF(I,1),IDALF(I,2),I=1,NALFA)
-	  write(*,'(<nAlfa>(2(I2,X),4X))')(IDALF(I,1),IDALF(I,2),I=1,NALFA)
+	  write(*,'(*(2(I2,X),4X))')(IDALF(I,1),IDALF(I,2),I=1,NALFA)
 !
 	  READ(1,*) (NIDALF(I),I=1,NALFA)
-	  write(*,'(<nAlfa>(I2,6X))')(NIDALF(I),I=1,NALFA)
+	  write(*,'(*(I2,6X))')(NIDALF(I),I=1,NALFA)
 	  NSSA = 0
 	  DO L=1,NALFA
 
@@ -838,7 +842,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	      READ(1,*) (IDIDALF(J,1),IDIDALF(J,2),J=(1+NSSA),(NIDALF(L)+NSSA))
 !	      NumIde = (NIDALF(L)+NSSA) - (1+NSSA)
-	      write(*,'(<NCM>(2I2,X))')
+	      write(*,'(*(2I2,X))')
 	      NSSA = NSSA + NIDALF(L)
 
 	    end if
@@ -857,7 +861,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	  END DO
 	  READ(1,*) (NIDENASS(I), I=1,NENASS )
-	  write(*,'(<nEnAss>(I2,X))')(NIDENASS(I), I=1,NENASS )
+	  write(*,'(*(I2,X))')(NIDENASS(I), I=1,NENASS )
 !
 !	  Lectura de idénticos:
 	  NSSE = 0
@@ -889,7 +893,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	  END DO
 	  READ(1,*) (NIDRKASS(I), I=1,NRKASS )
-	  write(*,'(<nrKass>(I2,X))')(NIDRKASS(I), I=1,NRKASS )
+	  write(*,'(*(I2,X))')(NIDRKASS(I), I=1,NRKASS )
 !
 	  NSSRK = 0
 	  DO L=1,NRKASS
@@ -914,7 +918,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	IF(numTc.NE.0)then
 
 	  READ(1,*) (idTc(I), I=1,numtc)
-	  write(*,'(<numTc>(I2,X),/)')(idTc(I), I=1,numtc)
+	  write(*,'('//i2s(numTc)//'(I2,X),/)')(idTc(I), I=1,numtc)
 
 	endif
 !
@@ -977,6 +981,7 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 &	               IDSAT,IDG,ITEMP,NIDG,IDIDG,IDQ,IDALF,NIDALF,IDIDALF,IDENASS,NIDENASS,IDIDENASS,      &
 
 &	               IDRKASS,NIDRKASS,IDIDRKASS,DC,IOPT,NUMDC,IDDC,TSPLINE,numtc,idtc)
+	use utilidades, only: i2s
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
 	
@@ -1087,13 +1092,12 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 &	          X,"--------------------------------------------------",/,  &
 &	          X," Parametros de grupos puros (termino  dispersivo)",/)')
 
-	WRITE(1,3) (I, I=1,NC)
-3	FORMAT(40X,'COMPONENTES',/,X,' Gr.Nro.:  T*        Q        TSPLINE ',<NC>I3,/)
+	WRITE(1,"(40X,'COMPONENTES',/,X,' Gr.Nro.:  T*        Q        TSPLINE ',"//i2s(NC)//"I3,/)") (I, I=1,NC)
 !
 	DO I=1,NG
 
 	  WRITE(1,4) I,TSTR(I),QAREA(I),TSPLINE(I),(NU(I,J), J=1,NC)
-4	  FORMAT(X,I3,5X,2F10.4,X,E10.4,<NC>I3)
+4	  FORMAT(X,I3,5X,2F10.4,X,E10.4,*(I3))
 
 	END DO
 !	NU (I,J)= Numero de grupos del tipo i en el compuesto de tipo j
@@ -1111,7 +1115,7 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	DO I=1,NG
 
 	  WRITE(1,8) (RKIJ(I,J), J=1,NG)
-8	  FORMAT(X,<NG>F10.4)
+8	  FORMAT(X,*(F10.4))
 	END DO
 !
 	WRITE(1,9)
@@ -1134,12 +1138,11 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 !
 	IF(NGA.GT.0) THEN
 
-	  WRITE(1,11) (I, I=1,NC)
-11	  FORMAT(/,X,' Parametros de asociación ',/,23X,'Componentes',/,' Grupo 	  # Sit asoc  ',<NC>I5,/)
+	  WRITE(1,"(/,X,' Parametros de asociación ',/,23X,'Componentes',/,' Grupo 	  # Sit asoc  ',"//i2s(NC)//"I5,/)") (I, I=1,NC)
 	  DO I=1,NGA
 
 	    WRITE(1,12) I, MASSOC(I), (ONUASOC(I,J), J=1,NC)
-12	    FORMAT(3X,I3,9X,I3,6X,<NC>F5.2)
+12	    FORMAT(3X,I3,9X,I3,6X,*(F5.2))
 
 	  END DO
 	  WRITE(1,13)
@@ -1217,13 +1220,13 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 202	  FORMAT(' Parametros gii o kij ')
 !
 	  WRITE(1,203) (IDG(I,1),IDG(I,2),I=1,NNP)
-203	  FORMAT(X,<2*NNP>I3)
+203	  FORMAT(X,*(I3))
 !
 	  WRITE(1,204) (ITEMP(I), I=1,NNP)
-204	  FORMAT(X,' Dependencia respecto a la temperatura ',/,X,<NNP>I3)
+204	  FORMAT(X,' Dependencia respecto a la temperatura ',/,X,*(I3))
 !
 	  WRITE(1,206) (NIDG(I), I=1,NNP)
-206	  FORMAT(X,' Numero de par. identicos ',/,X,<NNP>I3)
+206	  FORMAT(X,' Numero de par. identicos ',/,X,*(I3))
 !
 	  WRITE(1,208)
 208	  FORMAT(X,' Parametros Identicos ')
@@ -1235,7 +1238,7 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	    if(NIDG(L).ne.0) then
 !
 	      WRITE(1,210) (IDIDG(J,1), IDIDG(J,2),J=(1+NSSS),(NIDG(L)+NSSS))
-210	      FORMAT(X,<2*NIDG(L)>I3)
+210	      FORMAT(X,*(I3))
 	      NSSS = NSSS + NIDG(L)
 !
 	    end if
@@ -1245,15 +1248,15 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	end if
 !
 	if(NNQ.NE.0) WRITE(1,211) (IDQ(I), I=1,NNQ)
-211	FORMAT(/,X,' Parámetros de Area  ',/,X,<NNQ>I3)
+211	FORMAT(/,X,' Parámetros de Area  ',/,X,*(I3))
 !
 	if(NALFA.ne.0) then
 
 	  WRITE(1,213) (IDALF(I,1),IDALF(I,2),I=1,NALFA)
-213	  FORMAT(/,X,' Parametros de no azar ',/,X,<2*NALFA>I3)
+213	  FORMAT(/,X,' Parametros de no azar ',/,X,*(I3))
 !
 	  WRITE(1,215) (NIDALF(I),I=1,NALFA)
-215	  FORMAT(X,' Numero de par. identicos ',/,X,<NALFA>I3)
+215	  FORMAT(X,' Numero de par. identicos ',/,X,*(I3))
 !
 	  NSSA = 0
 	  DO L=1,NALFA
@@ -1261,7 +1264,7 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
           if(NIDALF(L).ne.0) then
 
 	      WRITE(1,217) (IDIDALF(J,1),IDIDALF(J,2),J=(1+NSSA),(NIDALF(L)+NSSA))
-217	      FORMAT(X,' Identicos : ',<2*NIDALF(L)>I3)
+217	      FORMAT(X,' Identicos : ',*(I3))
 	      NSSA = NSSA + NIDALF(L)
 
 	    end if
@@ -1282,7 +1285,7 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 
 	  END DO
 	  WRITE(1,223) (NIDENASS(I), I=1,NENASS )
-223	  FORMAT(X,' Numero de par. identicos ',<NENASS>I3)
+223	  FORMAT(X,' Numero de par. identicos ',*(I3))
 	  NSSE = 0
 	  DO L=1,NENASS
 
@@ -1314,7 +1317,7 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 
 	  END DO
 	  WRITE(1,231) (NIDRKASS(I), I=1,NRKASS )
-231	  FORMAT(X,' Numero de parametros identicos ',<NRKASS>I3)
+231	  FORMAT(X,' Numero de parametros identicos ',*(I3))
 	  NSSRK = 0
 	  DO L=1,NRKASS
 
@@ -1334,17 +1337,16 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 
 	end if
 	IF(numtc.ne.0) WRITE(1,233) (idtc(I), I=1,numTc)
-233	FORMAT(/,X,' temperaturas criticas ',/,X,<numTc>I3)
+233	FORMAT(/,X,' temperaturas criticas ',/,X,*(I3))
 	IF(NUMDC.NE.0) WRITE(1,234) (IDDC(I), I=1,NUMDC)
-234   FORMAT(/,X,' Diametros de Esferas Rigidas ',/,X,<NUMDC>I3)
+234   FORMAT(/,X,' Diametros de Esferas Rigidas ',/,X,*(I3))
 !
 	WRITE(1,235)  (XX(I),I=1,NPAR)
- 235	FORMAT(/,X,' Valores iniciales de los parametros a ajustar ',/,X,<NPAR>F13.4)
+ 235	FORMAT(/,X,' Valores iniciales de los parametros a ajustar ',/,X,*(F13.4))
 !
 	WRITE(1,91)
 91	FORMAT(//,X,' Curso de la optimización ',X)
-	WRITE(1,93) (I,I=1,NPAR)
- 93	FORMAT(//,X,' Parametro nro (ESCALADO). ',/,X,<NPAR>I15,X,'         FC OBJ ',/)
+	WRITE(1,"(//,X,' Parametro nro (ESCALADO). ',/,X,"//i2s(NPAR)//"I15,X,'         FC OBJ ',/)") (I,I=1,NPAR)
 !
 	CLOSE(UNIT=1)
 !
@@ -1661,6 +1663,7 @@ ENDsubroutine
 !	En FUNC aparecen los valores a partir de los cuales se arma la sumatoria de cuadrados
 !
 SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
+	use utilidades, only: i2s
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
 	integer, parameter :: NCM = 50, NDM = 1520, NGM = 20, NSetM = 100
@@ -2764,13 +2767,13 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	END DO
 	sumQ = sum(fcion(:NCXP)**2)
 !
-	OPEN(UNIT=1,TYPE='OLD',file='paraest.out',FORM='FORMATTED',ACCESS='APPEND')
+	OPEN(UNIT=1,STATUS='OLD',file='paraest.out',FORM='FORMATTED',POSITION='APPEND')
 !
 
 !	Descalo los valores antes de imprimirlos:
 	if(nPar.GT.0)then
 	  CALL XXDESSCAL(NPAR,XX,IDXX,FGGG,FRKIJ,FTEMP,FQAREA,FALFA,FENASS,FRKASS,XXAUX,fTc,FDC)
-	  WRITE(1,'(<NPAR>(F12.4,X),E12.5)') (XXAUX(I),I=1,NPAR),SUMQ
+	  WRITE(1,'('//i2s(NPAR)//'(F12.4,X),E12.5)') (XXAUX(I),I=1,NPAR),SUMQ
 	endif
 
 	CLOSE(UNIT=1)
@@ -3156,7 +3159,7 @@ SUBROUTINE WRITESTAT(SSQ,XJAC,WORK,INFER,IER)
 	integer, parameter :: NDM = 1520 
 	DIMENSION XJAC(NDM,8), WORK(436)
 !
-	OPEN(UNIT=1,TYPE='OLD',file='paraest.out',FORM='FORMATTED',ACCESS='APPEND')
+	OPEN(UNIT=1,STATUS='OLD',file='paraest.out',FORM='FORMATTED',POSITION='APPEND')
 !
 	WRITE(1,95)
 95	FORMAT(/,X,' Valor final fcion objetivo = SSQ = ',/)
@@ -3187,6 +3190,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 
 &                    IOBJSAT,FCAUX2,fcaux3,STDVA,STDVB,stdvc,stDvD,rgamcalc1, rgamcalc2,rgamcalc3,numTc,idTc,   &
 &	               NUMDC,IDDC,TSPLINE,rgamexp1, rgamexp2,rgamexp3,zLicalc,prop_E_calc,prop_E_exp, DHVL)
+	use utilidades, only: i2s
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
 	integer, parameter :: NCM = 50, NDM = 1520, NGM = 20, NSetM = 100
@@ -3238,7 +3242,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 !	Dimensionamiento arreglo de identificacion de param. dc considerados como simples variables de optimizcion
 	DIMENSION IDDC(8),idTc(8)
 !
-	OPEN (UNIT = 1, TYPE = 'OLD', file = 'paraest.out', FORM = 'FORMATTED', ACCESS = 'APPEND')
+	OPEN (UNIT = 1, STATUS='OLD', file = 'paraest.out', FORM = 'FORMATTED', POSITION='APPEND')
 	open (unit = 2, file = "tables.csv", form = "formatted")
 	open (unit = 10, file = "graficos.csv", form = "FORMATTED")	
 !
@@ -3249,13 +3253,12 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 &	         X,'--------------------------------------------------',/,   &
 &	        X,' PARAMETROS DE GRUPOS PUROS (termino dispersivo)',/)
 !
-	WRITE(1,3) (I, I=1,NC)
-3	FORMAT(40X,'COMPONENTES',/,X,' Gr.Nro.:  T*        Q        TSPLINE ',<NC>I3,/)
+	WRITE(1,"(40X,'COMPONENTES',/,X,' Gr.Nro.:  T*        Q        TSPLINE ',"//i2s(NC)//"I3,/)") (I, I=1,NC)
 !
 	DO I=1,NG
 
 	  WRITE(1,4) I,TSTR(I),QAREA(I),TSPLINE(I), (NU(I,J), J=1,NC)
-4	  FORMAT(X,I3,5X,2F10.4,X,E10.4,<NC>I3)
+4	  FORMAT(X,I3,5X,2F10.4,X,E10.4,*(I3))
 
 	END DO
 !
@@ -3275,7 +3278,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	DO I=1,NG
 
 	  WRITE(1,8) (RKIJ(I,J), J=1,NG)
-8	  FORMAT(X,<NG>F10.4)
+8	  FORMAT(X,*(F10.4))
 
 	END DO
 !
@@ -3299,13 +3302,12 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 !
 	IF(NGA.GT.0) THEN
 
-	  WRITE(1,11) (I, I=1,NC)
-11	  FORMAT(/,X,' Parametros de asociacion ',/,23X,'Componentes',/,' Grupo 	  # Sit asoc  ',<NC>I3,/)
+	  WRITE(1,"(/,X,' Parametros de asociacion ',/,23X,'Componentes',/,' Grupo 	  # Sit asoc  ',"//i2s(NC)//"I3,/)") (I, I=1,NC)
 
 	  DO I=1,NGA
 
 	    WRITE(1,12) I, MASSOC(I), (ONUASOC(I,J), J=1,NC)
-12	    FORMAT(3X,I3,9X,I3,6X,<NC>f5.2)
+12	    FORMAT(3X,I3,9X,I3,6X,*(f5.2))
 
 	  END DO
 	  WRITE(1,13)
@@ -3413,7 +3415,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 !
 !	Cuenta el numero de datos de equilibrio
 	NCXP = 0
- 2	FORMAT(<NCM>I3)
+ 2	FORMAT(*(I3))
 !
 !	Nueva unidad de escritura, sólo para graficar con facilidad. No tiene intención de reemplazar
 !	al archivo "paraest.out". La extensión "CSV" es "texto delimitado por comas".
@@ -3553,7 +3555,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 
 	        WRITE(1,341) IDC(KS,1),IDC(KS,1),IDC(KS,1),IDC(KS,2)
 	        WRITE(10,341) IDC(KS,1),IDC(KS,1),IDC(KS,1),IDC(KS,2)
-341	        FORMAT(X,'  Temp/K    Pres/ATM  Xexp(',I<iDim>,')  Yexp(',I<iDim>,') Fug(',I<iDim>,')% Fug(',I<iDim>,')%   Zliq      Zvap ',/)
+341	        FORMAT(X,'  Temp/K    Pres/ATM  Xexp(',I0,')  Yexp(',I0,') Fug(',I0,')% Fug(',I0,')%   Zliq      Zvap ',/)
 	        DO I=1,NOBS(KS)
 
 	          WRITE(1,345) TEXP(NCXP+1),PEXP(NCXP+1),XEXP(NCXP+1),YEXP(NCXP+1),FCAUX(NCXP+1),FCAUX2(NCXP+1),ZLCALC(NCXP+1), &
@@ -3573,12 +3575,12 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 
 !	        Resultados de flash a T y P:
 	        WRITE(1,351)tab,tab,tab,IDC(KS,1),tab,IDC(KS,1),tab,tab,IDC(KS,1),tab,IDC(KS,1),tab,tab,tab
-351	        FORMAT(/,A,'T/K   ',A,'P   /atm',A,'Xexp(',I<iDim>,')',A,'Xclc(',I<iDim>,')',A,'Err%',A,'Yexp(',I<iDim>,')',A,  &
-&	                'Ycalc(',I<iDim>,')',A,'Err%',A,'Z1',A,'Z2',/)
+351	        FORMAT(/,A,'T/K   ',A,'P   /atm',A,'Xexp(',I0,')',A,'Xclc(',I0,')',A,'Err%',A,'Yexp(',I0,')',A,  &
+&	                'Ycalc(',I0,')',A,'Err%',A,'Z1',A,'Z2',/)
 !
 	        WRITE(10,3511) IDC(KS,1),IDC(KS,1)
 
-3511	        FORMAT(/,X," (x-y)(",I<iDim>,")exp,(x-y)(",I<iDim>,")calc,T/K,P/atm")
+3511	        FORMAT(/,X," (x-y)(",I0,")exp,(x-y)(",I0,")calc,T/K,P/atm")
 !
 !	        Recontador para "gráficos"
 	        NCXPy = NCXP
@@ -3616,7 +3618,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	        write(1,353)idC(ks,1),E1,E2, idC(ks,1),E3,E4
 	        write(*,'(/,X," ARD(x) =",f10.4,"%",20X,"ARD(y) = ",f10.4,"%")')E2,E4
 	        write(10,353)idC(ks,1),E1,E2, idC(ks,1),E3,E4
-353	        Format(/" AAD(ARD%): x(",I<iDim>,") =, ",E10.4,", (, ",F6.2,"% ,)  ,",20X," y(",I<iDim>,") = ,",E10.4,", (, ",F6.2,"% ,)")
+353	        Format(/" AAD(ARD%): x(",I0,") =, ",E10.4,", (, ",F6.2,"% ,)  ,",20X," y(",I0,") = ,",E10.4,", (, ",F6.2,"% ,)")
 
 
 	      elseIF(IFL(KS).EQ.1) then
@@ -3624,10 +3626,10 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 !	        Resultados de flash a T y x:
 	        NCXPy = NCXP
 	        WRITE(1,355)tab,tab,IDC(KS,1),tab,tab,tab,tab,IDC(KS,1),tab,IDC(KS,1),tab,tab,tab
-355	        FORMAT(/,A,'T/K',A,'Xexp(',I<iDim>,')',A,'Pexp/atm',A,'Pcalc/atm',A,'ERR%',A,'YEXP(',I<iDim>,')',A,'YCALC(',I<iDim>,')', &
+355	        FORMAT(/,A,'T/K',A,'Xexp(',I0,')',A,'Pexp/atm',A,'Pcalc/atm',A,'ERR%',A,'YEXP(',I0,')',A,'YCALC(',I0,')', &
 &	                 A,'ERR',A,'Z1',A,'Z2'/)
 	        write(10,3550) IDC(KS,1), IDC(KS,1)
-3550	        format(/,"T /K,(x-y)(",I<iDim>,")exp,Pexp /atm,(xexp-ycalc)(",I<iDim>,"),Pcalc /atm")
+3550	        format(/,"T /K,(x-y)(",I0,")exp,Pexp /atm,(xexp-ycalc)(",I0,"),Pcalc /atm")
 	        DO I = 1, NOBS(KS)
 
 	          WRITE (1, 357) tab,TEXP(NCXP+1),tab,XEXP(NCXP+1),tab,PEXP(NCXP+1),tab,PCALC(NCXP+1),tab,FCAUX(NCXP+1),tab,YEXP(NCXP+1), &
@@ -3658,7 +3660,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	        write(1,359)E1,E2,idC(ks,1),E3,E4
 	        write(*,'(/,X," ARD(P) =",f10.4,"%",20X,"ARD(y) = ",f10.4,"%")')E2,E4
 	        write(10,359)E1,E2,idC(ks,1),E3,E4
-359	        Format(/" AAD(ARD%): P = ,",E10.4,", atm (, ",F6.2,"% ,)  ,",20X," y(",I<iDim>,") = ,",E10.4," (, ",F6.2,"% ,)")
+359	        Format(/" AAD(ARD%): P = ,",E10.4,", atm (, ",F6.2,"% ,)  ,",20X," y(",I0,") = ,",E10.4," (, ",F6.2,"% ,)")
 3570	        format(F7.2,",",F9.6,",",F10.4,",",F9.6,",",F10.4)
 !359	        FORMAT(/,X,' ARD(P) =',F8.2," %",20X,"AAD(y) = ",f10.4)
 	        Pmin = 101.325*minval(Pexp(N1:NCXP)); Pmax = 101.325*maxval(Pexp(N1:NCXP))
@@ -3690,7 +3692,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	        else
 	          iDim4 = 2
 	        endif
-	        write (2, '(2(I2, ","), F6.0, "-", F6.0, ",", F6.<iDim1>, "-", F6.<iDim2>, ",", F6.<iDim3>, ",", F6.<iDim4>, ",", I3, ",", 80A2)')  &
+	        write (2, '(2(I2, ","), F6.0, "-", F6.0, ",", F6.'//i2s(iDim1)//', "-", F6.'//i2s(iDim2)//', ",", F6.'//i2s(iDim3)//', ",", F6.'//i2s(iDim4)//', ",", I3, ",", 80A2)')  &
 	        
 	            idc(ks,1), idc(ks,2), minval(Texp(N1:NCXP)),maxval(Texp(N1:NCXP)), Pmin, Pmax, E2, E4, nObs(ks), (NTEXT(ks,j), j = 1, 65)
 
@@ -3699,8 +3701,8 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 !	        Resultados de flash a P y x:
 	        NCXPy = NCXP
 	        WRITE(1,356) IDC(KS,1),IDC(KS,1),IDC(KS,1)
-356	        FORMAT(/,X,'  Pres/ATM    Xexp(',I<iDim>,')    Temp/K     TempCalc       ERR%       Yexp(',I<iDim>,')     Ycalc(',I<iDim>,')     ERR ',/)
-	        write(10,'(/,"P /atm,(x-y)(",I<iDim>,")exp,T /K,(xExp-yCalc)(",I<iDim>,"),Tcalc /K")')IDC(KS,1),IDC(KS,1)
+356	        FORMAT(/,X,'  Pres/ATM    Xexp(',I0,')    Temp/K     TempCalc       ERR%       Yexp(',I0,')     Ycalc(',I0,')     ERR ',/)
+	        write(10,'(/,"P /atm,(x-y)(",I0,")exp,T /K,(xExp-yCalc)(",I0,"),Tcalc /K")')IDC(KS,1),IDC(KS,1)
 	        DO I=1,NOBS(KS)
 
 	          WRITE(1,358) PEXP(NCXP+1),XEXP(NCXP+1),TEXP(NCXP+1),PCALC(NCXP+1), FCAUX(NCXP+1),YEXP(NCXP+1),YCALC(NCXP+1),FCAUX2(NCXP+1), &
@@ -3729,7 +3731,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	        write(1,360)E1,E2,idC(ks,1),E3,E4
 	        write(*,'(/,X," ARD(T) =",f10.4,20X,"ARD(y) = ",f10.4)')E2, E4
 	        write(10,360)E1,E2,idC(ks,1),E3,E4
-360	        Format(/" AAD(ARD%): T = ,",E10.4,", K (, ",F6.2,"% ,)  ,",20X," y(",I<iDim>,") =, ",E10.4,", (, ",F6.2,"% ,)")        
+360	        Format(/" AAD(ARD%): T = ,",E10.4,", K (, ",F6.2,"% ,)  ,",20X," y(",I0,") =, ",E10.4,", (, ",F6.2,"% ,)")        
 3580	        format(F10.4,",",F9.6,",",F7.2,",",F9.6,",",F7.2)
 !	        WRITE(1,360) 100*STDVA(KS),STDVB(KS)
 !	        WRITE(6,360) 100*STDVA(KS),STDVB(KS)
@@ -3740,10 +3742,10 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 
 !	        Resultados de equilibrio ternario
 	        WRITE(1,451) IDC(KS,1),IDC(KS,1),IDC(KS,2),IDC(KS,2),IDC(KS,1),IDC(KS,1),IDC(KS,2),IDC(KS,2)
-451	        FORMAT(/,X,"  T/K     P/ATM   xExp(",I<iDim>,',I) xClc(',I<iDim>,',I)    ERR    xExp(',I<iDim2>,',I) xClc(',I<iDim2>,',I)    ERR    xExp(',I<iDim>,',II)  xClc(',I<iDim>,',II)      ERR     xExp(',I<iDim2>,',II)  xClc(',I<iDim2>,',II)     ERR%',/)
+451	        FORMAT(/,X,"  T/K     P/ATM   xExp(",I0,',I) xClc(',I0,',I)    ERR    xExp(',I0,',I) xClc(',I0,',I)    ERR    xExp(',I0,',II)  xClc(',I0,',II)      ERR     xExp(',I0,',II)  xClc(',I0,',II)     ERR%',/)
 !
 	        WRITE(10,4511) IDC(KS,1),IDC(KS,2),IDC(KS,1),IDC(KS,2)
-4511	        FORMAT(/,X,"xExp(",I<iDim>,"),xExp(",I<iDim>,"),xClc(",I<iDim>,"),xClc(",I<iDim>,"),T /K,P /atm")
+4511	        FORMAT(/,X,"xExp(",I0,"),xExp(",I0,"),xClc(",I0,"),xClc(",I0,"),T /K,P /atm")
 !
 !	        Recontador para "gráficos"
 	        NCXPy = NCXP
@@ -3774,8 +3776,8 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	        write(1,453)idC(ks,1),E1,E2, idC(ks,2),E3,E4, idC(ks,1),E5,E6, idC(ks,2),E7,E8
 	        write(*,'(/,X," ARD(x) =",f10.4,20X,"ARD(y) = ",f10.4)')E2,E4,E6,E8
 	        write(10,453)idC(ks,1),E1,E2, idC(ks,2),E3,E4, idC(ks,1),E5,E6, idC(ks,2),E7,E8
-453	        Format(/" AAD(ARD%): x(",I<iDim>,") = ,",E10.4,", ( ",F6.2,"%, ) ,  x(",I<iDim2>,") = ,",E10.4," ,( ",F6.2,"%, )",20X,         &
-&                    " y(",I<iDim>,") = ,",E10.4," ,(, ",F6.2,"% ,) ,  y(",I<iDim2>,") = ,",E10.4," ( ",F6.2,"% )")
+453	        Format(/" AAD(ARD%): x(",I0,") = ,",E10.4,", ( ",F6.2,"%, ) ,  x(",I0,") = ,",E10.4," ,( ",F6.2,"%, )",20X,         &
+&                    " y(",I0,") = ,",E10.4," ,(, ",F6.2,"% ,) ,  y(",I0,") = ,",E10.4," ( ",F6.2,"% )")
 4490	        format(4(F9.6,","),F7.2,",",F10.4,/,4(F9.6,","),/)
 !	        WRITE(1,453) STDVA(KS),STDVB(KS),stDvC(ks),stDvD(ks)
 !	        WRITE(6,453) STDVA(KS),STDVB(KS),stDvC(ks),stDvD(ks)
@@ -3792,14 +3794,14 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 
 !	        Resultados de volumen en exceso:
 
-	        write(1,'(/,"  T(K)       P(atm)    Xexp(",I<iDim>,")  Vexp^E(cm3/mol)   Vcalc^E(cm3/mol)       Z",/)')idC(ks,1)
-	        write(10,'(/,"Temp (K),P (atm),Xexp(",I<iDim>,"),Vexp^E (cm3/mol),Vcalc^E (cm3/mol),Z",/)')idC(ks,1)
+	        write(1,'(/,"  T(K)       P(atm)    Xexp(",I0,")  Vexp^E(cm3/mol)   Vcalc^E(cm3/mol)       Z",/)')idC(ks,1)
+	        write(10,'(/,"Temp (K),P (atm),Xexp(",I0,"),Vexp^E (cm3/mol),Vcalc^E (cm3/mol),Z",/)')idC(ks,1)
 
 	      elseif(ifl(ks).EQ.2)then
 
 !	        Resultados de entalpía en exceso:
-	        write(1,'(/,"  T(K)       P(atm)    Xexp(",I<iDim>,")  Hexp^E(J/mol)   Hcalc^E(J/mol)       Z",/)')idC(ks,1)
-	        write(10,'(/,"T (K),P (atm),Xexp(",I<iDim>,"),Hexp^E (J/mol),Hcalc^E (J/mol),Z",/)')idC(ks,1)
+	        write(1,'(/,"  T(K)       P(atm)    Xexp(",I0,")  Hexp^E(J/mol)   Hcalc^E(J/mol)       Z",/)')idC(ks,1)
+	        write(10,'(/,"T (K),P (atm),Xexp(",I0,"),Hexp^E (J/mol),Hcalc^E (J/mol),Z",/)')idC(ks,1)
 
 	      endif
 	      do i = 1,nObs(ks)
@@ -3836,8 +3838,8 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	    elseif(iHen(ks).EQ.2)then
 
 !	      Resultados de solubidad de sólidos en líquidos
-	      write(1,'(/,2X,"T(K)",6X,"P(atm)",5X,"xExp(",I<iDim>,")",5x,"xCal(",I<iDim>,")",8X,"Zliq",7X,"PhiL(",I<iDim>,")",/)')idC(ks,1),idC(ks,1),idC(ks,1)
-	      write(10,'(/,"xExp(",I<iDim>,"),xCalc(",I<iDim>,"),T(K),P(atm)",/)')idC(ks,1),idC(ks,1)
+	      write(1,'(/,2X,"T(K)",6X,"P(atm)",5X,"xExp(",I0,")",5x,"xCal(",I0,")",8X,"Zliq",7X,"PhiL(",I0,")",/)')idC(ks,1),idC(ks,1),idC(ks,1)
+	      write(10,'(/,"xExp(",I0,"),xCalc(",I0,"),T(K),P(atm)",/)')idC(ks,1),idC(ks,1)
 	      do i = 1, nObs(ks)
 		  
 	        write(1,'(F7.2,2X,F10.5,2X,2(F10.8,2X),2(F11.8,2x))')Texp(NCXP+1),Pexp(NCXP+1),xExp(NCXP+1),xCalc(NCXP+1),ZliCalc(NCXP+1),yCalc(NCXP+1)
@@ -3852,7 +3854,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	      write(1,5002)idC(ks,1),E1,E2
 	      write(*,'(/"ARD(xS) = ",F10.4)')E2
 	      write(10,5002)idC(ks,1),E1,E2
-5002	      format(/" AAD(ARD%) xS(",I<iDim>,") = ,",E10.4," ,(, ",F6.2,"% ,)")
+5002	      format(/" AAD(ARD%) xS(",I0,") = ,",E10.4," ,(, ",F6.2,"% ,)")
 !	      write(1,453)stDva(ks)
 !	      write(*,453)stDva(ks)
 !	      write(10,453)stDva(ks)
@@ -3860,7 +3862,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	    elseif(iHen(ks) == 3)then
 	    
 ! 	      Resultados de puntos críticos
-	      write(1,'(/, 2X, "Tc(K)", 5X, "Pc(atm)", 4X, "xcExp(", I<iDim>, ")", 8X, "Zc", 4X, "d[ln(f(", I<iDim>, "))]/dz(", I<iDim>, ")", 2X, "d2[ln(f(", I<iDim>, "))]/dz(", I<iDim>, ")2",  /)')idC(ks,1), idC(ks,1), idC(ks,1), idC(ks,1), idC(ks,1)
+	      write(1,'(/, 2X, "Tc(K)", 5X, "Pc(atm)", 4X, "xcExp(", I0, ")", 8X, "Zc", 4X, "d[ln(f(", I0, "))]/dz(", I0, ")", 2X, "d2[ln(f(", I0, "))]/dz(", I0, ")2",  /)')idC(ks,1), idC(ks,1), idC(ks,1), idC(ks,1), idC(ks,1)
 ! 	      write(10,'(/, 2X, "Tc(K),Pc(atm),xcExp(", I<iDim>, "),xcCal(",I<iDim>,")", /)')idC(ks,1), idC(ks,1)
 	      do i = 1, nObs(ks)
 	      
@@ -3876,8 +3878,8 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	      If(mez(ks)==2)then
 
 	        write(1,1344)IDC(KS,1),IDC(KS,1),IDC(KS,1),IDC(KS,2),IDC(KS,2)
-1344	        FORMAT(X,'Temp/K       Xex(',I<iDim>,')   Gex(',I<iDim>,')   Gc(',I<iDim>,')     Gex(',I<iDim2>,')   Gc(',I<iDim2>,')'       ,'Zliq'/)
-1444	        format('T/K,x',I<iDim>,'),ln(gamma(',I<iDim>,')exp),ln(gamma(',I<iDim>,'))calc,ln(gamma(',I<iDim2>,')exp),ln(gamma(',I<iDim2>,')calc),Z')
+1344	        FORMAT(X,'Temp/K       Xex(',I0,')   Gex(',I0,')   Gc(',I0,')     Gex(',I0,')   Gc(',I0,')'       ,'Zliq'/)
+1444	        format('T/K,x',I0,'),ln(gamma(',I0,')exp),ln(gamma(',I0,'))calc,ln(gamma(',I0,')exp),ln(gamma(',I0,')calc),Z')
 	        write(10,1444)IDC(KS,1),IDC(KS,1),IDC(KS,1),IDC(KS,2),IDC(KS,2)
 	        DO I=1,NOBS(KS)
 
@@ -3901,7 +3903,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	        write(1,1379)idC(ks,1),E1,E2,idC(ks,2),E3,E4
 	        write(10,1379)idC(ks,1),E1,E2,idC(ks,2),E3,E4
 	        write(*,'(" ARD(gamma1) = ",F10.4,20X," ARD(gamma2) = ",F10.4)')E2,E4
-1379	        format(/" AAD(ARD%) gamma(",I<iDim>,") = ",E10.4,", (, ",F6.2"% ,) , AAD(ARD%) gamma(",I<iDim2>,") = ",E10.4,", (, ",F6.2"% ,)")
+1379	        format(/" AAD(ARD%) gamma(",I0,") = ",E10.4,", (, ",F6.2"% ,) , AAD(ARD%) gamma(",I0,") = ",E10.4,", (, ",F6.2"% ,)")
 
 	      elseif(mez(ks)==3)then
 
@@ -3913,7 +3915,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 &	                       rgamexp3(NCXP+1),rgamcalc3(NCXP+1)
 1348	          FORMAT(X, f6.2 , 2(1X,e10.4), 6(1X,E12.3))
 1349	          FORMAT(3F9.6)
-1350	          FORMAT(X,'Temp/K Xex(',I<iDim>,') Xex(',I<iDim2>,') Gex(',I<iDim>,') Gc(',I<iDim>,') Gex(',I<iDim2>,') Gc(',I<iDim2>,'),    &
+1350	          FORMAT(X,'Temp/K Xex(',I0,') Xex(',I0,') Gex(',I0,') Gc(',I0,') Gex(',I0,') Gc(',I0,'),    &
 &                      Gex(',I2,') Gc(',I2,')')
                 NCXP = NCXP + 1
 
@@ -3932,7 +3934,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	        write(1,1351)idC(ks,1),E1,E2,idC(ks,2),E3,E4,idC(ks,3),E5,E6
 	        write(10,1351)idC(ks,1),E1,E2,idC(ks,2),E1,E2
 	        write(*,'(" ARD(gamma1) = ",F10.4,20X," ARD(gamma2) = ",F10.4)')
-1351	        format(/" AAD(ARD%) gamma(",I<iDim>,"): ",E10.4,", (, ",F6.2"%, ) , gamma(",I<iDim2>,"): ",E10.4," (, ",F6.2,                  &
+1351	        format(/" AAD(ARD%) gamma(",I0,"): ",E10.4,", (, ",F6.2"%, ) , gamma(",I0,"): ",E10.4," (, ",F6.2,                  &
 &                     "% ) , gamma(",I2,"): ",E10.4,", (, ",F6.2"% ,)")
 
 	      end if
@@ -3983,6 +3985,7 @@ ENDsubroutine !FIN FORDC
 !
 subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,ONUASOCWW, &
 &	               MASSOC,ENASS,RKASS,Tspline)
+	use utilidades, only: i2s
 
 	IMPLICIT REAL*8(A-H,O-Z)
 	parameter(NCM=15,NGM=20,NGAM=12,NSM=24)
@@ -4063,19 +4066,19 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 33	WRITE(iOut,115)
 	do i = 1,NG
 
-	  WRITE(IOUT,116) (XKIJ(I,J),J=1,NG)
+	  WRITE(IOUT,"(3X,'|',"//i2s(NG)//"F8.3,'|')") (XKIJ(I,J),J=1,NG)
 
 	enddo
       WRITE(iOut,117)
 	do i = 1,NG
 
-	  WRITE(IOUT,116) (AKIJ(I,J),J=1,NG)
+	  WRITE(IOUT,"(3X,'|',"//i2s(NG)//"F8.3,'|')") (AKIJ(I,J),J=1,NG)
 
 	enddo
 	WRITE(IOUT,118)
 	DO 23 I=1,NG
 
-	  WRITE(IOUT,116) (ALFA(I,J),J=1,NG)
+	  WRITE(IOUT,"(3X,'|',"//i2s(NG)//"F8.3,'|')") (ALFA(I,J),J=1,NG)
 
 23	enddo
 !-----------------------------------------------------------------------
@@ -4142,13 +4145,13 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 	  WRITE(IOUT,218)
 218	  FORMAT(/,X,' Configuración grupal asociativa ',/,30X,'Compuesto Nro.')
 
-	  write(iOut,'(" Grupo    Nro. de sitios  ",<NC>(I5,X))')((I), I=1,NC)
+	  write(iOut,'(" Grupo    Nro. de sitios  ",*(I5,X))')((I), I=1,NC)
 !
 	  write(iOut,120)
 	  DO I=1,NGA
 
 	    WRITE(IOUT,219) I,MAssoc(I), (onuAsocWW(I,J), J=1,NC)
-219	    FORMAT(2X,I3,16X,I3,2X,<NC>(F5.0,X))
+219	    FORMAT(2X,I3,16X,I3,2X,*(F5.0,X))
 
 	  END DO
 !
@@ -4159,30 +4162,27 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 	  do i = 1,NGA
 	    do k = 1,Massoc(i)
 
-	      write(IOUT,2210)((enAss(k,i,l,j),l = 1,MAssoc(j)),j=1,NGA)
+	      write(IOUT,"(3X,'|',"//i2s(NST)//"(X,F7.1),'|')")((enAss(k,i,l,j),l = 1,MAssoc(j)),j=1,NGA)
 
 	    enddo
 	  enddo
-2210	  format(3X,'|',<NST>(X,F7.1),'|')
 !	  Escritura del volumen de asociación
 	  write(IOUT,'(/," Volumen de asociación [kappa] (cm3/mol)",/)')
 	  do i = 1,NGA
 	    do k = 1,Massoc(i)
 
-	      write(IOUT,2220)((rKAss(k,i,l,j),l = 1,Massoc(j)),j=1,NGA)
+	      write(IOUT,"(3X,'|',"//i2s(NST)//"(X,F7.5),'|')")((rKAss(k,i,l,j),l = 1,Massoc(j)),j=1,NGA)
 
 	    enddo
 	  enddo
-2220	  format(3X,'|',<NST>(X,F7.5),'|')
 
 	endif
 
 
-100	FORMAT(<NCM>I3)
+100	FORMAT(*(I3))
 101	FORMAT(5F10.2)
 102	FORMAT(I3,5F10.2)
 111	FORMAT(8F7.2)
-116	FORMAT(3X,'|',<NG>F8.3,'|')
 115	FORMAT(/,1X,'Parámetros de interacción binaria, [k*]',/)
 117	FORMAT(/,1X,'Dependencia con la temperatura, [k`]',/)
 118	FORMAT(/,1X,'Parámetros de composición local, [alfa]',/)

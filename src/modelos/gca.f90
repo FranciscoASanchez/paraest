@@ -1104,6 +1104,7 @@ ENDsubroutine
 SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 !
 	IMPLICIT REAL*8(A-H,O-Z)
+	character(40) :: fmt116, fmt2210, fmt2220   ! formatos de largo variable (dependen de NG y NST)
 	parameter(NCM = 15, NGM = 20, NGAM = 12, NSM = 24)
 
 	DIMENSION X(35),X1(35),X2(35),NNY(NCM,NGM+1),IGROUP(NGM),INT(2*(NGM+1)), &
@@ -1315,7 +1316,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 !
 !	Halla temperatura de spline con Newton
 12	WRITE(iOut,105) (J,J=1,NC)
-	WRITE(iOut,'(X,75("-"),<NC>("-----"))')
+	WRITE(iOut,'(1X,A)') repeat('-', 75 + 5*NC)
 	do I = 1,NG
 
 	  IF(G1(I).LT.-1.D-4)then	!GT.-1.D-4) GOTO 18
@@ -1367,8 +1368,8 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 !-----------------------------------------------------------------------
 105	FORMAT(///, X, 'Pure group atractive parameters:', /, 78X, 'Group configuration per component', /, 3X, &
 &	       'GN', 3X, 'T*(K)', 5X, 'q', 3X, 'g*(atm cm6/mol2)', 5X, 'g`', 8X, 'g"', 6X, "Ts(K)", 4X,        &
-&	       "exp", X, <NC>I5)
-106	FORMAT(1X, I4, 1X, F7.2, F8.4, 4X, F10.1, 2X, 2F10.5, 3X, F7.2, 2X, F5.2, <NC>I5)
+&	       "exp", X, *(I5))
+106	FORMAT(1X, I4, 1X, F7.2, F8.4, 4X, F10.1, 2X, 2F10.5, 3X, F7.2, 2X, F5.2, *(I5))
 
 !  Lectura parametros de interaccion binaria grupales atractivos del banco de datos
       I=0
@@ -1458,21 +1459,22 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 !
 !	Impresión de parámetros binarios
    33 WRITE(iOut,115)
+	write(fmt116,'(A,I0,A)') "(3X,'|',", NG, "F8.3,' |')"
 	do i = 1,NG
 
-	  WRITE(IOUT,116) (XKIJ(I,J),J=1,NG)
+	  WRITE(IOUT,fmt116) (XKIJ(I,J),J=1,NG)
 
 	enddo
 	WRITE(iOut,117)
 	do i = 1,NG
 
-	  WRITE(IOUT,116) (AKIJ(I,J),J=1,NG)
+	  WRITE(IOUT,fmt116) (AKIJ(I,J),J=1,NG)
 
 	enddo
 	WRITE(IOUT,118)
 	DO 23 I=1,NG
 
-	  WRITE(IOUT,116) (ALFA(I,J),J=1,NG)
+	  WRITE(IOUT,fmt116) (ALFA(I,J),J=1,NG)
 
 23	enddo
 !-----------------------------------------------------------------------
@@ -1607,13 +1609,13 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 	  WRITE(IOUT,218)
 218	  FORMAT(/,X,'Associating group configuration ',/,26X,'Compound No')
 
-	  write(iOut,'(" Group    No of sites ",<NC>(I4,X))')((I), I=1,NC)
+	  write(iOut,'(" Group    No of sites ",*(I4,X))')((I), I=1,NC)
 !
-	  write(iOut,'(X,25("-"),<NC>(5("-")))')
+	  write(iOut,'(1X,A)') repeat('-', 25 + 5*NC)
 	  DO I=1,NGA
 
 	    WRITE(IOUT,219) I,MAssoc(I), (nyass(I,J), J=1,NC)
-219	    FORMAT(2X,I3,8X,I3,6X,<NC>(I4,X))
+219	    FORMAT(2X,I3,8X,I3,6X,*(I4,X))
 
 	  END DO
 !
@@ -1622,23 +1624,23 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 
 !  Escritura de parámetros energéticos de asociación en forma de matriz
 	  do i = 1,NGA
+	  write(fmt2210,'(A,I0,A)') "(3X,'|',", NST, "(X,F7.1),' |')"
 	    do k = 1,Massoc(i)
 
-	      write(IOUT,2210)((enAs(k,i,l,j),l = 1,MAssoc(j)),j=1,NGA)
+	      write(IOUT,fmt2210)((enAs(k,i,l,j),l = 1,MAssoc(j)),j=1,NGA)
 
 	    enddo
 	  enddo
-2210	  format(3X,'|',<NST>(X,F7.1),' |')
 !  Escritura del volumen de asociación
 	  write(IOUT,'(/," Associating volume matrix, [kappa] (cm3/mol)",/)')
 	  do i = 1,NGA
+	  write(fmt2220,'(A,I0,A)') "(3X,'|',", NST, "(X,F7.5),' |')"
 	    do k = 1,Massoc(i)
 
-	      write(IOUT,2220)((volAs(k,i,l,j),l = 1,Massoc(j)),j=1,NGA)
+	      write(IOUT,fmt2220)((volAs(k,i,l,j),l = 1,Massoc(j)),j=1,NGA)
 
 	    enddo
 	  enddo
-2220	  format(3X,'|',<NST>(X,F7.5),' |')
 
 	endif
 !-----------------------------------------------------------------------
@@ -1648,7 +1650,6 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 101	FORMAT(5F10.2)
 102	FORMAT(I3,5F10.2)
 111	FORMAT(8F7.2)
-116	FORMAT(3X,'|',<NG>F8.3,' |')
 115	FORMAT(/,1X,'Binary interaction parameter at T* matrix, [k*]',/)
 117	FORMAT(/,1X,'Binary interaction parameter temperature dependence matrix , [k`]',/)
 118	FORMAT(/,1X,'Binary dumping factors matrix, [alpha]',/)

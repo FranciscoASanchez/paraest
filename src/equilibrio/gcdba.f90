@@ -205,7 +205,7 @@
 !	Alfonsina
 !	write(8,16)	T,P ,( y(i), i=1,nc )
 !16	format((F10.4),1X,(F10.4), 1x,(F10.6), 1x,(F10.6), 1x,(F10.6) )! Alfonsina
-16    format((F10.4),1X,(F10.4),<NC>(X,(F10.6)))	  ! Francisco
+16    format((F10.4),1X,(F10.4),*(X,(F10.6)))	  ! Francisco
 !
       IF(IOUT.EQ.1) WRITE(3,3300)
 !	DO 400 I=1,NC

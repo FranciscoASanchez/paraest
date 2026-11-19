@@ -94,8 +94,8 @@
       				CONTINUE
       	END IF
 !
-      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1)  IERRINI=1
-      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1)  GO TO 987
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1)  IERRINI=1
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1)  GO TO 987
 !
       PRESS0 = ZSIS0 * RUNIV * TEMP  / VLIQ0
 !
@@ -111,8 +111,8 @@
      &ierrassoc)
 
 !
-      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1)  IERRINI=1
-      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1)  GO TO 987
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1)  IERRINI=1
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1)  GO TO 987
 !
 !
       PRESS1 = ZSIS1 * RUNIV * TEMP  / VLIQ1
@@ -146,8 +146,8 @@
      &,ENASS,RKASS,ARESTOT,ZSIS2,FFILQ,ierrFUG,IERRZSIS,IERRREP,&
      &ierrassoc)
 !
-      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRINI=1
-      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 987
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) IERRINI=1
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) GO TO 987
 !
 !
 !
@@ -250,13 +250,13 @@
      &ierrassoc)
 !
 
-      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1)  IERRLC=1
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1)  IERRLC=1
 	!write (2,*) "primeiro", ierrFUG, IERRZSIS, IERRREP
 	!write (2,*)"ZSIScompat", ZSIS
 	!write (2,*)"VLIQcomapt", VLIQ
 
 
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 229
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) GO TO 229
 !
 !
 ! EVALUO LA FUNCION QUE QUIERO HACER CERO
@@ -296,11 +296,11 @@
      &,ENASS,RKASS,ARESTOT,ZSIS,FFILQ,IERRFUG,IERRZSIS,IERRREP,&
      &ierrassoc)
 !
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRLC=1
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) then
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) IERRLC=1
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) then
 		!write (2,*) "segundo", ierrFUG, IERRZSIS, IERRREP
       end if
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 229
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) GO TO 229
 !
 !
 ! EVALUO LA FUNCION QUE QUIERO HACER CERO
@@ -354,8 +354,8 @@
 
 
 !
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRLC=1
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) then
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) IERRLC=1
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) then
 		!write (2,*) "terceiro", ierrFUG, IERRZSIS, IERRREP
       end if
 !
@@ -462,8 +462,8 @@
      &,ENASS,RKASS,ARESTOT,ZFSV0,FFIVP,ierrFUG,IERRZSIS,IERRREP,&
      &ierrassoc)
 !
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRVI=1
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 456
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) IERRVI=1
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) GO TO 456
 !
 !
 !	write(2,11)yvap(1),temp, press, vvap0, zsfv0
@@ -483,8 +483,8 @@
 !   12	FORMAT(X,5F10.4,X)
 
 !
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRVI=1
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 456
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) IERRVI=1
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) GO TO 456
 !
 !
       PRESSV1 = ZFSV1 * RUNIV * TEMP / VVAP1
@@ -524,8 +524,8 @@
 !	write(2,13)yvap(1),temp, press, vvap, zfsv
 ! 13	FORMAT(X,5F10.4,X)
 
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRVI=1
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 456
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) IERRVI=1
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) GO TO 456
 !
       PRESSV = ZFSV * RUNIV * TEMP / VVAP
 !	write(2,*) pressv
@@ -615,8 +615,8 @@
      &,ENASS,RKASS,ARESTOT,ZFSV,FFIVP,ierrFUG,IERRZSIS,IERRREP,&
      &ierrassoc)
 !
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRVC=1
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 787
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) IERRVC=1
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) GO TO 787
 !
 !
 !
@@ -655,7 +655,7 @@
 !	write(2,*)yvap(1), temp, press, vvap, zfsv,ffivp
 !	write(2,*)"erros", ierrFUG,IERRZSIS,IERRREP
 !
-      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRVC=1
+      IF(IERRFUG/=0 .OR. IERRZSIS/=0 .OR. IERRREP/=0 .OR. ierrassoc==1) IERRVC=1
 !
        ELSE
         CONTINUE

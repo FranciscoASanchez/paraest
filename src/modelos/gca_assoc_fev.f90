@@ -108,9 +108,9 @@
 !
       	if(dabs(ZSISNUMER-ZSISANAL).eq.0) THEN
 !
-      	  OPEN(UNIT=1,TYPE='OLD',NAME='ASSOCPARA.RES',&
+      	  OPEN(UNIT=1,STATUS='OLD',FILE='ASSOCPARA.RES',&
      & FORM='FORMATTED',&
-     & ACCESS='APPEND')
+     & POSITION='APPEND')
 !
       	  write(1,*)&
      &' WARNING: El paso para la dif. numerica resp. al vol &
@@ -123,9 +123,9 @@
 !
       	IF(DABS((ZSISNUMER-ZSISANAL)/ZSISANAL).GT.1.D-4) THEN
 !
-      	  OPEN(UNIT=1,TYPE='OLD',NAME='ASSOCPARA.RES',&
+      	  OPEN(UNIT=1,STATUS='OLD',FILE='ASSOCPARA.RES',&
      & FORM='FORMATTED',&
-     & ACCESS='APPEND')
+     & POSITION='APPEND')
 !
       	  WRITE(1,*) ' LA DERIVACION NUMERICA CON RESPECTO AL VOLUMEN&
      & NO COINCIDE CON LA DERIVACION ANALITICA'
@@ -175,9 +175,9 @@
 !
       		IF(DABS(FFINUMER-FFIANAL(I)).EQ.0) THEN
 !
-      		 OPEN(UNIT=1,TYPE='OLD',NAME='ASSOCPARA.RES',&
+      		 OPEN(UNIT=1,STATUS='OLD',FILE='ASSOCPARA.RES',&
      & FORM='FORMATTED',&
-     & ACCESS='APPEND')
+     & POSITION='APPEND')
 !
       		 WRITE(1,*)&
      &' WARNING: El paso para la diferenciacion numerica con respecto &
@@ -191,9 +191,9 @@
 !
       		IF(DABS((FFINUMER-FFIANAL(I))/FFIANAL(I)).GT.1.D-4) THEN
 !
-      		 OPEN(UNIT=1,TYPE='OLD',NAME='ASSOCPARA.RES',&
+      		 OPEN(UNIT=1,STATUS='OLD',FILE='ASSOCPARA.RES',&
      & FORM='FORMATTED',&
-     & ACCESS='APPEND')
+     & POSITION='APPEND')
 !
       	  	 WRITE(1,*) ' LA DERIVACION NUMERICA CON RESPECTO AL &
      & NUMERO DE MOLES DEL COMP ',I,' NO COINCIDE CON LA&
