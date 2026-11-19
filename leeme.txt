@@ -1,0 +1,31 @@
+A-Paraest Linux v 0.0.1
+
+Compilar: abrir una consola/terminal y desde el directorio donde están los archivos tipear
+
+$ make
+
+
+Eliminar archivos objeto (*.o *.x):
+
+$ make clean
+
+
+Eliminar Backups:
+
+$ make cleanbak
+
+
+Ejecutar el programa:
+
+$ ./paraest.x
+
+El ejecutable generado se llama "paraest.x". La extensión *.x no es necesaria, pero la agrego
+para una mejor distinción y manejo de los archivos en la consola. También podría haberlo lla-
+mado "paraest.exe" pero pueden haber confusiones con respecto a los ejecutables de DOS.
+(NOTA: llamando *.exe a un ejecutable de GNU/Linux no de crea un ejecutable de DOS.)
+
+De momento no se consideraron los archivos  A-TPflash-Ell.FOR.  Tal vez cuando funcione el a-
+juste ELL sí se agregue.
+
+Tampoco está compilándose el archivo  CUBICandQUARTIC.for  porque de momento el cálculo es di-
+recto al de Alfonsina.

@@ -1,0 +1,114 @@
+1.   1.   1.   1.   1.   1.   1.   1.   1   2 2  !MDEA Molecular. 
+1  1  2  10
+1  0  0  0  1
+
+1	!Critical Point and Vapor Pressure Measurements for 17 Compounds by a Low Residence Time Flow Method
+27	!David M. VonNiederhausern, Grant M. Wilson, and Neil F. Giles
+80	!J. Chem. Eng. Data 2006, 51, 1990-1995
+
+
+685.00	3.089E+01
+653.90	2.058E+01
+625.90	1.377E+01
+594.20	8.316E+00
+564.90	4.901E+00
+526.90	2.223E+00
+500.90	1.158E+00
+516.09	1.668E+00	------------------------------
+509.45	1.414E+00		|
+502.82	1.192E+00		v
+496.24	9.997E-01	
+489.68	8.342E-01	
+483.15	6.920E-01	
+476.64	5.706E-01
+470.16	4.676E-01
+463.71	3.807E-01	Steele, W. V.; Chirico, R. D.; Knipmeyer, S. E.; Nguyen, A. DIPPR
+457.28	3.077E-01	Project 821 vapor pressure of organic chemicals of industrial interest:
+450.87	2.469E-01	the 1991 projec t results. Experimental Results for DIPPR 1990-
+444.49	1.967E-01	1991 Projects on Phase Equilibria and Pure Component Properties;
+439.63	1.645E-01	(Sacado de la referencia antes citada)
+433.76	1.316E-01
+428.10	1.053E-01
+421.07	7.894E-02
+411.66	5.263E-02
+405.31	3.948E-02		^
+396.76	2.631E-02		|
+390.97	1.974E-02	------------------------------
+
+4.268	721.2
+
+
+271052.54	
+-1.34785	
+0.80958
+
+1
+0
+0
+
+1	2
+0.      ! A 1 A 1  N-N		E/kb
+0.      ! A 1 A 2  N-O
+2804	! A 1 B 2  N-H
+0.	    ! A 2 A 1  O-N	
+2804	! B 2 A 1  H-N
+0.      ! A 2 A 2  O-O		
+2758.8	! A 2 B 2  O-H
+2758.8  ! B 2 A 2  H-O
+0.      ! B 2 B 2  H-H	.00	
+0.      ! A 1 A 1			K
+0.      ! A 1 A 2   
+0.4696	! A 1 B 2  
+0.      ! A 2 A 1  
+0.4696	! B 2 A 1   
+0.      ! A 2 A 2 
+0.8709	! A 2 B 2
+0.8709	! B 2 A 2
+0.      ! B 2 B 2 
+
+721.2 54.06878745   0	0		!MDEA = OH-(CH2)2-(CH3-N)-(CH2)2-OH
+
+1	disp DEA
+1	asoc N
+2	asoc OH
+
+1 0 0 0 0 0 0
+1 1
+2
+0
+
+2.710525402e5	-1.34785	0.80958
+
+
+1	!Critical Point and Vapor Pressure Measurements for 17 Compounds by a Low Residence Time Flow Method
+27	!David M. VonNiederhausern, Grant M. Wilson, and Neil F. Giles
+80	!J. Chem. Eng. Data 2006, 51, 1990-1995
+
+
+685.00	3.089E+01
+653.90	2.058E+01
+625.90	1.377E+01
+594.20	8.316E+00
+564.90	4.901E+00
+526.90	2.223E+00
+500.90	1.158E+00
+516.09	1.668E+00	------------------------------
+509.45	1.414E+00		|
+502.82	1.192E+00		v
+496.24	9.997E-01	
+489.68	8.342E-01	
+483.15	6.920E-01	
+476.64	5.706E-01
+470.16	4.676E-01
+463.71	3.807E-01	Steele, W. V.; Chirico, R. D.; Knipmeyer, S. E.; Nguyen, A. DIPPR
+457.28	3.077E-01	Project 821 vapor pressure of organic chemicals of industrial interest:
+450.87	2.469E-01	the 1991 project results. Experimental Results for DIPPR 1990-
+444.49	1.967E-01	1991 Projects on Phase Equilibria and Pure Component Properties;
+439.63	1.645E-01	(Sacado de la referencia antes citada)
+433.76	1.316E-01
+428.10	1.053E-01
+421.07	7.894E-02
+411.66	5.263E-02
+405.31	3.948E-02		^
+396.76	2.631E-02		|
+390.97	1.974E-02	------------------------------

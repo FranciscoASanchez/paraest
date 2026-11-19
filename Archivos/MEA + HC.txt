@@ -1,0 +1,183 @@
+1.   1.   1.   1.   1.   1.   1.   1.   1   2 2  !gamma_i: MEA + HC
+7  3  2  10
+0  6  0  0  1
+
+2.36	678.20		!MEA
+0.848	600.00		!CH3
+0.54	600.00		!CH2
+
+583486.			316910.0	356080.0
+0.0				-0.9274		-0.8755
+-.376537393		.000000		0.0000
+
+1.000	0.920	0.920
+0.920	1.000	1.000
+0.920	1.000	1.000
+		
+0.000	0.000	0.000
+0.000	0.000	0.000
+0.000	0.000	0.000
+		
+0.000	0.000	0.000
+0.000	0.000	0.000
+0.000	0.000	0.000
+		
+
+1	2
+0.      ! A 1 A 1			E/kb
+0.      ! A 1 A 2  
+2966.7	! A 1 B 2	2966.7	0.6857
+0.	    ! A 2 A 1  
+2966.7  ! B 2 A 1  
+0.      ! A 2 A 2  
+2758.8	! A 2 B 2  
+2758.8  ! B 2 A 2  
+0.      ! B 2 B 2  
+0.      ! A 1 A 1			K
+0.      ! A 1 A 2   
+0.6857	! A 1 B 2  
+0.      ! A 2 A 1  
+0.6857	! B 2 A 1  
+0.      ! A 2 A 2 
+0.87093	! A 2 B 2
+0.87093	! B 2 A 2
+0.      ! B 2 B 2 
+
+678.20	78.74024	0		0			1	!OH-(CH2)2-NH2		2-aminoetanol	(MEA)
+469.7	33.267	372.0	5.692			2	!CH3-(CH2)3-CH3		n-pentano		(n-C5)
+507.60	30.00	292.12	0.1529			3	!CH3-(CH2)4-CH3		n-hexano		(n-C6)
+540.20	27.19	292.12	0.0440			4	!CH3-(CH2)5-CH3		n-heptano		(n-C7)
+568.70	24.57	398.84	0.9999			5	!CH3-(CH2)6-CH3		n-octano		(n-C8)
+594.6	22.6	300.00	6.431e-3		6	!CH3-(CH2)7-CH3		n-nonano		(n-C9)
+617.7	20.8	300.00	2.53e-3			7	!CH3-(CH2)8-CH3		n-decano		(n-C10)
+
+1	0	0	0	0	0	0	disp MEA
+0	2	2	2	2	2	2	disp CH3
+0	3	4	5	6	7	8	disp CH2
+1	0	0	0	0	0	0	asoc NH2
+1	0	0	0	0	0	0	asoc OH
+
+5				
+2				
+2	1	3		
+n-C5(2) + MEA(1)	T. M. Letcher, R. A. Harris, D. Ramjugernath, and J. D. Raal	J. Chem. Thermodynamics 2001, 33, 1655–1662		
+				
+288.15	1	0.0000	468.2	1
+298.15	1	0.0000	383.4	1
+308.15	1	0.0000	347.5	1
+				
+5				
+2				
+3	1	3		
+n-C6(3) + MEA(1)	T. M. Letcher, R. A. Harris, D. Ramjugernath, and J. D. Raal	J. Chem. Thermodynamics 2001, 33, 1655–1662		
+				
+288.15	1	0	643.6	1
+298.15	1	0	550.7	1
+308.15	1	0	507	1
+				
+5				
+2				
+4	1	3		
+n-C7(4) + MEA(1)	T. M. Letcher, R. A. Harris, D. Ramjugernath, and J. D. Raal	J. Chem. Thermodynamics 2001, 33, 1655–1662		
+				
+288.15	1	0.0000	889.1000	1
+298.15	1	0.0000	786.6	1
+308.15	1	0.0000	708.4	1
+				
+5				
+2				
+5	1	3		
+n-C8(5) + MEA(1)	T. M. Letcher, R. A. Harris, D. Ramjugernath, and J. D. Raal	J. Chem. Thermodynamics 2001, 33, 1655–1662		
+				
+288.15	1	0	1217.5	1
+298.15	1	0	1171.9	1
+308.15	1	0	1046.1	1
+				
+5				
+2				
+6	1	3		
+n-C9(6) + MEA(1)	T. M. Letcher, R. A. Harris, D. Ramjugernath, and J. D. Raal	J. Chem. Thermodynamics 2001, 33, 1655–1662		
+				
+288.15	1	0	1664.1	1
+298.15	1	0	1608.4	1
+308.15	1	0	1522.5	1
+				
+5				
+2				
+7	1	1		
+n-C10(7) + MEA(1)	T. M. Letcher, R. A. Harris, D. Ramjugernath, and J. D. Raal	J. Chem. Thermodynamics 2001, 33, 1655–1662		
+				
+308.15	1	0	2738.7	1
+				
+				
+
+2 0 0 0 0 0 0
+1 2	1 3
+1	1
+1	1
+2 1
+3 1
+0.8700	0	0.8764	-.0881
+
+
+0.8947 -0.1
+
+0.8947 -0.0585
+
+0.8758	0	-.1	0.8758 0
+
+0.8	-.05	0.9 -0.1891
+0.80	-0.15
+
+
+5				
+2				
+2	1	3		
+n-C5(2) + MEA(1)	T. M. Letcher, R. A. Harris, D. Ramjugernath, and J. D. Raal	J. Chem. Thermodynamics 2001, 33, 1655–1662		
+				
+288.15	1	0.0000	468.2	1
+298.15	1	0.0000	383.4	1
+308.15	1	0.0000	347.5	1
+				
+5				
+2				
+3	1	3		
+n-C6(3) + MEA(1)	T. M. Letcher, R. A. Harris, D. Ramjugernath, and J. D. Raal	J. Chem. Thermodynamics 2001, 33, 1655–1662		
+				
+288.15	1	0	643.6	1
+298.15	1	0	550.7	1
+308.15	1	0	507	1
+				
+5				
+2				
+4	1	3		
+n-C7(4) + MEA(1)	T. M. Letcher, R. A. Harris, D. Ramjugernath, and J. D. Raal	J. Chem. Thermodynamics 2001, 33, 1655–1662		
+				
+288.15	1	0.0000	889.1000	1
+298.15	1	0.0000	786.6	1
+308.15	1	0.0000	708.4	1
+				
+5				
+2				
+5	1	3		
+n-C8(5) + MEA(1)	T. M. Letcher, R. A. Harris, D. Ramjugernath, and J. D. Raal	J. Chem. Thermodynamics 2001, 33, 1655–1662		
+				
+288.15	1	0	1217.5	1
+298.15	1	0	1171.9	1
+308.15	1	0	1046.1	1
+				
+5				
+2				
+6	1	3		
+n-C9(6) + MEA(1)	T. M. Letcher, R. A. Harris, D. Ramjugernath, and J. D. Raal	J. Chem. Thermodynamics 2001, 33, 1655–1662		
+				
+288.15	1	0	1664.1	1
+298.15	1	0	1608.4	1
+308.15	1	0	1522.5	1
+				
+5				
+2				
+7	1	1		
+n-C10(7) + MEA(1)	T. M. Letcher, R. A. Harris, D. Ramjugernath, and J. D. Raal	J. Chem. Thermodynamics 2001, 33, 1655–1662		
+				
+308.15	1	0	2738.7	1

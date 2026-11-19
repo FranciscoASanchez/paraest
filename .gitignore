@@ -1,0 +1,32 @@
+# Compilados
+*.o
+*.mod
+*.x
+*.exe
+*__genmod.f90
+obj/
+debug/
+build/
+
+# Proyecto Visual Studio / IVF (copia de trabajo en Windows)
+IFV XE2011/
+
+# Salidas del programa (se regeneran en cada corrida)
+paraest.out
+graficos.csv
+tables.csv
+GCTHREE.SAL
+PARA.HIS
+fort.9
+fort.11
+fort.20
+binary_graphic*.csv
+
+# Editores / escritorio / backups
+*.kate-swp
+.*.swp
+*~
+*.bak
+.directory
+.kdev4/
+*.kdev4
