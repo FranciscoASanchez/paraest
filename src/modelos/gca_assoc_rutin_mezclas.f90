@@ -1,0 +1,668 @@
+!
+! CONTIENE UNAS CUANTAS RUTINAS NECESARIAS PARA EL CALCULO DE
+!  FUGACIDADES O FLASHES, EN SISTEMAS BINARIOS CON EL MODELO
+!    ASSOC-GC-EOS
+!
+!
+      SUBROUTINE LIQMIXINICI(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,IERRINI)
+
+!
+
+!
+! CALCULA EL VALOR INICIAL DEL VOLUMEN LIQUIDO A TEMP Y XLIQ DADOS
+!
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      integer, parameter :: NGM = 20
+!
+      DIMENSION DC(3), DSTR(3)
+      DIMENSION  TEMPCRIT(3)
+!
+! DIMENSIONAMIENTO DE ARREGLOS RELACIONADOS CON EL CARACTER GRUPAL
+! DEL TERMINO DE DISPERSION
+!
+      DIMENSION NU(NGM,3), QAREA(NGM), TSTR(NGM), GSTR(NGM)
+      DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
+      DIMENSION ALFAIJ(NGM,NGM)
+!
+! DIMENSIONAMIENTO DE ARREGLOS RELACIONADOS CON EL TERMINO DE ASOCIACION
+!
+        DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
+        DIMENSION ONUASOC(12,3)
+!
+      DIMENSION XLIQ(3)
+!
+      DIMENSION FFILQ(3)
+!
+! NUMERO MAXIMO DE ITERACIONES
+!
+      ITMAX = 300
+!
+! NUMERO DE ITERACIONES INICIAL
+!
+      NITER = 0
+!
+! SI ESTE MENSAJE DE ERROR SE TRANSFORMA EN 1 ==> NITER EXCEDIO A ITMAX
+!
+      IERRINI = 0
+!
+!
+! CALCULO DE DSTR(I) (DIAMETROS DE ESFERAS RIGIDAS A TEMPERATURA TEMP)
+!
+!	write(2,*) "liqinic xliq    T       P        vol      Z "
+
+      CALL SOFTN(NC,DC,TEMPCRIT,TEMP,DSTR)
+!
+! CALCULO DE LAMBDA NECESARIO  PARA inicializacion del volumen
+!
+      CALL LAMBDAN(NC,XLIQ,DSTR,RLAMBDAN3)
+!
+      RUNIV = 82.05 !ATM cm3 / (K mol)
+
+
+!
+!	INICIALIZCION DEL VLIQ
+!	WRITE(6,*)"RLAMBDAN3=",RLAMBDAN3
+!
+      VLIQ =  RLAMBDAN3 * 3.15 / 6. !APROXIMADAMENTE COVOLUMEN
+!
+! ES COVOLUMEN MOLAR PORQUE LAMBDAN ES LLAMADA CON XLIQ (o sea
+!  con las composiciones del liquido)
+!
+!
+      VLIQ0 = 1.40* VLIQ
+!
+116   NCOD=1
+!	WRITE(6,*) "0=",VLIQ0
+      CALL ASSOCGCEOS(NCOD,NC,DC,XLIQ,TEMPCRIT,VLIQ0,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZSIS0,FFILQ,ierrFUG,IERRZSIS,IERRREP,&
+     &ierrassoc)
+!
+! ierrFUG=1  ==> OVERFLOW EN UNA EXPONENCIAL con la que se calcula el coef
+!                            de fugacidad
+!
+!	write(2,18)xliq(1),temp, press, vliq0, zsis0
+!18	FORMAT(X,5F10.4,X)
+
+      	IF(ierrFUG.EQ.1) THEN
+      				VLIQ0 = 1.1 * VLIQ0
+      				GO TO 116
+      		 	ELSE
+      				CONTINUE
+      	END IF
+!
+      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1)  IERRINI=1
+      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1)  GO TO 987
+!
+      PRESS0 = ZSIS0 * RUNIV * TEMP  / VLIQ0
+!
+!
+      VLIQ1 = 1.0001 * VLIQ0
+!
+!
+      NCOD =1
+!	WRITE(6,*) "1=",VLIQ1
+      CALL  ASSOCGCEOS(NCOD,NC,DC,XLIQ,TEMPCRIT,VLIQ1,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZSIS1,FFILQ,ierrFUG,IERRZSIS,IERRREP,&
+     &ierrassoc)
+
+!
+      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1)  IERRINI=1
+      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1)  GO TO 987
+!
+!
+      PRESS1 = ZSIS1 * RUNIV * TEMP  / VLIQ1
+
+!	!	write(2,19)xliq(1), temp, press, vliq1, zsis1
+ ! 19	FORMAT(X,5F10.4,X)
+
+!
+! CON LA ECUACION DE UNA RECTA PASANTE POR (VLIQ0,PRESS0), (VLIQ1,PRESS1)
+!   CALCULO UNA APROXIMACION AL VOLUMEN LIQUIDO
+!
+789   IF(DABS((PRESS0-PRESS1)/PRESS0).LT.1.D-10) THEN
+!
+        VLIQ = VLIQ1
+        GO TO 987
+!
+      END IF
+!
+!
+      VLIQ2 = (PRESS-PRESS1) * (VLIQ0-VLIQ1) / (PRESS0-PRESS1) + VLIQ1
+!	WRITE(6,*) VLIQ2
+      If (VLIQ2.LT.0D0) GOTO 987
+!
+! CALCULO DE LA PRESION QUE REALMENTE AL VOLUMEN LIQUIDO CALCULADO
+!
+!
+      NCOD =1
+!	WRITE(6,*) "2=",VLIQ2
+      CALL ASSOCGCEOS(NCOD,NC,DC,XLIQ,TEMPCRIT,VLIQ2,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZSIS2,FFILQ,ierrFUG,IERRZSIS,IERRREP,&
+     &ierrassoc)
+!
+      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRINI=1
+      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 987
+!
+!
+!
+!	write(2,20)xliq(1), temp, press, vliq2, zsis2
+!  20	FORMAT(X,5F10.4,X)
+
+      PRESS2 = ZSIS2 * RUNIV * TEMP  / VLIQ2
+!
+      IF(PRESS2.GT.PRESS)  THEN
+
+        VLIQ0 = VLIQ1
+        VLIQ1 = VLIQ2
+        PRESS0 = PRESS1
+        PRESS1 = PRESS2
+        NITER = NITER + 1
+
+!
+        IF(NITER.GT.ITMAX) THEN
+          IERRINI = 1
+          GO TO 987
+        END IF
+!
+        GO TO 789
+      ELSE
+        VLIQ = VLIQ1
+
+
+      END IF
+
+
+
+987   END !FIN LIQMIXINICI
+!
+!
+!///////////////////////////////////////////////////////////////////
+      SUBROUTINE LIQMIXCOMPAT(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,FFILQ,IERRLC)
+!
+! COMPATIBILIZA EL VLIQ CON LA PRESION PRESS (SUSTITUCION DIRECTA)
+!
+      IMPLICIT REAL*8 (A-H,O-Z)
+!
+      integer, parameter :: NGM = 20
+
+      DIMENSION DC(3), DSTR(3)
+      DIMENSION  TEMPCRIT(3)
+!
+! DIMENSIONAMIENTO DE ARREGLOS RELACIONADOS CON EL CARACTER GRUPAL
+! DEL TERMINO DE DISPERSION
+!
+      DIMENSION NU(NGM,3), QAREA(NGM), TSTR(NGM), GSTR(NGM)
+      DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
+      DIMENSION ALFAIJ(NGM,NGM)
+!
+! DIMENSIONAMIENTO DE ARREGLOS RELACIONADOS CON EL TERMINO DE ASOCIACION
+!
+        DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
+        DIMENSION ONUASOC(12,3)
+!
+      DIMENSION XLIQ(3)
+!
+      DIMENSION FFILQ(3)
+!
+      DIMENSION FNC(3),XFNC(3)
+!
+!
+! NUMERO MAXIMO DE ITERACIONES
+!
+      ITMAXLC = 300
+!
+! NUMERO DE ITERACIONES INICIAL
+!
+      NITERLC = 0
+!
+! SI ESTE MENSAJE DE ERROR SE TRANSFORMA EN 1 ==> NITERLC EXCEDIO A ITMAXLC
+!
+      IERRLC = 0
+!
+      RUNIV = 82.05 !ATM cm3 / (K mol)
+!
+      XFNC(1) = 0.
+
+
+!write(2,*)"liqcompat  T       P        vol      Z "
+!
+      XFNC(2) = 0.
+!
+	!write (2,*) "VliqDENTROdeliqmixcompat=", VLIQ
+
+	! (2,*)"valores das variaveis a entrada de liqmixcompat"
+	!write (2,*) NCOD,NC,DC,XLIQ,TEMPCRIT,VLIQ2,TEMP,NG,NU,QAREA
+      !@,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC
+      !@,ENASS,RKASS,ARESTOT,ZSIS2,FFILQ,ierrFUG,IERRZSIS,IERRREP
+
+334   NCOD=1
+      CALL ASSOCGCEOS(NCOD,NC,DC,XLIQ,TEMPCRIT,VLIQ,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZSIS,FFILQ,IERRFUG,IERRZSIS,IERRREP,&
+     &ierrassoc)
+!
+
+      IF(IERRFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1)  IERRLC=1
+	!write (2,*) "primeiro", ierrFUG, IERRZSIS, IERRREP
+	!write (2,*)"ZSIScompat", ZSIS
+	!write (2,*)"VLIQcomapt", VLIQ
+
+
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 229
+!
+!
+! EVALUO LA FUNCION QUE QUIERO HACER CERO
+!
+        XFNC(1)=   VLIQ    !GUARDO EL VALOR DE VLIQ
+        FNC(1) =   VLIQ - ZSIS * RUNIV * TEMP / PRESS
+	!write (2,*) "FNC(1)", FNC(1)
+
+!
+
+!	write(2,18)xliq(1),temp, press, vliq, zsis
+!  18	FORMAT(X,5F10.4,X)
+
+      VLIQ = ZSIS * RUNIV * TEMP / PRESS  !Calculo nuevo VLIQ
+!	WRITE(2,*) "DABS((VLIQ-XFNC(1))/VLIQ", DABS((VLIQ-XFNC(1))/VLIQ)
+      IF(DABS((VLIQ-XFNC(1))/VLIQ).LT.1.D-6.&
+     &OR.NITERLC.GT.ITMAXLC) GO TO  229
+!
+!---------------ACELERACION
+!
+      IF((FNC(1)*FNC(2)).LT.0.AND.&
+     &DABS((FNC(1)-FNC(2))).GT.1.D-12)  THEN
+!
+!				         ACELERACION CON RECTA SECANTE
+!
+      VLIQ= XFNC(2) + (-1)&
+     &* FNC(2) * (XFNC(1)-XFNC(2)) / (FNC(1)-FNC(2))
+!
+         			        ELSE
+      				    CONTINUE
+      END IF
+!---------------FIN ACELERACION
+!
+      NCOD =1
+      CALL  ASSOCGCEOS(NCOD,NC,DC,XLIQ,TEMPCRIT,VLIQ,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZSIS,FFILQ,IERRFUG,IERRZSIS,IERRREP,&
+     &ierrassoc)
+!
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRLC=1
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) then
+		!write (2,*) "segundo", ierrFUG, IERRZSIS, IERRREP
+      end if
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 229
+!
+!
+! EVALUO LA FUNCION QUE QUIERO HACER CERO
+!
+        XFNC(2)=   VLIQ
+        FNC(2) =   VLIQ - ZSIS * RUNIV * TEMP / PRESS
+!
+!	write(2,22)xliq(1),temp, press, vliq, zsis
+!  22	FORMAT(X,5F10.4,X)
+
+        VLIQ = ZSIS * RUNIV * TEMP / PRESS
+
+!
+      IF(DABS((VLIQ-XFNC(2))/VLIQ).LT.1.D-6.&
+     &OR.NITERLC.GT.ITMAXLC)                    THEN
+      					 GO TO 229
+      					ELSE
+!--------------ACELERACION
+!
+      IF((FNC(1)*FNC(2)).LT.0.AND.&
+     &DABS((FNC(1)-FNC(2))).GT.1.D-12)  THEN
+!
+!				         ACELERACION CON RECTA SECANTE
+!
+      VLIQ= XFNC(2) + (-1) * FNC(2) * (XFNC(1)-XFNC(2)) / (FNC(1)-FNC(2)&
+     &)
+!
+         			        ELSE
+      				    CONTINUE
+      END IF
+!---------------FIN ACELERACION
+      				NITERLC = NITERLC + 1
+      						GO TO 334
+      END IF
+!
+229   IF(NITERLC.GT.ITMAXLC)  IERRLC = 1
+!
+      IF(IERRLC.EQ.0) THEN
+!
+!	CALCULO DE COEFICIENTE DE FUGACIDAD
+!
+!       ZSIS,VLIQ y FFILQ esta'n bien
+      NCOD =2
+      CALL  ASSOCGCEOS(NCOD,NC,DC,XLIQ,TEMPCRIT,VLIQ,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZSIS,FFILQ,IERRFUG,IERRZSIS,IERRREP,&
+     &ierrassoc)
+!	write(2,*) "tudo OK liquido"
+!	write(2,*)xliq(1), temp, press, vliq, zsis,ffilq
+!	write(2,*)"erros", ierrFUG,IERRZSIS,IERRREP
+
+
+!
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRLC=1
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) then
+		!write (2,*) "terceiro", ierrFUG, IERRZSIS, IERRREP
+      end if
+!
+       ELSE
+        CONTINUE
+      END IF
+!
+!
+      END !FIN LIQMIXCOMPAT
+!///////////////////////////////////////////////////////////////
+      SUBROUTINE SOFTN(NC,DC,TEMPCRIT,TEMP,D)
+!
+! CAlCULA LOS DIAMETROS DE ESFERAS RIGIDAS A LA TEMP DEL SISTEMA
+!
+      Implicit real*8 (A-H, O-Z)
+      DIMENSION DC(3), TEMPCRIT(3), D(3)
+!
+! CALCULO DE LOS D(I)
+!
+      DO I=1,NC
+              HELPDC=DEXP(-2*TEMPCRIT(I)/3./TEMP)
+      	D(I)=1.065655*DC(I)*(1-0.12*HELPDC)
+      END DO
+!
+      END
+!///////////////////////////////////////////////////////////////////
+!///////////////////////////////////////////////////////////////////
+      SUBROUTINE LAMBDAN(NC,RN,D,RLAMBDAN3)
+      Implicit real*8 (A-H, O-Z)
+      DIMENSION D(3),RN(3)
+
+!
+! CALCULO DE LOS LAMBDA3
+!
+!
+!  RLAMBDA3 ES PROPORCIONAL AL VOLUMEN OCUPADO POR LAS ESFERAS PROPIAMENTE
+!   DICHAS, EXCLUYENDO EL ESPACIO INTERSTICIAL
+!
+      RLAMBDAN3=0.
+!
+       DO I=1,NC
+      	RLAMBDAN3= RN(I)*D(I)**3  +  RLAMBDAN3
+      END DO
+!
+      END
+!//////////////////////////////////////////////////////////////////////
+      SUBROUTINE VAPMIXINICI(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,YVAP,VVAP,IERRVI)
+!
+! CALCULA EL VOLUMEN INICIAL DE LA FASE VAPOR
+!
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      integer, parameter :: NGM = 20
+!
+      DIMENSION DC(2)
+      DIMENSION  TEMPCRIT(2)
+!
+! DIMENSIONAMIENTO DE ARREGLOS RELACIONADOS CON EL CARACTER GRUPAL
+! DEL TERMINO DE DISPERSION
+!
+      DIMENSION NU(NGM,2), QAREA(NGM), TSTR(NGM), GSTR(NGM)
+      DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
+      DIMENSION ALFAIJ(NGM,NGM)
+!
+! DIMENSIONAMIENTO DE ARREGLOS RELACIONADOS CON EL TERMINO DE ASOCIACION
+!
+        DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
+        DIMENSION ONUASOC(12,2)
+! -        -              -            -          -
+!
+      DIMENSION FFIVP(2)
+!
+      DIMENSION  YVAP(2)
+!
+!
+
+ !    	write(2,*)"vapinici yvap  T       P        vol      Z "
+      RUNIV = 82.05 !atm cm3/(K mol)
+!
+!
+! NUMERO MAXIMO DE ITERACIONES
+!
+      ITMAXVI = 300
+!
+! NUMERO DE ITERACIONES INICIAL
+!
+      NITERVI = 0
+!
+! SI ESTE MENSAJE DE ERROR SE TRANSFORMA EN 1 ==> NITERVI EXCEDIO A ITMAXVI
+!
+      IERRVI = 0
+!
+!
+! INICIALIZACION DEL VOLUMEN DEL VAPOR
+!
+      VVAP0 = 2. * RUNIV * TEMP / PRESS  !VOLUMEN MOLAR gas ideal mult * 2
+
+!
+      NCOD =1
+      CALL  ASSOCGCEOS(NCOD,NC,DC,YVAP,TEMPCRIT,VVAP0,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZFSV0,FFIVP,ierrFUG,IERRZSIS,IERRREP,&
+     &ierrassoc)
+!
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRVI=1
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 456
+!
+!
+!	write(2,11)yvap(1),temp, press, vvap0, zsfv0
+      PRESSV0 = ZFSV0 * RUNIV * TEMP / VVAP0
+!  11	FORMAT(X,5F10.5,X)
+!
+      VVAP1 = VVAP0/2. !volumen molar gas ideal
+!	write(2,*)pressv0
+!
+      NCOD =1
+      CALL ASSOCGCEOS(NCOD,NC,DC,YVAP,TEMPCRIT,VVAP1,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZFSV1,FFIVP,ierrFUG,IERRZSIS,IERRREP,&
+     &ierrassoc)
+
+!	write(2,12)yvap(1),temp, press, vvap1, zfsv1
+!   12	FORMAT(X,5F10.4,X)
+
+!
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRVI=1
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 456
+!
+!
+      PRESSV1 = ZFSV1 * RUNIV * TEMP / VVAP1
+!	write(2,*) pressv1
+!
+!  CON LA ECUACION DE UNA HIPERBOLA PASANTE
+!
+!   POR (VVAP0,PRESSV0) Y (VVAP1,PRESSV1) CALCULO UNA APROXIMACION
+!
+!     AL VOLUMEN DEL VAPOR
+!
+131   IF(DABS((PRESSV0-PRESSV1)/PRESSV0).LT.1.D-10) GO TO 456
+      IF(DABS((VVAP0-VVAP1)/VVAP0).LT.1.D-10) GO TO 456
+      IF(NITERVI.GT.ITMAXVI) THEN
+      			   IERRVI = 1
+      			   GO TO 456
+      		       ELSE
+      			   CONTINUE
+      END IF
+!
+      VVAP = VVAP0*VVAP1*(PRESSV0-PRESSV1)
+      VVAP = VVAP/(PRESS*VVAP1 - PRESS*VVAP0 + PRESSV0*VVAP0 -PRESSV1*VV&
+     &AP1)
+
+
+
+!
+! AHORA CALCULO LA VERDADERA PRESION QUE CORRESPONDE AL VOLUMEN CALCULADO
+!
+      NCOD =1
+      CALL ASSOCGCEOS(NCOD,NC,DC,YVAP,TEMPCRIT,VVAP,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZFSV,FFIVP,ierrFUG,IERRZSIS,IERRREP,&
+     &ierrassoc)
+!
+!
+!	write(2,13)yvap(1),temp, press, vvap, zfsv
+! 13	FORMAT(X,5F10.4,X)
+
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRVI=1
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 456
+!
+      PRESSV = ZFSV * RUNIV * TEMP / VVAP
+!	write(2,*) pressv
+!
+      IF(PRESSV.LT.PRESS) THEN
+!
+      		VVAP0=VVAP1
+      		VVAP1=VVAP
+      		PRESSV0=PRESSV1
+      		PRESSV1=PRESSV
+      		NITERVI = NITERVI + 1
+      		GO TO 131
+      	ELSE
+!
+      		VVAP=VVAP1
+      END IF
+!
+456   END !FIN VAPMIXINICI
+!//////////////////////////////////////////////////////////////////////
+      SUBROUTINE VAPMIXCOMPAT(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,YVAP,VVAP,FFIVP,IERRVC)
+!
+!
+! COMPATIBILIZA EL VOLUMEN DEL GAS CON LA PRESION, Y RETORNA LOS
+! COEFICIENTES DE FUGACIDAD DE C/COMPONENTE EN EL VAPOR
+!
+      IMPLICIT REAL*8 (A-H,O-Z)
+!
+      integer, parameter :: NGM = 20
+
+      DIMENSION DC(2)
+      DIMENSION  TEMPCRIT(2)
+!
+! Dimensionamiento de arreglos relacionados con el caracter grupal
+! del termino de dispersion
+!
+      DIMENSION NU(NGM,2), QAREA(NGM), TSTR(NGM), GSTR(NGM)
+      DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
+      DIMENSION ALFAIJ(NGM,NGM)
+!
+! Dimensionamiento de arreglos relacionados con el termino de asociacion
+!
+        DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
+        DIMENSION ONUASOC(12,2)
+! -        -              -            -          -
+!
+      DIMENSION FFIVP(2)
+!
+      DIMENSION  YVAP(2)
+!
+!
+!
+! NUMERO MAXIMO DE ITERACIONES
+!
+      ITMAXVC = 300
+!
+! NUMERO DE ITERACIONES INICIAL
+!
+      NITERVC = 0
+!
+! SI ESTE MENSAJE DE ERROR SE TRANSFORMA EN 1 ==> NITERVI EXCEDIO A ITMAXVI
+!
+      IERRVC = 0
+!
+!
+      RUNIV = 82.05 !atm cm3/(K mol)
+!
+!
+!
+!
+!	 write(2,*)"vapcompat yvap T       P        vol      Z "
+
+777     IF(NITERVC.GT.ITMAXVC)  THEN
+!	write(6,*)"maximo"
+      				IERRVC = 1
+      				GO TO 787
+      			ELSE
+      				CONTINUE
+      END IF
+!
+!	write(2,14)yvap(1), temp, press, vvap, zfsv
+!14	FORMAT(X,5F10.5,X)
+      NCOD =1
+      CALL ASSOCGCEOS(NCOD,NC,DC,YVAP,TEMPCRIT,VVAP,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZFSV,FFIVP,ierrFUG,IERRZSIS,IERRREP,&
+     &ierrassoc)
+!
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRVC=1
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) GO TO 787
+!
+!
+!
+!	write(2,*) zfsv
+
+      VVAP2= ZFSV*RUNIV*TEMP/PRESS
+!	write(2,15) yvap(1),temp, press, vvap2, zfsv
+!15	FORMAT(X,5F10.5,X)
+!
+      	IF(DABS((VVAP2-VVAP)/VVAP).LT.1.D-6) THEN
+      		VVAP= 0.5*(VVAP + VVAP2)
+      		GO TO 787
+      	     ELSE
+      		VVAP=VVAP2
+      		NITERVC = NITERVC + 1
+      		GO TO 777
+      	END IF
+!
+787   CONTINUE
+!
+      IF(IERRVC.EQ.0) THEN
+!
+!	CALCULO DEL COEF DE FUGACIDAD
+!
+      ZFSV = 	PRESS*VVAP /(RUNIV*TEMP)
+!	write(2,*) "vapcompatfinal  yvap    T       P        vol      Z "
+
+!16	FORMAT(X,5F10.5,X)
+      NCOD = 2
+      CALL ASSOCGCEOS(NCOD,NC,DC,YVAP,TEMPCRIT,VVAP,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZFSV,FFIVP,ierrFUG,IERRZSIS,IERRREP,&
+     &ierrassoc)
+
+!	 write(2,*) "tudo ok vapor"
+!	write(2,*)yvap(1), temp, press, vvap, zfsv,ffivp
+!	write(2,*)"erros", ierrFUG,IERRZSIS,IERRREP
+!
+      IF(ierrFUG.OR.IERRZSIS.OR.IERRREP.OR.ierrassoc.EQ.1) IERRVC=1
+!
+       ELSE
+        CONTINUE
+      END IF
+!
+!
+!
+      END !FIN VAPMIXCOMPAT
+!//////////////////////////////////////////////////////////////////////
+!//////////////////////////////////////////////////////////////////////

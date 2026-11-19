@@ -28,6 +28,7 @@ binary_graphic*.csv
 *~
 *.bak
 .directory
+.directory.lock
 .kdev4/
 *.kdev4
 pruebas/tmp/

@@ -1,0 +1,222 @@
+      SUBROUTINE ASSOCISOFPUROSSUB(TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC,ENASS,&
+     &RKASS,DC,TEMP,PSAT,ZFASL,ZFASV,APART,IERRYAF)
+!
+!  SUCESOR DE ASS-ISOF-PUROS-SUB.FOR
+!
+!
+! CALCULA EL APARTAMIENTO DE LA ISOFUGACIDAD DESDE EL PTO DE VISTA DEL
+! MODELO, PARA UN COMPUESTO PURO (SE ALIMENTA LA TEMP, Y LA PRESION DE
+! VAPOR DEL COMP. PURO, Y SE CALCULAN LOS COEF. DE FUGACIDAD BAJO ESAS
+! CONDICIONES DE T,P EXPERIMENTALES) (NO SE ITERA EN PRESION O TEMP, SOLO
+!  SE ITERA EN LOS VOLUMENES DE LAS FASES)
+!
+!
+! Calcula [  PARA COMPUESTOS PUROS  ]
+!
+!    Ø (Texp,Pexp)
+!     1 liq
+!    ------------- - 1.
+!    Ø (Texp,Pexp)
+!     1 vap
+!
+!
+      IMPLICIT REAL*8 (A-H,O-Z)
+      integer, parameter :: NGM = 20
+      DIMENSION DC(1), D(1), RN(1)
+      DIMENSION  TEMPCRIT(1)
+!
+! DIMENSIONAMIENTO DE ARREGLOS RELACIONADOS CON EL CARACTER GRUPAL
+! DEL TERMINO DE DISPERSION
+!
+      DIMENSION NU(NGM,1), QAREA(NGM), TSTR(NGM), GSTR(NGM)
+      DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
+      DIMENSION ALFAIJ(NGM,NGM)
+!
+! DIMENSIONAMIENTO DE ARREGLOS RELACIONADOS CON EL TERMINO DE ASOCIACION
+!
+        DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
+        DIMENSION ONUASOC(12,1)
+!
+!
+!	TEMP= TEMPERATURA DEL SISTEMA EN K
+!
+!       D(I)= Diametro de esferas rigidas (funcion de la
+!                                          temperatura) (un valor por
+!                                                              componente)
+!
+!       DC(I)= Diametro de esferas rigidas en el punto critico
+!                                          (un valor por componente)
+!
+!           D(I) es el diametro de una esfera imaginaria de un volumen
+!                igual al de un mol de esferas rigidas. Por eso se da por
+!                                                                  mol
+!
+!       NC  = Numero de componentes (mAX 1)
+!
+!       RN (I) = NUMERO DE MOLES DEL COMPONENTE I
+!
+      IERRYAF=0
+!
+      CALL CORRECCION(NC,RN)
+!
+!Tizi
+!	RN(1)=1.
+!Tizi
+!
+! LOS DOS LLAMADOS QUE VIENEN SON PARA LUEGO CALCULAR EL VALOR
+!   INICIAL DEL VOLUMEN LIQUIDO
+!
+! CALCULO DE D(I) (DIAMETROS DE ESFERAS RIGIDAS A TEMPERATURA TEMP
+!
+      CALL SOFT2(NC,DC,TEMPCRIT,TEMP,D)
+!
+! CALCULO DE LOS LAMBDA NECESARIOS PARA LA CONTRIBUCION REPULSIVA
+!
+      CALL LAMBDA2(NC,RN,D,RLAMBDA1,RLAMBDA2,RLAMBDA3)
+!
+! CALCULO DEL APARTAMIENTO CON RESPECTO A LA ISOFUGACIDAD
+!
+!
+      CALL ISOFYAFAR(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,RLAMBDA3,PSAT,ZFASL,ZFASV,APART,IERRYAF)
+!
+!
+! FIN DE PROGRAMA PRINCIPAL
+!
+!	CALL LIB$SHOW_TIMER(,2,,)
+      END
+!//////////////////////////////////////////////////////////////////////
+!//////////////////////////////////////////////////////////////////////
+!//////////////////////////////////////////////////////////////////////
+      SUBROUTINE ISOFYAFAR(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,RLAMBDA3,PSAT,ZFASL,ZFASV,APART,IERRYAF)
+!
+! OBTIENE EL APARTAMIENTO DE LA ISOFUGACIDAD PARA UN COMPONENTE PURO
+!
+! TEMP = TEMPERATURA, KELVIN  (EXPERIMENTAL)
+! PSAT = PRESION DE VAPOR, EN ATM (EXPERIMENTAL)
+! ZFASL = FACTOR DE COMPRESIBILIDAD FASE LIQUIDA
+! ZFASV = FACTOR DE COMPRESIBILIDAD FASE VAPOR
+! FFIFV(1) = COEF DE FUGACIDAD EN EL VAPOR
+! FFIFL(1) = COEF DE FUGACIDAD EN EL LIQUIDO
+!
+!
+!    APART = FFIFL(1) / FFIFV(1) - 1.
+!
+!
+      IMPLICIT REAL*8 (A-H,O-Z)
+!
+      integer, parameter :: NGM = 20
+      DIMENSION DC(1), RN(1)
+      DIMENSION  TEMPCRIT(1)
+      DIMENSION NU(NGM,1), QAREA(NGM), TSTR(NGM), GSTR(NGM)
+      DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
+      DIMENSION ALFAIJ(NGM,NGM)
+      DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
+      DIMENSION ONUASOC(12,1)
+!
+      DIMENSION FFIFV(1), FFIFL(1)
+!
+!
+!    VVAP = VOLUMEN DEL VAPOR EN CM3
+!
+!    VLIQ = VOLUMEN DEL LIQUIDO EN CM3
+!
+!    PSAT = PRESION DE VAPOR EN ATM
+!
+!
+      IERRYAF=0
+!
+      RUNIV = 82.05 !atm cm3/(K mol)
+!
+!	NUMAR = 0
+!
+!	NAMOR = 0
+!
+!	ERRCOMP=0
+!
+!
+! 449 	CONTINUE
+!
+!
+! INICIALIZACION VOLUMEN DEL VAPOR
+!
+      CALL VAPINICI(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,PSAT,VVAP,FFIFV,IERRVAP)
+!
+      IF(IERRVAP.NE.0) GO TO 419
+!
+!	IF(ERRCOMP.NE.0) GO TO 132
+!
+! COMPATIBILIZACION DEL VOLUMEN DEL VAPOR CON LA PSAT
+!
+!	CALL COMPATVVAP(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA
+!     @,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC
+!     @,ENASS,RKASS,PSAT,VVAP,FFIFV,IERRVC)
+!   	IF(IERRVC.NE.0) THEN
+!                          ERRCOMP=1
+!			  NUMAR = NUMAR  + 1
+!			  IERRVC = 0
+!			  GO TO 449
+!  	 ELSE
+! 	  CONTINUE
+!	END IF
+!
+! INICIALIZACION DEL VOLUMEN DEL LIQUIDO
+!
+      CALL LIQINICI(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,RLAMBDA3,PSAT,VLIQ,FFIFL,IERRLI)
+      IF(IERRLI.NE.0) GO TO 419
+!
+! COMPATIBILIZACION DEL VOL. LIQ. CON LA PRESION DE SATURACION
+!
+!
+!	IF(ERRCOMP.NE.0) GO TO 135
+!
+!	CALL COMPATVLIQ(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA
+!     @,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC
+!     @,ENASS,RKASS,RLAMBDA3,PSAT,VLIQ,FFIFL,IERRLC)
+!   	IF(IERRLC.NE.0) THEN
+!                          ERRCOMP=1
+!			  NUMAR = NUMAR  + 1
+!			  IERRLC = 0
+!			  GO TO 449
+!  	 ELSE
+! 	  CONTINUE
+!	END IF
+!
+      IF(DABS((VLIQ-VVAP)/VVAP).LT.1.D-3) THEN
+      	   IERRYAF = 1
+      	   GO TO 419
+      	   ELSE
+      END IF
+!
+!
+! CALCULO DE FACTORES DE COMPRESIBILIDAD
+!
+!
+      ZFASL = PSAT * VLIQ / RUNIV / TEMP
+      ZFASV = PSAT * VVAP / RUNIV / TEMP
+!
+!
+
+      APART = FFIFL(1) / FFIFV(1) - 1.
+!
+!
+419   IF(IERRVAP.NE.0.OR.IERRLI.NE.0) IERRYAF = 1
+
+	!write(1,*) "PSAT=", PSAT
+      !write(1,*) "TEMP=", TEMP
+	!write(1,*) "FFIFL(1)=", FFIFL(1)
+
+      END  !FIN ISOFYAFAR
+!////////////////////////////////////////////////////////////////
+!/////////////////////////////////////////////////////////////////
+!//////////////////////////////////////////////////////////////////////////
+!//////////////////////////////////////////////////////////////////////////
+!////////////////////////////////////////////////////////////////

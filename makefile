@@ -23,22 +23,22 @@ PRINCIPAL    = src/principal/paraest.f90
 OPTIMIZACION = src/optimizacion/zxssq.f90
 
 MODELOS      = src/modelos/gca.f90                       \
-               src/modelos/gca_assoc.for                 \
-               src/modelos/gca_assoc_fev.for             \
-               src/modelos/gca_assoc_rutin_puros.for     \
-               src/modelos/gca_assoc_rutin_mezclas.for   \
-               src/modelos/gca_assoc_dcadjust.for        \
-               src/modelos/gca_assoc_dcadjust_fast.for   \
-               src/modelos/gca_assoc_gamma.for
+               src/modelos/gca_assoc.f90                 \
+               src/modelos/gca_assoc_fev.f90             \
+               src/modelos/gca_assoc_rutin_puros.f90     \
+               src/modelos/gca_assoc_rutin_mezclas.f90   \
+               src/modelos/gca_assoc_dcadjust.f90        \
+               src/modelos/gca_assoc_dcadjust_fast.f90   \
+               src/modelos/gca_assoc_gamma.f90
 
-EQUILIBRIO   = src/equilibrio/gc3_flash.for              \
-               src/equilibrio/gcdba.for                  \
+EQUILIBRIO   = src/equilibrio/gc3_flash.f90              \
+               src/equilibrio/gcdba.f90                  \
                src/equilibrio/gcxs.f90                   \
                src/equilibrio/gcsle.f90                  \
                src/equilibrio/pcrit_semiimplicito.f90    \
-               src/equilibrio/psat_assoc.for             \
-               src/equilibrio/isof_puros_assoc.for       \
-               src/equilibrio/isof_mezclas_assoc.for
+               src/equilibrio/psat_assoc.f90             \
+               src/equilibrio/isof_puros_assoc.f90       \
+               src/equilibrio/isof_mezclas_assoc.f90
 
 # Orden de compilación: primero lo que define módulos, al final el programa.
 FUENTES = $(OPTIMIZACION) $(MODELOS) $(EQUILIBRIO) $(PRINCIPAL)
@@ -65,7 +65,6 @@ OBJETOS  = $(call objs,$(OBJDIR))
 OBJDEBUG = $(call objs,$(DBGDIR))
 
 vpath %.f90 src/principal src/optimizacion src/modelos src/equilibrio
-vpath %.for src/principal src/optimizacion src/modelos src/equilibrio
 
 .PHONY: all debug prueba clean
 all: paraest.x
@@ -79,11 +78,7 @@ debug.paraest.x: $(OBJDEBUG)
 
 $(OBJDIR)/%.o: %.f90 | $(OBJDIR)
 	$(FC) $(COMUN) $(OPT) $(MODS) $(OBJDIR) -c $< -o $@
-$(OBJDIR)/%.o: %.for | $(OBJDIR)
-	$(FC) $(COMUN) $(OPT) $(MODS) $(OBJDIR) -c $< -o $@
 $(DBGDIR)/%.o: %.f90 | $(DBGDIR)
-	$(FC) $(COMUN) $(DEBUG) $(MODS) $(DBGDIR) -c $< -o $@
-$(DBGDIR)/%.o: %.for | $(DBGDIR)
 	$(FC) $(COMUN) $(DEBUG) $(MODS) $(DBGDIR) -c $< -o $@
 
 $(OBJDIR) $(DBGDIR):

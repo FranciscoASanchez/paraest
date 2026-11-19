@@ -1,0 +1,204 @@
+      subroutine rgamasub(nc,dc,tempcrit,ng,nu,qarea,tstr,gstr,&
+     &gdot,gddot,rkij,rktij,alfaij,nga,onuasoc,massoc,enass,rkass,&
+     &temp,press,x1,x2,rgam1,rgam2,rgam3,zli,ierrgam)
+
+      implicit real*8 (A-H,O-Z)
+      integer, parameter :: NGM = 20
+      DIMENSION DC(3)
+      DIMENSION  TEMPCRIT(3)
+!
+! DIMENSIONAMIENTO DE ARREGLOS RELACIONADOS CON EL CARACTER GRUPAL
+! DEL TERMINO DE DISPERSION
+!
+      DIMENSION NU(NGM,3), QAREA(NGM), TSTR(NGM), GSTR(NGM)
+      DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
+      DIMENSION ALFAIJ(NGM,NGM)
+!
+! DIMENSIONAMIENTO DE ARREGLOS RELACIONADOS CON EL TERMINO DE ASOCIACION
+!
+      DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
+      DIMENSION ONUASOC(12,3)
+!
+!
+! DIMENSIONAMIENTO DE ARREGLOS PROPIOS DE UN CALCULO de gamas
+!
+      DIMENSION XLIQ(3)
+!
+! DIMENSIONAMIENTO DE COEFICIENTES DE FUGACIDAD EN FASE LIQUIDA (LQ)
+!
+      DIMENSION FFILQ(3)
+!	real :: ffilqmez1, ffilqmez2, ffilqmez3
+!	real :: ffilqpuro1, ffilqpuro2, ffilqpuro3
+!	real :: rgam1, rgam2, rgam3
+
+! INICIALIZACION DEL VOLUMEN LIQUIDO
+!
+
+      ierrgama=0.
+      ierrini=0.
+      ierrlc=0.
+      RUNIV = 82.05
+
+      If(nc==2)then
+      xliq(1)=x1
+      xliq(2)=1.-x1
+      elseif(nc==3)then
+      xliq(1)=x1
+      xliq(2)=x2
+      xliq(3)=1.-x1-x2
+      end if
+
+      CALL LIQMIXINICI(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,IERRINI)
+
+!
+!  SI HAY ERROR FIN DE EJECUCION
+!
+      IF(IERRINI.NE.0) WRITE(6,*) 'ERROR LIQ INI'
+      IF(IERRINI.NE.0) GO TO 1007
+
+! COMPATIBILIZACION DEL VOLUMEN DEL LIQUIDO CON LA PRESION PRESS
+
+      CALL LIQMIXCOMPAT(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,FFILQ,IERRLC)
+
+      IF(IERRLC.NE.0) WRITE(6,*) 'ERROR LIQ COMPAT'
+      IF(IERRLC.NE.0) GO TO 1007
+
+      zli=press*vliq/(RUNIV*temp)
+
+!	do i=1,nc
+!		ffilqmez=ffilqmez+xliq(i)*log(ffilq(i))
+!	end do
+
+      ffilqmez1=ffilq(1)
+      ffilqmez2=ffilq(2)
+      if(nc==3)then
+      ffilqmez3=ffilq(3)
+      ffilq(3)=0.
+      end if
+      do i=1,2
+      ffilq(i)=0.
+      end do
+
+      If(nc==2)then
+
+      xliq(2)=1.d-4
+      xliq(1)=1.-xliq(2)
+
+        CALL LIQMIXINICI(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,IERRINI)
+
+       	IF(IERRINI.NE.0) WRITE(6,*) 'ERROR LIQ INI'
+      	IF(IERRINI.NE.0) GO TO 1007
+
+      	CALL LIQMIXCOMPAT(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,FFILQ,IERRLC)
+
+      	IF(IERRLC.NE.0) WRITE(6,*) 'ERROR LIQ COMPAT'
+      	IF(IERRLC.NE.0) GO TO 1007
+
+      ffilqpuro1=ffilq(1)
+      rgam1=ffilqmez1/(ffilqpuro1)
+
+      xliq(1)=1.d-4
+      xliq(2)=1.-xliq(1)
+      ffilq=0.
+
+        CALL LIQMIXINICI(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,IERRINI)
+
+       	IF(IERRINI.NE.0) WRITE(6,*) 'ERROR LIQ INI'
+      	IF(IERRINI.NE.0) GO TO 1007
+
+      	CALL LIQMIXCOMPAT(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,FFILQ,IERRLC)
+
+      	IF(IERRLC.NE.0) WRITE(6,*) 'ERROR LIQ COMPAT'
+      	IF(IERRLC.NE.0) GO TO 1007
+
+      ffilqpuro2=ffilq(2)
+      rgam2=ffilqmez2/ffilqpuro2
+
+      	elseif(nc==3)then
+      		xliq(2)=.5e-4
+      		xliq(3)=.5e-4
+      		xliq(1)=1.-xliq(2)-xliq(3)
+
+      ffilq(i)=0.
+        CALL LIQMIXINICI(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,IERRINI)
+
+       	IF(IERRINI.NE.0) WRITE(6,*) 'ERROR LIQ INI'
+      	IF(IERRINI.NE.0) GO TO 1007
+
+      	CALL LIQMIXCOMPAT(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,FFILQ,IERRLC)
+
+      	IF(IERRLC.NE.0) WRITE(6,*) 'ERROR LIQ COMPAT'
+      	IF(IERRLC.NE.0) GO TO 1007
+
+      ffilqpuro1=ffilq(1)
+      rgam1=ffilqmez1/ffilqpuro1
+
+      		xliq(1)=.5e-4
+      		xliq(3)=.5e-4
+      		xliq(2)=1.-xliq(1)-xliq(3)
+
+      ffilq(i)=0.
+        CALL LIQMIXINICI(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,IERRINI)
+
+       	IF(IERRINI.NE.0) WRITE(6,*) 'ERROR LIQ INI'
+      	IF(IERRINI.NE.0) GO TO 1007
+
+      	CALL LIQMIXCOMPAT(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,FFILQ,IERRLC)
+
+      	IF(IERRLC.NE.0) WRITE(6,*) 'ERROR LIQ COMPAT'
+      	IF(IERRLC.NE.0) GO TO 1007
+
+      	ffilqpuro2=ffilq(2)
+      	rgam2=ffilqmez2/ffilqpuro2
+
+      	xliq(1)=.5e-4
+      	xliq(2)=.5e-4
+      	xliq(3)=1.-xliq(1)-xliq(2)
+
+      ffilq(i)=0.
+        CALL LIQMIXINICI(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,IERRINI)
+
+       	IF(IERRINI.NE.0) WRITE(6,*) 'ERROR LIQ INI'
+      	IF(IERRINI.NE.0) GO TO 1007
+
+      	CALL LIQMIXCOMPAT(NC,DC,TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,&
+     &MASSOC,ENASS,RKASS,TEMP,PRESS,XLIQ,VLIQ,FFILQ,IERRLC)
+
+      	IF(IERRLC.NE.0) WRITE(6,*) 'ERROR LIQ COMPAT'
+      	IF(IERRLC.NE.0) GO TO 1007
+
+      	ffilqpuro3=ffilq(3)
+      	rgam3=ffilqmez3/ffilqpuro3
+
+      end if
+!	rgam1=exp(rgam1)
+!	rgam2=exp(rgam2)
+!	rgam3=exp(rgam3)
+
+1007  IF(IERRLC.NE.0.OR.IERRINI.NE.0) IERRgam = 1
+
+      return
+      end subroutine

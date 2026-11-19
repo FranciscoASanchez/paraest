@@ -1,0 +1,473 @@
+      SUBROUTINE ASSOCPSATSUB(TEMPCRIT,NG,NU,QAREA,TSTR,&
+     &GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC,ENASS,&
+     &RKASS,DC,TEMP,PSAT,ZFASL,ZFASV,IERRPSAT)
+!
+!
+!
+! CALCULA LA PRESION DE VAPOR EN FUNCION DE LA TEMPERATURA
+!	PERO LO HACE EN FORMA DE SUBRUTINA. NO REQUIERE INICIALIZACION
+!         POR PARTE DEL USUARIO. EL MODELO ES LA ASS-GC-EOS
+!
+!   	TEMP = TEMPERATURA / K
+!       PSAT = PRESION DE VAPOR / ATM
+!
+! NO CONTIENE LOS FUENTE DE : CORRECCION,LAMBDA2,VAPINICI,LIQINICI
+!                                    COMPATVVAP NI COMPATVLIQ
+!
+      IMPLICIT REAL*8 (A-H,O-Z)
+      integer, parameter :: NGM = 20
+      DIMENSION DC(1), D(1), RN(1)
+      DIMENSION  TEMPCRIT(1)
+!
+! DIMENSIONAMIENTO DE ARREGLOS RELACIONADOS CON EL CARACTER GRUPAL
+! DEL TERMINO DE DISPERSION
+!
+      DIMENSION NU(NGM,1), QAREA(NGM), TSTR(NGM), GSTR(NGM)
+      DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
+      DIMENSION ALFAIJ(NGM,NGM)
+!
+! DIMENSIONAMIENTO DE ARREGLOS RELACIONADOS CON EL TERMINO DE ASOCIACION
+!
+        DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
+        DIMENSION ONUASOC(12,1)
+
+      DIMENSION FFIFV(1), FFIFL(1)
+
+!
+!
+!	TEMP= TEMPERATURA DEL SISTEMA EN K
+!
+!       D(I)= Diametro de esferas rigidas (funcion de la
+!                                          temperatura) (un valor por
+!                                                              componente)
+!
+!       DC(I)= Diametro de esferas rigidas en el punto critico
+!                                          (un valor por componente)
+!
+!           D(I) es el diametro de una esfera imaginaria de un volumen
+!                igual al de un mol de esferas rigidas. Por eso se da por
+!                                                                  mol
+!
+!       NC  = Numero de componentes (mAX 1)
+!
+!       RN (I) = NUMERO DE MOLES DEL COMPONENTE I
+!
+!
+      IERRPSAT=0
+!
+      CALL CORRECCION(NC,RN)
+
+!Tizi
+!	RN(1)=1.
+!Tizi
+! LOS DOS LLAMADOS QUE VIENEN SON PARA LUEGO CALCULAR EL VALOR
+!   INICIAL DEL VOLUMEN LIQUIDO
+!
+! CALCULO DE D(I) (DIAMETROS DE ESFERAS RIGIDAS A TEMPERATURA TEMP
+!
+      CALL SOFT2(NC,DC,TEMPCRIT,TEMP,D)
+!
+! CALCULO DE LOS LAMBDA NECESARIOS PARA LA CONTRIBUCION REPULSIVA
+!
+      CALL LAMBDA2(NC,RN,D,RLAMBDA1,RLAMBDA2,RLAMBDA3)
+!
+!
+! CALCULO DE LA PRESION DE SATURACION, Y DE LOS VOLUMENES DE AMBAS
+!                           FASES
+!
+!
+      CALL PVAP(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,RLAMBDA3,PSAT,VLIQ,VVAP,ZFASL,ZFASV,FFIFV,FFIFL,&
+     &IERRPVAP)
+!
+
+      IF(IERRPVAP.NE.0) THEN
+      		IERRPSAT=1
+      ELSE
+      		IERRPSAT=0
+      END IF
+!
+! FIN DE PROGRAMA PRINCIPAL
+!
+!	CALL LIB$SHOW_TIMER(,2,,)
+      END
+!//////////////////////////////////////////////////////////////////////
+!//////////////////////////////////////////////////////////////////////
+!/////////////////////////////////////////////////////////////////////
+!///////////////////////////////////////////////////////////////////
+      SUBROUTINE PVAP(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,RLAMBDA3,PSAT,VLIQ,VVAP,ZFASL,ZFASV,FFIFV,FFIFL,&
+     &IERRPVAP)
+!
+! PSAT = PRESION DE VAPOR, EN ATM
+! ZFASL = FACTOR DE COMPRESIBILIDAD FASE LIQUIDA
+! ZFASV = FACTOR DE COMPRESIBILIDAD FASE VAPOR
+! FFIFV(1) = COEF DE FUGACIDAD EN EL VAPOR
+! FFIFL(1) = COEF DE FUGACIDAD EN EL LIQUIDO
+!
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      integer, parameter :: NGM = 20
+
+      DIMENSION EQUIS(5) !contiene Z, phi y p_sat
+!
+      DIMENSION DC(1), RN(1)
+      DIMENSION TEMPCRIT(1)
+      DIMENSION NU(NGM,1), QAREA(NGM), TSTR(NGM), GSTR(NGM)
+      DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
+      DIMENSION ALFAIJ(NGM,NGM)
+      DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
+       DIMENSION ONUASOC(12,1)
+!
+      DIMENSION FFIFV(1), FFIFL(1)
+!
+!
+!
+!
+!
+!    VVAP = VOLUMEN DEL VAPOR EN CM3
+!
+!    VLIQ = VOLUMEN DEL LIQUIDO EN CM3
+!
+!    PSAT = PRESION DE VAPOR EN ATM
+!
+!
+!
+!
+! LA SENTENCIA 449 ES PARA REPETIR TODO EL CALCULO UNA VEZ QUE SE MODIFICA
+! LA PRESION DE VAPOR
+!
+! BLANQUEO
+!
+      IERRPVAP =0
+!
+      RUNIV = 82.05 !atm cm3/(K mol)
+!
+! BUENA INICIALIZACION DE LA PSAT (ahora inicializo con la Pexp)
+!
+      ERRCOMP=0
+!
+!	CALL ROBUSTO4(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA
+!    @,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC
+!     @                 ,ENASS,RKASS,PSAT,RLAMBDA3,IERRROB)
+!
+      		ierrrob=0
+!			IF(IERRROB.NE.0) GO TO 419
+!
+
+449   CONTINUE
+!
+!
+! INICIALIZACION VOLUMEN DEL VAPOR
+!
+      CALL VAPINICI(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,PSAT,VVAP,FFIFV,IERRVAP)
+!
+      VOLVAP = VVAP       !almaceno valores por si falla la
+      FUGVAP = FFIFV(1)   !                    compatibilizacion
+!
+      IF(IERRVAP.NE.0) GO TO 419
+!
+      IF(ERRCOMP.NE.0) GO TO 132
+!
+! COMPATIBILIZACION DEL VOLUMEN DEL VAPOR CON LA PSAT
+!
+      CALL COMPATVVAP(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,PSAT,VVAP,FFIFV,IERRVC)
+!
+      IF(IERRVC.NE.0) THEN !recupero valores de la inicializacion
+      	VVAP = VOLVAP
+      	FFIFV(1) = FUGVAP
+      	IERRVC = 0
+        ELSE
+         CONTINUE
+      END IF
+!
+! INICIALIZACION DEL VOLUMEN DEL LIQUIDO
+!
+132   CALL LIQINICI(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,RLAMBDA3,PSAT,VLIQ,FFIFL,IERRLI)
+!
+      VOLLIQ = VLIQ       !almaceno valores por si falla la
+      FUGLIQ = FFIFL(1)   !                    compatibilizacion
+!
+      IF(IERRLI.NE.0) GO TO 419
+!
+! COMPATIBILIZACION DEL VOL. LIQ. CON LA PRESION DE SATURACION
+!
+!
+      IF(ERRCOMP.NE.0) GO TO 135
+!
+      CALL COMPATVLIQ(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,RLAMBDA3,PSAT,VLIQ,FFIFL,IERRLC)
+!
+      IF(IERRLC.NE.0) THEN
+!
+           VLIQ = VOLLIQ
+           FFIFL(1) = FUGLIQ
+           IERRLC = 0
+!
+        ELSE
+         CONTINUE
+      END IF
+!
+      IF(DABS((VLIQ-VVAP)/VVAP).LT.1.D-3) THEN
+      	   ERRCOMP = 1
+      	   GO TO 449
+      			ELSE
+      	   ERRCOMP = 0
+      END IF
+!
+! SI LOS COEFICIENTES DE FUGACIDAD NO SON IGUALES CORRIJO PSAT
+!
+135   IF(ERRCOMP.EQ.1) ERRCOMP=0
+!
+! RECALCULO DE PSAT
+!
+! (SUSTITUCION DIRECTA ERA:
+!
+      ZFASL = PSAT * VLIQ / RUNIV / TEMP
+      ZFASV = PSAT * VVAP / RUNIV / TEMP
+!	write(*,*)ZFASL,ZFASV,FFIFL(1),FFIFV(1)
+!
+      BLOCKU = (1. -  DLOG(FFIFL(1)/FFIFV(1))/(ZFASL-ZFASV))
+!
+      IF(BLOCKU.GT.0) THEN
+!				 Newton
+      			PSAT1 = PSAT*BLOCKU
+       ELSE
+!				 Sust. Directa
+      		        PSAT1 = PSAT*FFIFL(1)/FFIFV(1)
+      END IF
+!
+!
+! SE TOLERA UN ERROR DE 0.01 %
+!
+      IF(DABS((PSAT1-PSAT)/PSAT).LT.1.D-4) THEN
+      	GO TO 448
+            ELSE
+              PSAT=PSAT1
+!		WRITE(6,*) ' PSAT actual = ', PSAT
+      	GO TO 449
+      END IF
+!
+! CALCULO DE FACTORES DE COMPRESIBILIDAD
+!
+448   CONTINUE
+!
+!
+419   IF(IERRVAP.NE.0.OR.IERRVC.NE.0.OR.&
+     &IERRLC.NE.0.OR.IERRLI.NE.0.OR.IERRROB.NE.0) IERRPVAP =1
+      END  !FIN PVAP
+!////////////////////////////////////////////////////////////////
+!/////////////////////////////////////////////////////////////////
+!//////////////////////////////////////////////////////////////////////////
+      SUBROUTINE ROBUSTO4(NC,DC,RN,TEMPCRIT,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &                 ,ENASS,RKASS,PSAT,RLAMBDA3,IERRROB)
+!
+! BUSQUEDA DE CEROS DE LA DERIVADA PRIMERA DE LA PRESION CON RESPECTO AL
+!   VOL, O DE PUNTOS EN QUE ESA DERIVADA PRIMERA ES POSITIVA
+!
+      IMPLICIT REAL*8 (A-H,O-Z)
+!
+      integer, parameter :: NGM = 20
+
+      DIMENSION DC(1), RN(1)
+      DIMENSION  TEMPCRIT(1)
+      DIMENSION NU(NGM,1), QAREA(NGM), TSTR(NGM), GSTR(NGM)
+      DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
+      DIMENSION ALFAIJ(NGM,NGM)
+        DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
+        DIMENSION ONUASOC(12,1)
+!
+      DIMENSION FFIFL(1)
+!
+      DIMENSION DERSEG(3),VDERSEG(3)   !arreglo para guardar algunos
+!					valores de la
+!					derivada segunda, y de los vol
+!					correspondientes
+!
+!	WRITE(6,*) 'COMIENZA METODO ROBUSTO'
+!
+      NONGA=0
+!
+      IERRROB = 0
+!
+      RUNIV = 82.05 !atm cm3/(K mol)
+!
+      VOLFIRST = 2 * RLAMBDA3 * 3.15 / 6 !2 VECES EL COVOLUMEN
+      VOLLAST = RUNIV*TEMP/(0.05)
+!
+! el volumen inicial del gas  se toma a una presion de 0.05 atm
+!  para asegurar un volumen suficientemente grande
+!
+!
+      NCONT = 0
+!
+      VOL1 = VOLFIRST
+      VOL3 = VOL1 + 1.D-5*VOL1
+170   VOL1 = VOL3 / (1 + 1.D-5)
+      VOL5 = VOL1 + 2.D-5*VOL1
+!
+      VOL2 = (VOL1 + VOL3 )/2
+      VOL4 = (VOL3 + VOL5 )/2
+!
+! VOL2 = (VOL1 + VOL3 )/2
+!
+! VOL4 = (VOL3 + VOL5 )/2
+!
+      NCOD=1
+        CALL ASSOCGCEOS(NCOD,NC,DC,RN,TEMPCRIT,VOL1,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZFSL,FFIFL,IERRFUG,IERRZSIS,IERRREP,ierrasoc)
+!
+!
+      PRESS1 = ZFSL * RUNIV * TEMP / VOL1
+!
+!
+      NCOD=1
+        CALL ASSOCGCEOS(NCOD,NC,DC,RN,TEMPCRIT,VOL3,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZFSL,FFIFL,IERRFUG,IERRZSIS,IERRREP,ierrasoc)
+!
+!
+!
+      PRESS3 = ZFSL * RUNIV * TEMP / VOL3
+!
+      NCOD=1
+      CALL ASSOCGCEOS(NCOD,NC,DC,RN,TEMPCRIT,VOL5,TEMP,NG,NU,QAREA&
+     &,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC&
+     &,ENASS,RKASS,ARESTOT,ZFSL,FFIFL,IERRFUG,IERRZSIS,IERRREP,ierrasoc)
+!
+!
+!
+      PRESS5 = ZFSL * RUNIV * TEMP / VOL5
+!
+! ESTIMACION DE LA DERIVADA PRIMERA EN VOL2 Y VOL4
+!
+      DERI2 = (PRESS3 - PRESS1)/ (VOL3 - VOL1)
+!
+      DERI4 = (PRESS5 - PRESS3)/ (VOL5 - VOL3)
+!
+! ESTIMACION DE LA DERIVADA PRIMERA EN VOL3
+!
+      DERI3 = (PRESS5 - PRESS1)/ (VOL5 - VOL1)
+!
+! ESTIMACION DE LA DERIVADA SEGUNDA EN VOL3
+!
+      SEGDERI3 = (DERI4-DERI2)/(VOL4-VOL2)
+!
+!
+      IF(NCONT.EQ.1) THEN
+!-------------------------------------------------------------
+! METODO DE LA SECANTE PARA HALLAR EL CERO DE VOLUMEN MAYOR DE LA
+!  PRIMERA DERIVADA
+!
+! ESTABLECIMIENTO DE LIMITES
+!
+      IF((VSECMIN*VSECMAX).EQ.0) THEN
+      		IF(DERI3.GT.0) THEN
+      			 VSECMIN = VOL3
+      			 SECPOS = DERI3
+      			 IF(VSECMAX.NE.0) GO TO 768
+      			 PASO = 2*PASO
+      			 VOL3 = VSECMIN + PASO
+      			 NSEC = NSEC + 1
+      			 GO TO 170
+      		       ELSE
+      			 VSECMAX = VOL3
+      			 SECNEG = DERI3
+      			 IF(VSECMIN.NE.0) GO TO 768
+      			 PASO = PASO/2.
+      			 VOL3 = VSECMAX - PASO
+      			 NSEC = NSEC + 1
+      			 GO TO 170
+      	 	END IF
+      ELSE
+       CONTINUE
+      END IF
+!
+! ASIGNACION DE VALORES SEGUN SIGNO
+!
+      IF(DERI3.GT.0) THEN
+      		 VSECMIN = VOL3
+      		 SECPOS = DERI3
+      	       ELSE
+      		 VSECMAX = VOL3
+      		 SECNEG = DERI3
+      END IF
+!
+      IF(DABS(VSECMIN-VSECMAX).LT.1.D-4) GO TO 731
+!
+! ESTIMACION DE UN NUEVO VOLUMEN
+!         ALTERNO SECANTE CON BISECCION
+!
+      IF(NONGA.GT.10.AND.SEGDERI3.LT.0) GO TO 731
+!
+768   IF(NINGA.EQ.0) THEN
+      	RNEWVOL = VSECMIN - SECPOS * (VSECMAX - VSECMIN)/&
+     & (SECNEG-SECPOS)
+      	NINGA=1
+      	NONGA = NONGA + 1
+       ELSE
+      	RNEWVOL = (VSECMAX + VSECMIN)/2.
+      	NINGA=0
+      	NONGA = NONGA + 1
+      END IF
+!
+      VOL3 = RNEWVOL
+      GO TO 170
+!-------------------------------------------------------------
+      ELSE
+      	CONTINUE
+      END IF
+!
+! ESTIMACION DE UNA RAIZ DE LA DERIV. 1A DE LA PRESION C/RESP AL VOL
+!  POR METODO DE NEWTON
+!
+731   RNEWVOL = VOL3 - DERI3/SEGDERI3
+      IF(RNEWVOL.GT.VOLLAST) WRITE(6,*) 'PROBABLEMENTE SUPERCRITICO '
+      IF(RNEWVOL.GT.VOLLAST) IERRROB = 1
+      IF(RNEWVOL.GT.VOLLAST) GO TO 991
+!
+! TEST DE CONVERGENCIA
+!
+      IF(DABS(RNEWVOL-VOL3).LT.1.D-4.OR.DABS(DERI3).LT.1.D-8) THEN
+      		IF(NCONT.EQ.0) THEN
+      			VMIN = VOL3
+      			PMIN = PRESS3
+      			NCONT = 1
+      			PASO = 0.1*VMIN
+!
+      			VOL3 = VMIN + PASO
+      			NSEC=0
+      			VSECMIN = 0
+      			VSECMAX = 0
+      			RNEWVOL = 0
+      			GO TO 170
+      		ELSE
+      			VMAX = VOL3
+      			PMAX = PRESS3
+      		END IF
+      	ELSE
+      		VOL3 = RNEWVOL
+      	 	GO TO 170
+      END IF
+!
+      IF(PMIN.LT.0) PMIN = 0
+      PSAT = (PMIN + PMAX)/2
+!
+!
+!991	WRITE(6,*) 'TERMINA METODO ROBUSTO'
+991     CONTINUE
+!
+      END !FIN ROBUSTO4
+!//////////////////////////////////////////////////////////
+!//////////////////////////////
