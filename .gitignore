@@ -30,3 +30,4 @@ binary_graphic*.csv
 .directory
 .kdev4/
 *.kdev4
+pruebas/tmp/

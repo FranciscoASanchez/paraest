@@ -1,31 +1,38 @@
-A-Paraest Linux v 0.0.1
+paraest — Ajuste de parámetros de modelos termodinámicos (GCA-EoS)
+=================================================================
 
-Compilar: abrir una consola/terminal y desde el directorio donde están los archivos tipear
+Compilar
+--------
+    make                  con Intel ifx (por defecto)
+    make FC=gfortran      con GNU gfortran
+    make debug            versión con verificaciones -> debug.paraest.x
+    make clean            borra objetos y ejecutables
 
-$ make
+Antes de usar ifx, cargar el entorno de Intel:
+    source /opt/intel/oneapi/setvars.sh
 
+Ejecutar
+--------
+    ./paraest.x           lee paraest.dat (y FOR010-013.DAT) del directorio actual
 
-Eliminar archivos objeto (*.o *.x):
+Prueba de regresión
+-------------------
+    make prueba
 
-$ make clean
+Corre paraest.dat en pruebas/tmp/ y compara paraest.out, graficos.csv y
+tables.csv con pruebas/referencia/ (tolerancia relativa 1e-6). Hay que
+correrla después de cada cambio: si da "Regresión FALLÓ", el cambio alteró
+los resultados.
 
+Organización
+------------
+    src/principal/     programa principal, lectura/escritura, FUNC
+    src/optimizacion/  optimizadores (ZXSSQ: Marquardt-Levenberg)
+    src/modelos/       modelos termodinámicos (GCA y la versión "assoc")
+    src/equilibrio/    cálculos de equilibrio (flash, psat, isofugacidad...)
+    pruebas/           prueba de regresión y salidas de referencia
+    Archivos/          conjuntos de datos experimentales
+    legacy/            versiones viejas de los fuentes y makefiles
 
-Eliminar Backups:
-
-$ make cleanbak
-
-
-Ejecutar el programa:
-
-$ ./paraest.x
-
-El ejecutable generado se llama "paraest.x". La extensión *.x no es necesaria, pero la agrego
-para una mejor distinción y manejo de los archivos en la consola. También podría haberlo lla-
-mado "paraest.exe" pero pueden haber confusiones con respecto a los ejecutables de DOS.
-(NOTA: llamando *.exe a un ejecutable de GNU/Linux no de crea un ejecutable de DOS.)
-
-De momento no se consideraron los archivos  A-TPflash-Ell.FOR.  Tal vez cuando funcione el a-
-juste ELL sí se agregue.
-
-Tampoco está compilándose el archivo  CUBICandQUARTIC.for  porque de momento el cálculo es di-
-recto al de Alfonsina.
+Las versiones se llevan con git (git log, git tag), no en el nombre de
+los archivos.
