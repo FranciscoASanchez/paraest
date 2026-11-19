@@ -14,10 +14,10 @@ C
 C
 C Calcula [  PARA COMPUESTOS PUROS  ]
 C                                
-C    Ø (Texp,Pexp)  
+C    Ã˜ (Texp,Pexp)  
 C     1 liq           
 C    ------------- - 1.
-C    Ø (Texp,Pexp)  
+C    Ã˜ (Texp,Pexp)  
 C     1 vap           
 C                                
 C

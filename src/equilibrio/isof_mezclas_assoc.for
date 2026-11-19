@@ -12,10 +12,10 @@ C ZVV= FACTOR DE COMPRESIBILIDAD (CALCULADO) FASE VAPOR
 C
 C Calcula 
 C                                |    |
-C    Ø (T,P,X)exp  * X           |    |    Ø (T,P,X)exp  * X       
+C    Ã˜ (T,P,X)exp  * X           |    |    Ã˜ (T,P,X)exp  * X       
 C        1 liq           1exp       |    |        2 liq           2exp  
 C    ----------------------  - 1.|  Y    |    ----------------------   -   1.
-C    Ø (T,P,Y)exp  * Y           |    |    Ø (T,P,Y)exp  * Y       
+C    Ã˜ (T,P,Y)exp  * Y           |    |    Ã˜ (T,P,Y)exp  * Y       
 C        1 vap           1exp       |    |        2 vap           2exp  
 C                                |    |
 C

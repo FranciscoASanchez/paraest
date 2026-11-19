@@ -1,25 +1,25 @@
 !
 !	Group Contribution with Association Equation of State (GCA-EoS)
-!	Basada en la GC-EoS de Steen Skjold-J¯rgensen con el agregado de una contribuciÛn
-!   asociativa derivada de la ecuaciÛn de Chapman (1989,1990), pero formulada a con-
-!   tribuciÛn grupal.
+!	Basada en la GC-EoS de Steen Skjold-J√∏rgensen con el agregado de una contribuci√≥n
+!   asociativa derivada de la ecuaci√≥n de Chapman (1989,1990), pero formulada a con-
+!   tribuci√≥n grupal.
 !
 !
 SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP, CZ, IGz, MTyp, IC)
 !-----------------------------------------------------------------------
 !	SUBRUTINA GCEOS calcula el logaritmo de los coeficientes de fugaci-
-!	dad y sus derivados con respecto a la temperatura, presiÛn y compo-
-!	siciÛn una mezcla de componentes NC.
-!	XN especifica el n˙mero de moles de cada componente.
-!	IOPT especifica si el c·lculo debe ser hecho para la fase gaseosa
-!	(MTYP =- 1) o la fase lÌ≠quida (MTYP = 1).
+!	dad y sus derivados con respecto a la temperatura, presi√≥n y compo-
+!	sici√≥n una mezcla de componentes NC.
+!	XN especifica el n√∫mero de moles de cada componente.
+!	IOPT especifica si el c√°lculo debe ser hecho para la fase gaseosa
+!	(MTYP =- 1) o la fase l√≠quida (MTYP = 1).
 !
-!	iDer = 1: derivadas 1™ respecto del n˙mero de moles
-!	     = 2:     "     2™
+!	iDer = 1: derivadas 1¬™ respecto del n√∫mero de moles
+!	     = 2:     "     2¬™
 !
 !	iTemp = 1: derivadas respecto de T
 !
-!	iGz: inicializaciÛn del c·lculo. Detalles en subr. ZMAX
+!	iGz: inicializaci√≥n del c√°lculo. Detalles en subr. ZMAX
 !
 !
 !	PHI(I)    = ln del coeficiente de fugacidad del comp i
@@ -59,13 +59,13 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 !
 	COMMON/COORD/ZZ
 !
-!	Variables especÌ≠ficas del tÈrmino dispersivo
+!	Variables espec√≠ficas del t√©rmino dispersivo
 	COMMON/GROUP2/Q(NGM),A(NGM,NGM),DADT(NGM,NGM),ALFA(NGM,NGM),R,NY(NCM,NGM)
 !
-!	VersiÛn asociativa del common "ZZZ"
+!	Versi√≥n asociativa del common "ZZZ"
 	common/ZZZAs/Xs(2,NSM),sm(NSM),dXs_dV(2,NSM)
 !
-!	VersiÛn asociativa del common "GROUP2"
+!	Versi√≥n asociativa del common "GROUP2"
 	common/GrupAs2/sigma(NSM,NCM)
 	common/GrupAs4/Delta(NSM,NSM),dDeldT(NSM,NSM)
 !
@@ -86,7 +86,7 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 	dPdT = 0
 	dPdn = 0
 !
-!	Calcula el n˙mero total de moles, fracciones molares, moles
+!	Calcula el n√∫mero total de moles, fracciones molares, moles
 !	de superficie total, y las fracciones superficie de area
 	xNtot = sum(xN(:NC))
 !
@@ -98,10 +98,10 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 	IF(MTYP.EQ.0) IPHAS=1+(IC+1)/2
 	CZ=Z(IPHAS)
 !
-!	C·lculo de coeficientes de fugacidad.
+!	C√°lculo de coeficientes de fugacidad.
 	rNyT(:NG) = rNyT(:NG)*xNtot
 
-	QT = QT*XNTOT               	!¡rea total de los grupos atractivos
+	QT = QT*XNTOT               	!√Årea total de los grupos atractivos
 	V = Z(IPHAS)*RT/P*XNTOT     	!Volumen de la fase
 	DPV = -DPDV(IPHAS)*XNTOT/V/V	!(dP/dV)_(T,n): viene del COMMON "ZZZ"
 !
@@ -114,8 +114,8 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 !	    IF(NYN.EQ.0) GOTO 2
 	    if(NY(I,K).NE.0)then
 
-!	      PSIK=DFLOAT(NYN)*Q(K)		!Necesita convertir Ny en n˙mero decimal, sino FORTRAN es capaz de convertirle Ps(i,k) en un entero...
-	      PS(I,K)=DFLOAT(NY(I,K))*Q(K)	!(PS)ik	!Necesita convertir Ny en n˙mero decimal, sino FORTRAN es capaz de convertirle Ps(i,k) en un entero...
+!	      PSIK=DFLOAT(NYN)*Q(K)		!Necesita convertir Ny en n√∫mero decimal, sino FORTRAN es capaz de convertirle Ps(i,k) en un entero...
+	      PS(I,K)=DFLOAT(NY(I,K))*Q(K)	!(PS)ik	!Necesita convertir Ny en n√∫mero decimal, sino FORTRAN es capaz de convertirle Ps(i,k) en un entero...
 	      XSUM=XSUM+PS(I,K)
 
 	    endif
@@ -141,7 +141,7 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 !     Variables auxiliares para el calculo del ln(coef.fug)i y sus derivadas
 !     con respecto a T,P y nro. de moles del comp. j
 !
-!     ContribuciÛn atractiva
+!     Contribuci√≥n atractiva
 	DO 6 I=1,NC
 
 	  XMSI=XMS(I)
@@ -188,7 +188,7 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 !
 	if(iTemp.NE.0)then
 !
-!  Derivadas del tÈrmino atractivo con respecto de T
+!  Derivadas del t√©rmino atractivo con respecto de T
 	  DH3DT(:NC,:NG)=0.D0
 	  DH7DT(:NC,:NG)=0.D0
 	  DHEL=0.D0
@@ -267,7 +267,7 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 	  DPDT=XNTOT*R/V-ZZ/2.D0*RT/V*DHEL  !n*R/V + (dP/dT)att (falta contribucion asociativa y repulsiva)
 	  dPatdT = -ZZ/2.D0*RT/V*DHEL
 !
-!	  Ac· termina el if(iTemp.EQ.0)goto 306
+!	  Ac√° termina el if(iTemp.EQ.0)goto 306
 !--------------------------------------------------------------------------
 
 	endif
@@ -280,14 +280,14 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 	    N = NST; NP = NST
 	    if(iDer.EQ.2)then
 !
-!	      C·lculo de dXs(i)/ds(j)-> vector psi_s:
+!	      C√°lculo de dXs(i)/ds(j)-> vector psi_s:
 	      do i = 1,NST
 
 	        dXs_ds(i,:NST) = -Xs(iPhas,i)**2*Delta(i,:NST)*Xs(iPhas,:NST)/V
 
 	      enddo
 !
-!	      Conviene hallar uno u otro primero, dependiendo quÈ sea m·s
+!	      Conviene hallar uno u otro primero, dependiendo qu√© sea m√°s
 !	      grande: NC o NST
 	      if(NST.LT.NC)then
 
@@ -315,8 +315,8 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 	    endif
 	    if(iTemp.EQ.1)then
 !
-!  C·lculo de dXs(i)/dT:
-!	    definiciÛn de psi_T.
+!  C√°lculo de dXs(i)/dT:
+!	    definici√≥n de psi_T.
 !	         [psi_T] = -[Z]^2*[sm]*[Z]*[d Delta/dT]/V  ,   [Xs]
 	      do i = 1,NST
 
@@ -325,7 +325,7 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 	      enddo
 	      call LUBksb(LAMBDA2(iPhas,:NST,:NST),N,NP,indx(iPhas,:NST),dXs_dT(:NST))
 !
-!  C·lculo de dP/dT
+!  C√°lculo de dP/dT
 !  dFVasoc = d(Aasoc/(nRT))/dv = d(Aasoc/RT)/dV
 	      dPdTas = RT*dot_product(sm(:NST),dXs_dT(:NST))/2D0/V - R*dFVas(iPhas)
 !
@@ -335,7 +335,7 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 
 	endif
 !
-!  ContribuciÛn repulsiva
+!  Contribuci√≥n repulsiva
 	XLAM1=XLAM1*XNTOT    !lambda1
 	XLAM2=XLAM2*XNTOT    !lamdda2
 	XLAM3=XLAM3*XNTOT    !lamdda3
@@ -421,7 +421,7 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 !-------------------------------------------------------------------------------
 !
 !
-!  C·lculo del ln(coef.fug)i y sus derivadas con respecto a T,P y nro. de moles del comp. j
+!  C√°lculo del ln(coef.fug)i y sus derivadas con respecto a T,P y nro. de moles del comp. j
 	DO 8 I=1,NC
 
 	  dFdnas = 0D0
@@ -536,7 +536,7 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 
 	    do k = NC1, NC
 
-!  Antes lo multiplicaba al sumar contribuciones. Desde la apariciÛn de asociaciÛn, multiplica 
+!  Antes lo multiplicaba al sumar contribuciones. Desde la aparici√≥n de asociaci√≥n, multiplica 
 !  ahora y luego suma... cosas heredadas...
 	      dFdnn(i,k) = dFdnn(i,k)*zz/2.D0      !d2(F)att/dnidnj.
 
@@ -544,7 +544,7 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 
 	  end if
 
-!  ContribuciÛn asociativa
+!  Contribuci√≥n asociativa
 	  if(maxval(sigma(:NST,i)).GT.0)then
 
 !  Coeficiente de fugacidad:
@@ -683,20 +683,20 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 ENDSUBROUTINE
 !-----------------------------------------------------------------------
 !
-!	NTLPY Calcula la entalpÌ≠a residual a P y T de una mezcla de NC com-
+!	NTLPY Calcula la entalp√≠a residual a P y T de una mezcla de NC com-
 !	ponentes.
-!	Est· definida como
+!	Est√° definida como
 !
 !	      r     conf          conf,GI
 !	     H   = H   (T,P,n) - H       (T,P,n)
 !
-!	donde Hconf es la entalpÌ≠a configuracional.
-!	xN es el vector de n˙mero de moles de la mezcla (como siempre).
+!	donde Hconf es la entalp√≠a configuracional.
+!	xN es el vector de n√∫mero de moles de la mezcla (como siempre).
 !	mTyp especifica la fases: -1 gas
-!	                           1 lÌ≠quido
-!	                           0 fase con menos energÌ≠a libre de Gibbs
+!	                           1 l√≠quido
+!	                           0 fase con menos energ√≠a libre de Gibbs
 !
-!	Las unidades, como en toda la GCA, est·n en [atm cm^3], ya que
+!	Las unidades, como en toda la GCA, est√°n en [atm cm^3], ya que
 !	R = 82.05 atm cm^3/(mol K).
 !
 SUBROUTINE NTLPY(NC,NG,NST,T,P,XN,HRES,CZ,IGZ,MTYP,IC)
@@ -717,14 +717,14 @@ SUBROUTINE NTLPY(NC,NG,NST,T,P,XN,HRES,CZ,IGZ,MTYP,IC)
 !
 	COMMON/COORD/ZZ
 !
-!	Variables especÌ≠ficas del tÈrmino dispersivo
+!	Variables espec√≠ficas del t√©rmino dispersivo
 	COMMON/GROUP2/Q(NGM),A(NGM,NGM),DADT(NGM,NGM),ALFA(NGM,NGM),R,     &
      &              NY(NCM,NGM)
 !
-!	VersiÛn asociativa del common "ZZZ"
+!	Versi√≥n asociativa del common "ZZZ"
 	common/ZZZAs/Xs(2,NSM),sm(NSM),dXs_dV(2,NSM)
 !
-!	VersiÛn asociativa del common "GROUP2"
+!	Versi√≥n asociativa del common "GROUP2"
 	common/GrupAs2/sigma(NSM,NCM)
 	common/GrupAs4/Delta(NSM,NSM),dDeldT(NSM,NSM)
 
@@ -743,7 +743,7 @@ SUBROUTINE NTLPY(NC,NG,NST,T,P,XN,HRES,CZ,IGZ,MTYP,IC)
 !	Nro. total de moles
 	xnTot = sum(xN(:NC))
 !
-!	C·lculo del factor de compresibilidad
+!	C√°lculo del factor de compresibilidad
 	IPHAS=1+(MTYP+1)/2
 	IF(IGZ.NE.0.AND.MTYP.NE.0) Z(IPHAS)=CZ
 	CALL ZMAX(Z,MTYP,T,P,XN,IGZ,NC,NG,NST,IC)
@@ -763,7 +763,7 @@ SUBROUTINE NTLPY(NC,NG,NST,T,P,XN,HRES,CZ,IGZ,MTYP,IC)
 !	la sub. ZMAX
 !	Nro. de moles del grupo att. k
 	rNyT(:NG) = xNtot*rNyT(:NG)
-!	¡rea grupal total
+!	√Årea grupal total
 	QT=QT*XNTOT
 	if(NST.GT.0)then
 
@@ -773,13 +773,13 @@ SUBROUTINE NTLPY(NC,NG,NST,T,P,XN,HRES,CZ,IGZ,MTYP,IC)
 !	Volumen de la fase
 	V=Z(IPHAS)*RT/P*XNTOT
 !-----------------------------------------------------------------------
-!	C·lculo de la ent.residual:
+!	C√°lculo de la ent.residual:
 !
 !	                r       2  dF
 !	               H  = -R T  ----  + P V - n R T
 !	                           dT
 !
-!	ContribuciÛn atractiva
+!	Contribuci√≥n atractiva
 	DNOM=QT/V/RT
 	DADTA=0.D0
 	ARES=0.D0
@@ -823,13 +823,13 @@ SUBROUTINE NTLPY(NC,NG,NST,T,P,XN,HRES,CZ,IGZ,MTYP,IC)
 	dAdTa=-ZZ/2.D0*(dAdTa-Ares/T)
 !	write(*,*)dAdTa
 !
-!	ContribuciÛn asociativa
+!	Contribuci√≥n asociativa
 	dFasdT = 0.D0
 	if(NST.GT.0)then
 !
-!  C·lculo de dXs(i)/dT:
+!  C√°lculo de dXs(i)/dT:
 !
-!	  definiciÛn de psi_T:
+!	  definici√≥n de psi_T:
 !	         [psi_T] = -[Xs_m]^2*[sm]*[Xs_m]*[d Delta/dT]/V
 	  do i = 1,NST
 
@@ -844,7 +844,7 @@ SUBROUTINE NTLPY(NC,NG,NST,T,P,XN,HRES,CZ,IGZ,MTYP,IC)
 	endif
 !	write(*,*)dFasdT
 !
-!	ContribuciÛn repulsiva
+!	Contribuci√≥n repulsiva
 	XLAM1=XLAM1*XNTOT        !lambda1
 	XLAM2=XLAM2*XNTOT        !lambda2
 	XLAM3=XLAM3*XNTOT        !lambda3
@@ -889,15 +889,15 @@ SUBROUTINE NTLPY(NC,NG,NST,T,P,XN,HRES,CZ,IGZ,MTYP,IC)
 !
 subroutine NTLPY_GI(NC,T,Hgi)
 !
-!	Esta subrutina calcula la entalpÌ≠a del gas ideal a T, para dar entalpÌ≠-
-!	as reales complementando con las entalpÌ≠as residuales de NTLPY.
+!	Esta subrutina calcula la entalp√≠a del gas ideal a T, para dar entalp√≠-
+!	as reales complementando con las entalp√≠as residuales de NTLPY.
 !
-!	La subrutina almacena las entalpÌ≠as de GI molares dentro del vector Hgi
+!	La subrutina almacena las entalp√≠as de GI molares dentro del vector Hgi
 !
-!	La Hgi se halla por correlaciÛn. Los par·metros de la misma se leen en
+!	La Hgi se halla por correlaci√≥n. Los par√°metros de la misma se leen en
 !	en la subrutina PARMOL.
 !
-!	Francisco, 14/05/11. Durante la versiÛn 1.3.3.
+!	Francisco, 14/05/11. Durante la versi√≥n 1.3.3.
 !
 !	           14/07/11. Limpieza, v-1.3.4
 !
@@ -910,8 +910,8 @@ subroutine NTLPY_GI(NC,T,Hgi)
 	common/GCPROM/PMM(ncm), Pen(NCM), HHA(ncm), HHB(ncm), HHC(ncm), HHD(ncm), HHE(NCM), HHF(NCM),     &
 &	              HHG(NCM)
 !
-!-----De momento planteo ingresar los par·metros como est·n en la correlaciÛn de Passut-Danner: BTU/(molLB R)
-	TRan = T*1.8D0	!K -> ∫R (
+!-----De momento planteo ingresar los par√°metros como est√°n en la correlaci√≥n de Passut-Danner: BTU/(molLB R)
+	TRan = T*1.8D0	!K -> ¬∫R (
 	Hgi = 0.D0
 	Hgi(:NC) = HHA(:NC) + HHB(:NC)*TRan + HHC(:NC)*TRan**2 + HHD(:NC)*TRan**3 + HHE(:NC)*TRan**4 + HHF(:NC)*TRan**5
 !
@@ -927,15 +927,15 @@ endsubroutine
 !
 subroutine NTRPY_GI(NC,T,Sgi)
 !
-!	Esta subrutina calcula la entropÌ≠a del gas ideal a T y 1 atm.
+!	Esta subrutina calcula la entrop√≠a del gas ideal a T y 1 atm.
 !
-!	La subrutina almacena las entalpÌ≠as de GI molares dentro del vector Sgi
+!	La subrutina almacena las entalp√≠as de GI molares dentro del vector Sgi
 !
-!	La Sgi se halla por correlaciÛn. Los par·metros de la misma se leen en
+!	La Sgi se halla por correlaci√≥n. Los par√°metros de la misma se leen en
 !	en la subrutina PARMOL.
 !
 !
-!	Francisco, 10/03/14. Durante la versiÛn 1.9.26
+!	Francisco, 10/03/14. Durante la versi√≥n 1.9.26
 !
 	implicit real(8) (a-h,o-z)
 	parameter(NCM = 15)
@@ -945,8 +945,8 @@ subroutine NTRPY_GI(NC,T,Sgi)
 	common/GCPROM/PMM(ncm), Pen(NCM), HHA(ncm), HHB(ncm), HHC(ncm), HHD(ncm), HHE(NCM), HHF(NCM),     &
 &	              HHG(NCM)
 !
-!	CorrelaciÛn de Passut-Danner: BTU/(mol-lb ∞R)
-	TRan = T*1.8D0	!K -> ∫R
+!	Correlaci√≥n de Passut-Danner: BTU/(mol-lb ¬∞R)
+	TRan = T*1.8D0	!K -> ¬∫R
 	Sgi = 0.D0
 	do i = 1, NC
 	  
@@ -955,7 +955,7 @@ subroutine NTRPY_GI(NC,T,Sgi)
 !
 !	  Traspaso de unidades de la GCA: atm*cm3/(mol-g K)
 	  Sgi(i) = Sgi(i)*PMM(i)*1.0412238D4/454.D0*1.8D0
-	  !(Sgi BTU/lb ∞R)*(10412 atm cm3/BTU)*(PM lb/mol-lb)*(454 mol-g/mol-lb)*(1.8 ∞R/K)
+	  !(Sgi BTU/lb ¬∞R)*(10412 atm cm3/BTU)*(PM lb/mol-lb)*(454 mol-g/mol-lb)*(1.8 ¬∞R/K)
 	 
 	enddo
 !
@@ -965,13 +965,13 @@ endsubroutine
 
 !-----------------------------------------------------------------------
 !
-!	La subrutina PARAGC eval˙a los par·metros dependientes de la tem-
+!	La subrutina PARAGC eval√∫a los par√°metros dependientes de la tem-
 !	peratura
 !
 !
-!	d = di·metros de esfera "blanda"
-!     g(i,i) y k(i,j) = par·metros energÈticos y de interacciÛn
-!	Delta(i,j) = fuerza de asociaciÛn
+!	d = di√°metros de esfera "blanda"
+!     g(i,i) y k(i,j) = par√°metros energ√©ticos y de interacci√≥n
+!	Delta(i,j) = fuerza de asociaci√≥n
 !
 SUBROUTINE PARAGC(T,NC,NG,NST,NTEMP)
 !
@@ -980,7 +980,7 @@ SUBROUTINE PARAGC(T,NC,NG,NST,NTEMP)
 	real*8 kappa
 	integer sigma
 !
-!	Variables especÌ≠ficas del tÈrmino dispersivo
+!	Variables espec√≠ficas del t√©rmino dispersivo
 	COMMON/GROUP2/Q(NGM),A(NGM,NGM),DADT(NGM,NGM),ALFA(NGM,NGM),R,     &
      &              NY(NCM,NGM)
 !
@@ -1046,7 +1046,7 @@ SUBROUTINE PARAGC(T,NC,NG,NST,NTEMP)
 2	enddo
 !2	continue
 	NG2=NG-1
-!	Si hay 1 sÛlo grupo, no necesita k(i,j)
+!	Si hay 1 s√≥lo grupo, no necesita k(i,j)
 !      IF(NG2.EQ.0)RETURN
 	if(NG2.NE.0)then
 	  DO 3 I=1,NG2
@@ -1096,7 +1096,7 @@ SUBROUTINE PARAGC(T,NC,NG,NST,NTEMP)
 ENDsubroutine
 !-----------------------------------------------------------------------
 !
-!	La subrutinas PARGR lee los par·metros grupales dispersivos y aso-
+!	La subrutinas PARGR lee los par√°metros grupales dispersivos y aso-
 !	ciativos
 !
 !
@@ -1109,7 +1109,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 	DIMENSION X(35),X1(35),X2(35),NNY(NCM,NGM+1),IGROUP(NGM),INT(2*(NGM+1)), &
      &          IDG(NCM,NGM+1),ID(NGM)
 !
-!	EnergÌ≠a y volumen de asociaciÛn con 4 subÌ≠ndices: sÛlo est·n en
+!	Energ√≠a y volumen de asociaci√≥n con 4 sub√≠ndices: s√≥lo est√°n en
 !	esta subrutina.
 	dimension enAs(NSM,NGAM,NSM,NGAM),volAs(NSM,NGAM,NSM,NGAM),        &
      &          nyAss(NGAM,NCM),MAssoc(NGA)
@@ -1129,25 +1129,25 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 
 	common/NAME/AName(NCM)
 !
-!	ComprobaciÛn de errores:
+!	Comprobaci√≥n de errores:
 	if(NC.GT.NCM)then
 
-	  write(*,*)'Error: n˙mero de compuestos m·ximo sobrepasado'
+	  write(*,*)'Error: n√∫mero de compuestos m√°ximo sobrepasado'
 	  stop
 
 	elseif(NG.GT.NGM)then
 
-	  write(*,*)'Error: n˙mero m·ximo de grupos atractivos sobrepasado'
+	  write(*,*)'Error: n√∫mero m√°ximo de grupos atractivos sobrepasado'
 	  stop
 
 	elseif(NGA.GT.NGAM)then
 
-	  write(*,*)'Error: n˙mero m·ximo de grupos asociativos sobrepasado'
+	  write(*,*)'Error: n√∫mero m√°ximo de grupos asociativos sobrepasado'
 	  stop
 
 	endif
 !
-!  N˙mero de coordinaciÛn:
+!  N√∫mero de coordinaci√≥n:
 	ZZ=10.D0
 !
 !  Constante de los gases ideales
@@ -1166,7 +1166,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
       DO 1 I=1,NC
 
 !	  JJ=20
-	  JJ = NGM*2	!----> deberÌ≠a ser algo asÌ≠
+	  JJ = NGM*2	!----> deber√≠a ser algo as√≠
 	  write(*,*) i
 	  READ(5,*) (INT(J),J=1,JJ)
 !	  read(5,*)(int(j), j = 1, 2*NG)
@@ -1195,14 +1195,14 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 !	      IF(IDG(I,IJ).EQ.IGROUP(II)) GOTO 5
 	        if(idG(i,ij).NE.iGroup(ii))then
 
-	          iTop = NGM - II !creo que deberÌ≠a ir esta lÌ≠nea en vez de la siguiente.
+	          iTop = NGM - II !creo que deber√≠a ir esta l√≠nea en vez de la siguiente.
 !	          ITOP=15-II
 !	          IF(ITOP.EQ.0) GOTO 8
 	          if(iTop.NE.0)then
 
 	            DO 6 J=1,ITOP
 
-	              J1 = NGM - J     !creo que deberÌ≠a ir esta lÌ≠nea en vez de la siguiente.
+	              J1 = NGM - J     !creo que deber√≠a ir esta l√≠nea en vez de la siguiente.
 !	              J1 = 15 - J
 	              J2=J1+1
 	              IGROUP(J2)=IGROUP(J1)
@@ -1218,7 +1218,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 	      endif
 4	      II=1+II
 !	    IF(II.LE.15) GOTO 7
-	    if(II.LE.NGM)goto 7 !creo que deberÌ≠a ir esta lÌ≠nea en lugar de la anterior
+	    if(II.LE.NGM)goto 7 !creo que deber√≠a ir esta l√≠nea en lugar de la anterior
 !	    enddo
 
 	  endif
@@ -1325,9 +1325,9 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 	    abs_AX = 1.
 	    do while(abs_AX.GT.1.D-15)
 
-!  FunciÛn a ser igualada a 0 = AX(Tspl)
+!  Funci√≥n a ser igualada a 0 = AX(Tspl)
 16	      AX=1.D0+G1(I)*(TR-1.D0)+G2(I)*DLOG(TR)-1.D0/4.D0
-!  Derivada de dicha funciÛn: d(AX)/d(Tspl)
+!  Derivada de dicha funci√≥n: d(AX)/d(Tspl)
 	      DAX=G1(I)+G2(I)/TR
 !  Cociente de Newton:
 	      DTR=-AX/DAX
@@ -1344,7 +1344,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 
 	      else
 
-! Si Ts est· dando < 0 o no converge, Ts = 1000.
+! Si Ts est√° dando < 0 o no converge, Ts = 1000.
 	        TSPL(I)=1.D3
 	        epx(i) = 0
 	        exit
@@ -1355,7 +1355,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 
 	  else
 !
-!  Si g' > 0, no puede haber una Ts > 0 (o difÌ≠cilmente la haya)
+!  Si g' > 0, no puede haber una Ts > 0 (o dif√≠cilmente la haya)
 18	   TSPL(I)=1.D3
 	   epx(i) = 0
 
@@ -1456,7 +1456,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 	endif
 !-----------------------------------------------------------------------
 !
-!	ImpresiÛn de par·metros binarios
+!	Impresi√≥n de par√°metros binarios
    33 WRITE(iOut,115)
 	do i = 1,NG
 
@@ -1477,15 +1477,15 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 23	enddo
 !-----------------------------------------------------------------------
 !
-!	Lectura de par·metros asociativos ingresados por el usuario.
-!	(Te doy los "asociativos del banco de datos, toditito el montÛn
-!	a fin de aÌ±o")
+!	Lectura de par√°metros asociativos ingresados por el usuario.
+!	(Te doy los "asociativos del banco de datos, toditito el mont√≥n
+!	a fin de a√≠¬±o")
 !
 !	...mentira (30/12/2011)
 	NST = 0
 	IF(NGA.GT.0)then
 !
-!	  Vector M = sitios de asociaciÛn
+!	  Vector M = sitios de asociaci√≥n
 	  READ(5,*)(MAssoc(I),I=1,NGA)
 	  do i = 1,NGA - 1
 	    if(MAssoc(i).GT.MAssoc(i+1))then
@@ -1497,7 +1497,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 	    endif
 	  enddo
 !
-!	  Lectura de energÌ≠a y volumen de asociaciÛn en una misma lÌ≠nea, aprovechando las simetrÌ≠as.
+!	  Lectura de energ√≠a y volumen de asociaci√≥n en una misma l√≠nea, aprovechando las simetr√≠as.
 	  do i = 1,NGA
 	    do j = i,NGA
 	      do k = 1,Massoc(i)
@@ -1505,7 +1505,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 	          do l = k,Massoc(j)
 !
 	            read(5,*)enAs(k,i,l,j),volAs(k,i,l,j)
-!	            SimetrÌ≠as
+!	            Simetr√≠as
 	            enAs(l,i,k,j) = enAs(k,i,l,j)
 	            enAs(l,j,k,i) = enAs(k,i,l,j)
 	            enAs(k,j,l,i) = enAs(k,i,l,j)
@@ -1518,7 +1518,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 	          do l = 1,Massoc(j)
 !
 	            read(5,*)enAs(k,i,l,j),volAs(k,i,l,j)
-!	            SimetrÌ≠as
+!	            Simetr√≠as
 	            enAs(l,i,k,j) = enAs(k,i,l,j)
 	            enAs(l,j,k,i) = enAs(k,i,l,j)
 	            enAs(k,j,l,i) = enAs(k,i,l,j)
@@ -1532,9 +1532,9 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 	    enddo
 	  enddo
 !
-!  El siguiente mamarracho surge de que no me las ingeniÈ para leer
-!  la configuraciÛn grupal asociativa y pasarla a notaciÛn de sitios
-!  corrida (1..NST) en un sÛlo lazo.
+!  El siguiente mamarracho surge de que no me las ingeni√© para leer
+!  la configuraci√≥n grupal asociativa y pasarla a notaci√≥n de sitios
+!  corrida (1..NST) en un s√≥lo lazo.
 !		Francisco, 16/07/2011 durante v-1.8.1 (alfa 1)
 
 !  Conversion de variables a notacion por sitio "m" (y no, por sitio
@@ -1585,7 +1585,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 	    READ(5,*) (NYASS(I,J),J=1,NC)
 
 	  enddo
-!  ReasignaciÛn en notaciÛn 1..NST:
+!  Reasignaci√≥n en notaci√≥n 1..NST:
 	  do i = 1,NC
 
 	    m1 = 0
@@ -1620,7 +1620,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 	  WRITE(iout,220)
  220	  FORMAT(/,X,'Associating energy matrix, [epsilon/R] (K)',/)
 
-!  Escritura de par·metros energÈticos de asociaciÛn en forma de matriz
+!  Escritura de par√°metros energ√©ticos de asociaci√≥n en forma de matriz
 	  do i = 1,NGA
 	    do k = 1,Massoc(i)
 
@@ -1629,7 +1629,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 	    enddo
 	  enddo
 2210	  format(3X,'|',<NST>(X,F7.1),' |')
-!  Escritura del volumen de asociaciÛn
+!  Escritura del volumen de asociaci√≥n
 	  write(IOUT,'(/," Associating volume matrix, [kappa] (cm3/mol)",/)')
 	  do i = 1,NGA
 	    do k = 1,Massoc(i)
@@ -1654,23 +1654,23 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 118	FORMAT(/,1X,'Binary dumping factors matrix, [alpha]',/)
 119	FORMAT(2I3,4F10.2)
 120	FORMAT(1X,90("-"))
-130	FORMAT(/,1X,'Los par·metros de interacciÛn binaria entre los ','grupos',I2,' y ',I2,' no est·n disponibles.',/,1X,'Se usar·n', &
-     &        'valores est·ndar a menos que estos sean ingresador por el usuario')
+130	FORMAT(/,1X,'Los par√°metros de interacci√≥n binaria entre los ','grupos',I2,' y ',I2,' no est√°n disponibles.',/,1X,'Se usar√°n', &
+     &        'valores est√°ndar a menos que estos sean ingresador por el usuario')
 	RETURN
 ENDsubroutine
 !-----------------------------------------------------------------------
 !
-!	La subrutinas PARMOL lee los par·metros moleculares de cada compo-
+!	La subrutinas PARMOL lee los par√°metros moleculares de cada compo-
 !	nente:
 !	Tc, en K
 !	Pc, en atm
-!	omega (factor acÈntrico
+!	omega (factor ac√©ntrico
 !	Tsat, en K
 !	Psat, en atm
 !	dc, en cm/mol^1/3
 !	PM (peso molec), en g/mol o lb/mol-lb
 !	c (Peneloux), en cm3/mol
-!	A, B, C, D, E, F (coef de Passut&Danner para Hgi, en BTU/mol-lb/∫R
+!	A, B, C, D, E, F (coef de Passut&Danner para Hgi, en BTU/mol-lb/¬∫R
 !
 !
 SUBROUTINE PARMOL(NC, NG, NST, IOUT)
@@ -1707,11 +1707,11 @@ SUBROUTINE PARMOL(NC, NG, NST, IOUT)
 	real*8 kappa_bak(NST,NST),kappa
 	integer sigma,sigma_bak(NST,NC)
 !
-!  IniciaciÛn de constantes de Antoine
+!  Iniciaci√≥n de constantes de Antoine
 	HA(:NC) = 0D0
 	HB(:NC) = 0D0
 !
-!	write(iOut,'(//,"Di·metros crÌticos",/)')
+!	write(iOut,'(//,"Di√°metros cr√≠ticos",/)')
 	read (5,*) nUnit    !nUnit 0 = unidades en MPa, nUnit=1 en atm
 	DO I=1,NC
 
@@ -1736,8 +1736,8 @@ SUBROUTINE PARMOL(NC, NG, NST, IOUT)
 	enddo
 1	continue
 !
-!  Guarda la informaciÛn del componente "1", porque para ajustar el dc(i)
-!  sobrescribe esta informaciÛn, debido al que'l traspase de la misma se
+!  Guarda la informaci√≥n del componente "1", porque para ajustar el dc(i)
+!  sobrescribe esta informaci√≥n, debido al que'l traspase de la misma se
 !  hace mediantes "COMMON"s y no mediante entrada de subrutinas.
 	DO 8 I=1,NG
 
@@ -1748,20 +1748,20 @@ SUBROUTINE PARMOL(NC, NG, NST, IOUT)
 !
 !  Almacenamiento de variables grupales asociativas
 !  Entiendo que es un derroche talvez, almacenar TODO el paquete de
-!  variables, pero tambiÈn es muy sencillo... y seguro.
+!  variables, pero tambi√©n es muy sencillo... y seguro.
 !			Francisco, 18/07/2011, v-1.8.5
 	sigma_bak(:NST,:NC) = sigma(:NST,:NC)
 	kappa_bak(:NST,:NST) = kappa(:NST,:NST)
 	eps_R_bak(:NST,:NST) = eps_R(:NST,:NST)
 !
-!  Almacenamiento de variables moleculares (tÈrmino repulsivo)
+!  Almacenamiento de variables moleculares (t√©rmino repulsivo)
 	TCOLD=TC(1)
 	PCOLD=PC(1)
 	DCOLD=DC(1)
 	DO 3 I=1,NC
 
 	write(*,*) i
-!  Ajusta el dc(i) para reproducir el dato de presiÛn de vapor
+!  Ajusta el dc(i) para reproducir el dato de presi√≥n de vapor
 	  NG1=0
 	  IF(I.EQ.2) DCOLD=DC(1)
 	  DO 400 J=1,NG
@@ -1808,7 +1808,7 @@ SUBROUTINE PARMOL(NC, NG, NST, IOUT)
 401	  enddo
 !
 !
-!  Traspase a la posiciÛn "1" de par·metros asociativos
+!  Traspase a la posici√≥n "1" de par√°metros asociativos
 	  m = 0
 	  do k = 1,NST
 
@@ -1835,11 +1835,11 @@ SUBROUTINE PARMOL(NC, NG, NST, IOUT)
 	    endif
 
 	  enddo
-	  NST1 = m !?????   Hasta ac·... 01:00 hrs. v1.8.2
+	  NST1 = m !?????   Hasta ac√°... 01:00 hrs. v1.8.2
 !
 !
-!  Carga las propiedades del compuesto "i" en la primera posiciÛn.
-!  Par·metros moleculares y repulsivo:
+!  Carga las propiedades del compuesto "i" en la primera posici√≥n.
+!  Par√°metros moleculares y repulsivo:
 	  TC(1)=TC(I)
 	  PC(1)=PC(I)
 	  DC(1)=DC(I)
@@ -1892,7 +1892,7 @@ SUBROUTINE PARMOL(NC, NG, NST, IOUT)
 	    enddo
 !-----------------------------------------------------------------------
 !
-!	    Nuevo valor del di·metro crÌ≠tico del compuesto "i":
+!	    Nuevo valor del di√°metro cr√≠tico del compuesto "i":
 4	    DC(I)=D(1)/(1.D0-.12D0*DEXP(-2.D0*TC(I)/3.D0/T))/1.065655D0
 	    TIN=TSAT(I)
 	    PIN=PS(I)
@@ -1903,7 +1903,7 @@ SUBROUTINE PARMOL(NC, NG, NST, IOUT)
 	  HB(I)=DLOG(PC(I)/PIN)/(1.D0/TC(I)-1.D0/TIN)
 	  HA(I)=DLOG(PC(I))-HB(I)/TC(I)
 !
-!	  ReasignaciÛn de par·metros grupales atractivos:
+!	  Reasignaci√≥n de par√°metros grupales atractivos:
 	  DO 402 J=1,NG1
 
 	    GSTR(J)=GSTOL(J)
@@ -1925,17 +1925,17 @@ SUBROUTINE PARMOL(NC, NG, NST, IOUT)
 
 3	enddo	!CONTINUE
 !
-!  ReasignaciÛn de configuracion asociativa y par·metros
+!  Reasignaci√≥n de configuracion asociativa y par√°metros
 	sigma(:NST,:NC) = sigma_bak(:NST,:NC)
 	kappa(:NST,:NST) = kappa_bak(:NST,:NST)
 	eps_R(:NST,:NST) = eps_R_bak(:NST,:NST)
 !
-!  ReasignaciÛn de par·metros moleculares del comp. 1:
+!  Reasignaci√≥n de par√°metros moleculares del comp. 1:
       TC(1)=TCOLD
       PC(1)=PCOLD
       DC(1)=DCOLD
 
-!  ReasignaciÛn de configuraciÛn grupal dispersiva del comp. 1
+!  Reasignaci√≥n de configuraci√≥n grupal dispersiva del comp. 1
 !      DO 9 I=1,NG
       do i = 1,NG
 !    9 NY(1,I)=NYOLD(I)
@@ -1959,7 +1959,7 @@ SUBROUTINE PARMOL(NC, NG, NST, IOUT)
 
 	enddo
 !
-!  Constantes de Passut-Danner: impresiÛnn sÛlo si al menos se le in-
+!  Constantes de Passut-Danner: impresi√≥nn s√≥lo si al menos se le in-
 !  gresa valores a un compuesto:
 	iEntalp = NC
 	do i = 1,NC
@@ -1971,8 +1971,8 @@ SUBROUTINE PARMOL(NC, NG, NST, IOUT)
 	enddo
 	if(iEntalp.NE.0)then
 
-	  write(iOut,'(/," Passut-Danner constant for ideal gas enthalpy calculation:",/,"   Compound   A(BTU/lb)  B(BTU/(lb ∫R))  ", &
-     &             "C(BTU/(lb ∫R2)∑1E3  D(BTU/(lb ∫R3))∑1E6  E(BTU/(lb ∫R4))∑1E10  F(BTU/(lb ∫R5))∑1E14",/,128("-"))')
+	  write(iOut,'(/," Passut-Danner constant for ideal gas enthalpy calculation:",/,"   Compound   A(BTU/lb)  B(BTU/(lb ¬∫R))  ", &
+     &             "C(BTU/(lb ¬∫R2)¬∑1E3  D(BTU/(lb ¬∫R3))¬∑1E6  E(BTU/(lb ¬∫R4))¬∑1E10  F(BTU/(lb ¬∫R5))¬∑1E14",/,128("-"))')
 	  do i = 1,NC
 
 	    write(iOut,14)AName(i),HHA(i),HHB(i),1.D3*HHC(i),1.D6*HHD(i),1D10*HHE(i),1D14*HHF(i)
@@ -2001,8 +2001,8 @@ SUBROUTINE PSAT(T,PS,Z,NC,NG,NST,IC,IGP,IGZ,IER)
 !  Los volumenes de las fases son obtenidos llamando a ZMAX.
 !
 !  Mensajes de error (Valores de iEr)
-!      1    : ning˙n error
-!     -1    : soluciÛn trivial (vL = vV)
+!      1    : ning√∫n error
+!     -1    : soluci√≥n trivial (vL = vV)
 !
 	IMPLICIT REAL*8(A-H,O-Z)
 	parameter(NCM = 15, NGM = 20, NSM = 24)
@@ -2013,11 +2013,11 @@ SUBROUTINE PSAT(T,PS,Z,NC,NG,NST,IC,IGP,IGZ,IER)
 	COMMON/COORD/ZZ
 	COMMON/EXTREM/IEXT(2)
 !
-!  Variables especÌ≠ficas del tÈrmino dispersivo
+!  Variables espec√≠ficas del t√©rmino dispersivo
 	COMMON/GROUP2/Q(NGM),A(NGM,NGM),DADT(NGM,NGM),ALFA(NGM,NGM),R,     &
      &              NY(NCM,NGM)
 
-!  VersiÛn asociativa del common "GROUP2"
+!  Versi√≥n asociativa del common "GROUP2"
 	common/GrupAs2/sigma(NSM,NCM)
 	common/GrupAs4/Delta(NSM,NSM),dDeldT(NSM,NSM)
 	common/GrupAs3/sm_Xs(2),Sum_S,dFVas(2)
@@ -2029,7 +2029,7 @@ SUBROUTINE PSAT(T,PS,Z,NC,NG,NST,IC,IGP,IGZ,IER)
      &           TETA(NGM),HELP12(2,NGM),HELP15(2,NGM),HELP7(2,NGM),     &
      &           E(2,NGM,NGM),PREP(2),DPDV(2),XLAM1,XLAM2,XLAM3
 
-!	VersiÛn asociativa del common "ZZZ"
+!	Versi√≥n asociativa del common "ZZZ"
 	common/ZZZAs/Xs(2,NSM),sm(NSM),dXs_dV(2,NSM)
 !
 !	Propiedades moleculares
@@ -2048,8 +2048,8 @@ SUBROUTINE PSAT(T,PS,Z,NC,NG,NST,IC,IGP,IGZ,IER)
 !
 !-----------------------------------------------------------------------
 !
-!  C·lculo de iterativo de la presion de vapor.
-!  Utiliza el criterio de igualdad de energia libre (Gvap = GlÌ≠q)
+!  C√°lculo de iterativo de la presion de vapor.
+!  Utiliza el criterio de igualdad de energia libre (Gvap = Gl√≠q)
 	Pcrt = 1.
 !	do while(PCRT.GT.EPSP)
 
@@ -2073,13 +2073,13 @@ SUBROUTINE PSAT(T,PS,Z,NC,NG,NST,IC,IGP,IGZ,IER)
 	  IF(IER.LT.0) GOTO 99
 !	  if(iEr.GE.0)then
 !
-!  ContribuciÛn repulsiva de la energia de Helm. (fase vapor y lÌ≠quida)
+!  Contribuci√≥n repulsiva de la energia de Helm. (fase vapor y l√≠quida)
 	    XSIV = PS/T/R/Z(1)*PI/6.D0*PHI3
 	    XSIL = PS/T/R/Z(2)*PI/6.D0*PHI3
 	    CSV=3.D0*XSIV/(1.D0-XSIV)+XSIV/(1.D0-XSIV)**2
 	    CSL=3.D0*XSIL/(1.D0-XSIL)+XSIL/(1.D0-XSIL)**2
 !
-!  ContribuciÛn atractiva de la energia de Helm. (fase vapor y lÌ≠quida)
+!  Contribuci√≥n atractiva de la energia de Helm. (fase vapor y l√≠quida)
 	    ATTV=0.D0
 	    ATTL=0.D0
 	    DO 2 K=1,NG
@@ -2096,7 +2096,7 @@ SUBROUTINE PSAT(T,PS,Z,NC,NG,NST,IC,IGP,IGZ,IER)
 	    ATTV=ATTV*ZZ/2.D0
 	    ATTL=ATTL*ZZ/2.D0
 !
-!  ContribuciÛn asociativa de la energia de Helm. (fase vapor y lÌ≠quida)
+!  Contribuci√≥n asociativa de la energia de Helm. (fase vapor y l√≠quida)
 	    AasocL = 0D0
 	    AasocV = 0D0
 	    if(NST.GT.0)then
@@ -2104,7 +2104,7 @@ SUBROUTINE PSAT(T,PS,Z,NC,NG,NST,IC,IGP,IGZ,IER)
 !  Vapor:
 	      AasocV =  dot_product(sm(:NST),dlog(Xs(1,:NST))) + (Sum_S - sm_Xs(1))*.5D0
 !	      AasocV = AasocV + (Sum_S(1) - sm_Xs(1))*.5D0
-!  LÌ≠quido:
+!  L√≠quido:
 	      AasocL =  dot_product(sm(:NST),dlog(Xs(2,:NST))) + (Sum_S - sm_Xs(2))*.5D0
 !	      AasocL = AasocL + (Sum_S(2) - sm_Xs(2))*.5D0
 
@@ -2149,33 +2149,33 @@ ENDsubroutine
 SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 !
 ! 	Esta subrutina encuentra el(los) factor(es) de compresibilidad del
-!	gas y/o la fase lÌ≠quida a determinada composiciÛn, temperatura y
-!	presiÛn.
+!	gas y/o la fase l√≠quida a determinada composici√≥n, temperatura y
+!	presi√≥n.
 !	El(los) factor(es) de compresibilidad es(son) encontrado por solu-
-!	ciÛn iterativa de
+!	ci√≥n iterativa de
 !
 !           P(EXP)=-RT(D/DV(Ares/RT)-rho)
 !
-!     La soluciÛn es devuelta en Z.
+!     La soluci√≥n es devuelta en Z.
 !
-!     Si iGuez > Û = 1, el usuario debe proporcionar un buen valor ini-
+!     Si iGuez > √≥ = 1, el usuario debe proporcionar un buen valor ini-
 !	cial del factor de compresibilidad deseado (S). De lo contrario se
-!	genera autom·ticamente otra estimaciÛn inicial.
+!	genera autom√°ticamente otra estimaci√≥n inicial.
 !
-!	Las opciones siguientes especifican la soluciÛn deseada
+!	Las opciones siguientes especifican la soluci√≥n deseada
 !
 !	Opciones
 !     iTyp   iGues
 !      -1  cualquiera   Fase gaseosa
-!       1    0 OR 1     Fases lÌ≠quida y gaseosa
-!       1      >1       Fase lÌ≠quida
-!       0       0       Fases lÌ≠quida y gaseosa verificando energÌ≠a libre
-!                       de Gibbs mÌ≠nima
+!       1    0 OR 1     Fases l√≠quida y gaseosa
+!       1      >1       Fase l√≠quida
+!       0       0       Fases l√≠quida y gaseosa verificando energ√≠a libre
+!                       de Gibbs m√≠nima
 !
 !     Mensajes de error (valores de iC)
 !      1    : fase correcta
 !     -1    : fase incorrecta
-!     Si iType = 0 el valor devuelto es el que de menor energÌ≠a libre de
+!     Si iType = 0 el valor devuelto es el que de menor energ√≠a libre de
 !	Gibbs
 !
 !-----------------------------------------------------------------------
@@ -2190,7 +2190,7 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 
 	real*8 LAMBDA6, LAMBDA
 !
-!  Variables auxiliares de asociaciÛn
+!  Variables auxiliares de asociaci√≥n
 	dimension PSI_V(NSM)
 	integer sigma
 !
@@ -2199,7 +2199,7 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
      &           TETA(NGM), HELP12(2,NGM), HELP15(2,NGM), HELP7(2,NGM),     &
      &           E(2,NGM,NGM), PREP(2), DPDV(2), XLAM1, XLAM2, XLAM3
 !
-!  Variables especÌ≠ficas del tÈrmino dispersivo
+!  Variables espec√≠ficas del t√©rmino dispersivo
 	COMMON/GROUP2/Q(NGM), A(NGM,NGM), DADT(NGM,NGM), ALFA(NGM,NGM), R,     &
      &              NY(NCM,NGM)
 !
@@ -2211,10 +2211,10 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 	COMMON/SAT/PHI3
 	COMMON/EXTREM/IEXT(2)
 !
-!  VersiÛn asociativa del common "ZZZ"
+!  Versi√≥n asociativa del common "ZZZ"
 	common/ZZZAs/Xs(2,NSM), sm(NSM), dXs_dV(2,NSM)
 
-!  VersiÛn asociativa del common "GROUP2"
+!  Versi√≥n asociativa del common "GROUP2"
 	common/GrupAs2/sigma(NSM,NCM)
 	common/GrupAs4/Delta(NSM,NSM), dDeldT(NSM,NSM)
 
@@ -2245,18 +2245,18 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 	xNtot = sum(xN(:NC))
 	x(:NC) = xN(:NC)/xNtot	!fraccion molar componente i
 !
-!	ContribuciÛn atractiva
+!	Contribuci√≥n atractiva
 !	Fraccion molar grupo k
 	rNyT(:NG) = matmul(x(:NC),dfloat(ny(:NC,:NG)))
-!	¡rea total grupos
+!	√Årea total grupos
 	qT = dot_product(rNyT(:NG),q(:NG))
 !	Fraccion area grupo k
 	teta(:NG) = q(:NG)/qT*rNyT(:NG)
 !
-!	ContribuciÛn asociativa
+!	Contribuci√≥n asociativa
 	if(NST.GT.0)then
 !
-!	  matmul: subrutina intrÌ≠nseca de FORTRAN para multiplicar matrices:
+!	  matmul: subrutina intr√≠nseca de FORTRAN para multiplicar matrices:
 	  sm(:NST) = matmul(dfloat(sigma(:NST,:NC)),x(:NC))
 !
 	endif
@@ -2278,7 +2278,7 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 3	enddo
 	PHI3=XLAM3
 !
-!  Coeficiente virial: iniciaciÛn del volumen del gas, y algunas va-
+!  Coeficiente virial: iniciaci√≥n del volumen del gas, y algunas va-
 !	riables que necesita ZMAX.
 	calc = .TRUE.
 	call GCAvirial(NC, NG, NST, T, xn(:NC), x(:NC), B, Bvl, Bat, Bas, calc)
@@ -2290,15 +2290,15 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 	nroIter = 0
 !-------------------------------------------------------------------------------------
 !
-!  InicialiciÛn de los volumenes de cada fase
+!  Inicialici√≥n de los volumenes de cada fase
 	if(iGues.GE.0.AND.iGues.LE.1)then
 
 	  if(iOpt.NE.-1.OR.iGues.NE.1)then
 
 	    Z(1)=1.D0	           		   !Gas ideal para la fase vapor
-	    if(B.GT.0.OR.(P.LT.-RT/4D0/B))then	!m·ximo en presiÛn para B < 0
+	    if(B.GT.0.OR.(P.LT.-RT/4D0/B))then	!m√°ximo en presi√≥n para B < 0
 
-!  Virial para la fase vapor: Z = 1 + B/v (m·s exacto que "1 + B*P/RT"... supuestamente)
+!  Virial para la fase vapor: Z = 1 + B/v (m√°s exacto que "1 + B*P/RT"... supuestamente)
 	      Z(1) = 1D0 + 2D0*B*P/(R*T + dsqrt(RT**2 + 4D0*RT*B*P))
 !
 	    endif
@@ -2333,7 +2333,7 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 	endif
 !-------------------------------------------------------------------------------------
 !
-!  C·lculo de los volumenes
+!  C√°lculo de los volumenes
 4	ICYC=ICYC+1	 	! icyc=1 vapor,icyc=2 liquido
 
 	IER=0
@@ -2346,13 +2346,13 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 	zeta3 = phi3*pi*ro/6
 	if(zeta3 > 0.9999)then
 	  
-!  El volumen inicial es menor que el "covolumen" de la ecuaciÛn de Carnahan y Starling
+!  El volumen inicial es menor que el "covolumen" de la ecuaci√≥n de Carnahan y Starling
 	  ro = 0.9999*6/phi3/pi
 
 	endif
 	if(NST.GT.0)then
 
-!  Inicio de las fracciones no asociadas por 3 iteraciones de susticiÛn directa
+!  Inicio de las fracciones no asociadas por 3 iteraciones de sustici√≥n directa
 	  do i = 1,3
 	    do j = 1,NST
 
@@ -2368,7 +2368,7 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 
 	NIT=NIT+1
 24	CONTINUE
-!  Contador de iteraciones para lÌ≠quido y vapor:
+!  Contador de iteraciones para l√≠quido y vapor:
 	nroIter(iCyc) = nroIter(iCyc) + 1
 	DNOM=RO*QT/RT
 	DFVDV=0.D0
@@ -2377,9 +2377,9 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 	dFVas(iCyc) = 0.D0
 	dFVVas = 0.D0
 !
-!  ContribuciÛn atractiva
+!  Contribuci√≥n atractiva
 	DO 35 K=1,NG
-		            !Seg˙n paper J¯rgensen, estas son algunas de las variables:
+		            !Seg√∫n paper J√∏rgensen, estas son algunas de las variables:
 	  HEL2K=0.D0	!H2(k) = Sum(theta(j)*tau(j,k)*Qt*g(k,j)*rho/TR, j=1,NG)
 	  HEL4K=0.D0	!H4(k) = Sum(theta(j)*tau(j,k), j=1,NG)
 	  HEL5K=0.D0	!H5(k) = Sum(theta(j)*tau(j,k)*(g(j,k)*Qt*rho/RT)*alfa(j,k)*Dg(j,k)*Qt*rho/RT
@@ -2432,26 +2432,26 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 	DFV=RO*DFV*ZZ/2.D0		! (dFdV)att
 	DFVDV=DFVDV-RO*DFV*2.D0		! (d2FdV2)att
 !
-!	ContribuciÛn repulsiva
+!	Contribuci√≥n repulsiva
 	PI6=PI/6.D0*XLAM3
 	Y=1.D0/(1.D0-PI6*RO)
 	DYDV=-Y**2*PI6*RO**2
 	DYDVV=2.D0/Y*DYDV**2-2.D0*RO*DYDV
 !
-!     DFVR es la contribuciÛn repulsiva de DFV
+!     DFVR es la contribuci√≥n repulsiva de DFV
 	DFVR=(3.D0*XLAM1*XLAM2/XLAM3+XLAM2**3/XLAM3**2*(2.D0*Y-1.D0-1.D0/Y)+1.D0/Y)*DYDV
 	PREP(ICYC)=-RT*DFVR		!P_rep
 !
 	DFV=DFV+DFVR			! (dFdV)att+rep
 !
-!	Ac· se agrega la contribuciÛn respulsiva.
+!	Ac√° se agrega la contribuci√≥n respulsiva.
 	DFVDV=DFVDV+DFVR*DYDVV/DYDV+(XLAM2**3/XLAM3**2*(2.D0+1.D0/Y**2)-1.D0/Y**2)*DYDV**2		 ! (d2FdV2)att+rep
 !
-!	ContribuciÛn asociativa
+!	Contribuci√≥n asociativa
 	if(NST.GT.0)then
 !
-!	  IniciaciÛn de las fracciones no asociadas por continuacion. La extrapolaciÛn
-!	  est· acotada ente 0 y 1:
+!	  Iniciaci√≥n de las fracciones no asociadas por continuacion. La extrapolaci√≥n
+!	  est√° acotada ente 0 y 1:
 	  do i = 1,NST
 
 	    auxXs = Xs(iCyc,i) + dXs_dV(iCyc,i)*(1.D0/RO - 1.D0/ROld)
@@ -2473,7 +2473,7 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 !  Llamado a calculo en para obtener fracciones no asociadas.
 	  call OptiNewton(maxIt, NST, sm(:NST), Delta(:NST,:NST), RO, Xs(iCyc,:NST), in)
 ! 	  
-!  C·lculo de la derivada de la fracciÛn no asociada respecto VOLUMEN
+!  C√°lculo de la derivada de la fracci√≥n no asociada respecto VOLUMEN
 !  Elementos de la matriz LAMBDA y el vector PSI
 	  do i = 1,NST
 
@@ -2495,7 +2495,7 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 	  call LUDcmp(LAMBDA6(iCyc,:NST,:NST), N, NP, indx(iCyc,:NST), d1)
         call LUBksb(LAMBDA6(iCyc,:NST,:NST), N, NP, indx(iCyc,:NST), dXs_dV(iCyc,:NST))
 !
-!	  ContribuciÛn asociativa a d(Ar/RT)/dV y d2(Ar/RT)/dV2
+!	  Contribuci√≥n asociativa a d(Ar/RT)/dV y d2(Ar/RT)/dV2
 	  sm_Xs(iCyc) = dot_product(sm(:NST),Xs(iCyc,:NST))
 
 	  dFVas(iCyc) = 0.5D0*ro*(Sum_S - sm_Xs(iCyc))
@@ -2503,7 +2503,7 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 !
 	endif
 !
-!	Agregado de la contribuciÛn asociativa
+!	Agregado de la contribuci√≥n asociativa
 	dFV = dFV + dFVas(iCyc)
 	dFVdV = dFVdV + dFVVas
 !-------------------------------------------------------------------------------------
@@ -2512,7 +2512,7 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 	G = RO*R*T - R*T*DFV - P
 	DGRO = R*T*(1.D0 + 1.D0/RO**2*DFVDV)
 !
-!  C·lculo de (ro)j+1 por el metodo de Newton		!HASTA ac·... 15/07/2011... 00.08 hrs
+!  C√°lculo de (ro)j+1 por el metodo de Newton		!HASTA ac√°... 15/07/2011... 00.08 hrs
 !
 	IF(DGRO > 0.D0 .OR. NIT <= 1) GOTO 26
 
@@ -2525,7 +2525,7 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 
 26	IF(NHELP.GT.1) GOTO 20
 
-!	  Si la fase es lÌ≠quida salta
+!	  Si la fase es l√≠quida salta
 	  IF(ICYC.EQ.2) GOTO 21
 
 	  IF(DGRO.GT.0.D0) GOTO 20
@@ -2566,10 +2566,10 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
       
       endif
 	rOld = ro
-      RO = RO - (.04D0*G/GC*RO) !rho - 0.04g/|g|∑rho = rho∑(1 - 0.04 g/|g|) = si g > 0, rho disminuye un 4%; si g < 0, rho aumenta un 4%.
+      RO = RO - (.04D0*G/GC*RO) !rho - 0.04g/|g|¬∑rho = rho¬∑(1 - 0.04 g/|g|) = si g > 0, rho disminuye un 4%; si g < 0, rho aumenta un 4%.
       NTRIAL=NTRIAL+1
       
-      GOTO 24 !arriba hasta el comienzo, sin sumar iteraciÛn.
+      GOTO 24 !arriba hasta el comienzo, sin sumar iteraci√≥n.
 
    23 NHELP=NHELP+1
 	rOld2 = rOld
@@ -2577,19 +2577,19 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 !  Extrapolation of rho:
 !	RO    = -G*(RO - ROLD)/(G - GOLD) + RO
 !
-!  ModifiquÈ esto para  que ro - rOld sea <> 0
+!  Modifiqu√© esto para  que ro - rOld sea <> 0
 	RO    = -G*(RO - ROLD2)/(G - GOLD) + RO
-!  Creo que deberÌa ser de esta manera:	
+!  Creo que deber√≠a ser de esta manera:	
 ! 	RO    = -Gold*(RO - ROLD2)/(G - GOLD) + RO	
       GOTO 24
 
       
 20	NHELP = NHELP + 1
-!  Paso del mÈtodo de Newton tradicional:
+!  Paso del m√©todo de Newton tradicional:
 	DRO=-G/DGRO
-!  Paso m·ximo permitido = 5% del valor de rho para gas:      
+!  Paso m√°ximo permitido = 5% del valor de rho para gas:      
 	DLTRO=.05D0*RO
-!  20% del valor de rho para lÌquido:      
+!  20% del valor de rho para l√≠quido:      
 	IF(ICYC.LT.2) DLTRO=4.D0*DLTRO
 	IF(DRO.GT.DLTRO) DRO=DLTRO
 	IF(DRO.LT.-DLTRO) DRO=-DLTRO
@@ -2605,7 +2605,7 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 
 	GOTO 8
 !
-!	CulminÛ el calculo del volumen de la fase iCyc
+!	Culmin√≥ el calculo del volumen de la fase iCyc
 200	IF(NIT.LT.20) GOTO 10
 	IER=100*ICYC
 10	IF(IGUES.GT.1) GOTO 110
@@ -2636,7 +2636,7 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 114	Z(2)=Z(1)
 210	IF(IMIN.EQ.0.OR.IER1(2).NE.0) GOTO 113
 !-----------------------------------------------------------------------
-!	C·lculo de la energia residual de Gibbs para ambas fases.
+!	C√°lculo de la energia residual de Gibbs para ambas fases.
 !	  r     r
 !	 G     A
 !	--- = --- + Z - 1
@@ -2654,25 +2654,25 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 	GIB1=-GIB1*ZZ/2.D0       ! (A)att vapor
 	GIB2=-GIB2*ZZ/2.D0       ! (A)att liq
 !
-!	ContribuciÛn asociativa: A_assoc
+!	Contribuci√≥n asociativa: A_assoc
 	if(NST.GT.0)then
 
 !	  Vapor:
 	  Gib1 = Gib1 + dot_product(sm(:NST),dlog(Xs(1,:NST)))
 	  Gib1 = Gib1 + (Sum_S - sm_Xs(1))*.5D0	!(A)att + (A)ass vapor
-!	  LÌ≠quido:
+!	  L√≠quido:
 	  Gib2 = Gib2 + dot_product(sm(:NST),dlog(Xs(2,:NST)))
-	  Gib2 = Gib2 + (Sum_S - sm_Xs(2))*.5D0	!(A)att + (A)ass lÌ≠quido
+	  Gib2 = Gib2 + (Sum_S - sm_Xs(2))*.5D0	!(A)att + (A)ass l√≠quido
 
 	endif
 !
-!	ContribuciÛn repulsiva
+!	Contribuci√≥n repulsiva
 	Y1 = 1.D0/(1.D0 - PI6*(P/Z(1)/RT))
 	R1 = XLAM1*XLAM2/XLAM3*3.D0
 	R2 = XLAM2**3/XLAM3**2
 !
 	GIB1 = GIB1 + R1*(Y1 - 1.D0) + R2*(Y1**2 - Y1 - DLOG(Y1)) + DLOG(Y1) + Z(1) - DLOG(Z(1))	         ! Gres/RT+1=Ares/RT+Z-lnZ vapor
-	GIB2 = GIB2 + R1*(Y  - 1.D0) + R2*(Y**2  - Y  - DLOG(Y))  + DLOG(Y)  + Z(2) - DLOG(Z(2))	         ! Gres/RT+1=Ares/RT+Z-lnZ lÌ≠quido
+	GIB2 = GIB2 + R1*(Y  - 1.D0) + R2*(Y**2  - Y  - DLOG(Y))  + DLOG(Y)  + Z(2) - DLOG(Z(2))	         ! Gres/RT+1=Ares/RT+Z-lnZ l√≠quido
 !
 	IC=1
 	IF(GIB1.LT.GIB2) IC=-1
@@ -2689,8 +2689,8 @@ ENDsubroutine ZMAX
 !---------------------------------------------------------------------------------------------
 !
 !	Esta subrutina obtiene los coeficientes de actividad de una mezcla
-!	(preferentemente lÌ≠quida) de NC componentes.C
-!	Se basa en la fÛrmula
+!	(preferentemente l√≠quida) de NC componentes.C
+!	Se basa en la f√≥rmula
 !
 !	                 ------
 !	ln gamma(i) = ln phi(i) - SUM( x(i)*ln phi(i), i=1,NC )
@@ -2699,7 +2699,7 @@ ENDsubroutine ZMAX
 !	       ------
 !	       phi(i) = coeficiente de fugacidad del comp. i en la mezcla
 !
-!	       x(i)   = fracciÛn molar de i
+!	       x(i)   = fracci√≥n molar de i
 !
 !	       phi(i) = coeficiente de fugacidad de i puro a la misma T y P
 !
@@ -2714,21 +2714,21 @@ subroutine GAMMA(NC, NG, NST, iTyp, iGz, iTemp, n, T, P, lnGamma, dlnGammadT, Z)
 	iDer = 0
 !	write(3,*)ityp,igz
 !
-!	NormalizaciÛn
+!	Normalizaci√≥n
 	Nt = sum(n(:NC))
 !	x(:NC) = n(:NC)/Nt
 !
 !	Coeficientes de fugacidad de la mezcla:
 	call GCEOS(NC, NG, NST, iDer, iTemp, T, P, n, phi, dLPhi, dLPhiT, DLPHIP, Z, IGz, iTyp, IC)
 !
-!	IniciaciÛn para c·lculo:
+!	Iniciaci√≥n para c√°lculo:
 	lnGamma(:NC) = phi(:NC)
 	dlnGammadT(:NC) = dLPhiT(:NC)
 !
-!	Lazo de c·lculo
+!	Lazo de c√°lculo
 	do i = 1, NC
 !
-!	  C·lculo de los coeficientes de fugacidad de los puros:
+!	  C√°lculo de los coeficientes de fugacidad de los puros:
 	  x(:NC) = 1.D-20
 	  x(i) = 1D0
 	  call GCEOS(NC, NG, NST, iDer, iTemp, T, P, x, phi, dLPhi, dLPhiT, DLPHIP, Zpure, IGz, iTyp, IC)
@@ -2745,7 +2745,7 @@ endsubroutine GAMMA
 !
 ! 
 ! 
-!	La subrutina VIRIAL halla el 2∫ coeficiente virial de una mezcla
+!	La subrutina VIRIAL halla el 2¬∫ coeficiente virial de una mezcla
 !
 !
 subroutine GCAvirial(NC, NG, NST, T, n, x, B, Bvl, Bat, Bas, calc)
@@ -2764,7 +2764,7 @@ subroutine GCAvirial(NC, NG, NST, T, n, x, B, Bvl, Bat, Bas, calc)
 !
 	COMMON/COORD/zz
 !
-!	Variables especÌ≠ficas del tÈrmino dispersivo
+!	Variables espec√≠ficas del t√©rmino dispersivo
 	COMMON/GROUP2/Q(NGM),g(NGM,NGM),DgDT(NGM,NGM),ALFA(NGM,NGM),R,NY(NCM,NGM)
 !
 !
@@ -2772,14 +2772,14 @@ subroutine GCAvirial(NC, NG, NST, T, n, x, B, Bvl, Bat, Bas, calc)
 	COMMON/MOL/DC(NCM),D(NCM),DT(NCM),HA(NCM),HB(NCM)
 	COMMON/CRIT/TC(NCM),PC(NCM)
 !
-!	VersiÛn asociativa del common "ZZZ"
+!	Versi√≥n asociativa del common "ZZZ"
 	common/ZZZAs/Xs(2,NSM),sm(NSM),dXs_dV(2,NSM)
 !
-!	VersiÛn asociativa del common "GROUP2"
+!	Versi√≥n asociativa del common "GROUP2"
 	common/GrupAs2/sigma(NSM,NCM)
 	common/GrupAs4/Delta(NSM,NSM),dDeldT(NSM,NSM)
 !
-!	øSe calcularon variables que aprovecha ZMAX?
+!	¬øSe calcularon variables que aprovecha ZMAX?
 	if(.NOT.calc)then
 !
 	  nt = sum(n(:NC))
@@ -2796,14 +2796,14 @@ subroutine GCAvirial(NC, NG, NST, T, n, x, B, Bvl, Bat, Bas, calc)
 
 	endif
 !
-!	ContribuciÛn atractiva:
+!	Contribuci√≥n atractiva:
 	aux(:NG) = matmul(g(:NG,:NG),theta(:NG))
 	Bat = -zz/2D0*QT**2*dot_product(theta(:NG),aux(:NG))/R/T
 !
-!	ContribuciÛn repulsiva
+!	Contribuci√≥n repulsiva
 	Bvl = PI*(lambda1*lambda2/2D0 + lambda3/6D0)
 !
-!	ContribuciÛn asociativa
+!	Contribuci√≥n asociativa
 	Bas = 0D0
 	if(NST.GT.0)then
 
@@ -2823,17 +2823,17 @@ endsubroutine GCAvirial
 !---------------------------------------------------------------------------------------------
 !
 !
-!	OptiNewton halla el valor m·ximo de la funciÛn Q :
+!	OptiNewton halla el valor m√°ximo de la funci√≥n Q :
 !
 !	                          Qmax = A/RT|assoc,eq.
 ! 
 !---------------------Francisco, 14/07/2011------durante v-1.8.0---------
-!	C·lculo de la fraccion no asociada, como se muestra en el libro
+!	C√°lculo de la fraccion no asociada, como se muestra en el libro
 !	"Thermodynamic models: Fundamentals & computational aspects" de Mollerup & Michelsen y
 !	en M.Michelsen Ind.Eng.Chem.Res. 45(2006)8449-8453.
 !
-!	Siendo Lm·x = Aas/RT|eq:
-!		cuando grad(Lmax,X) = 0, se obtiene la formula general de c·l-
+!	Siendo Lm√°x = Aas/RT|eq:
+!		cuando grad(Lmax,X) = 0, se obtiene la formula general de c√°l-
 !		culo de las fracciones no asociadas.
 !
 !	Siendo que se trata de una optimizacion de L iterando sobre X, se re-
@@ -2846,31 +2846,31 @@ endsubroutine GCAvirial
 !     calcula H
 !     resolver DX: X = X + DX
 !   1 si L no aumenta,
-!           X = X + alfa∑DX    #alfa = 0.5
+!           X = X + alfa¬∑DX    #alfa = 0.5
 !           ir a 1
 !     fin
 !
-!	El c·lculo de las derivadas con respecto a V de la fracciÛn no aso-
-!	ciada Xs, est·n basadas en la modificaciÛn de A.E.Andreatta (ver Tesis
+!	El c√°lculo de las derivadas con respecto a V de la fracci√≥n no aso-
+!	ciada Xs, est√°n basadas en la modificaci√≥n de A.E.Andreatta (ver Tesis
 !	PhD y T.M.Soria y col. Fluid Phase Equilib. 302(2011)1-9) al traba-
 !	jo de S.P.Tan y col. Ind.Eng.Chem.Res. 43(2004)203-208.
 subroutine OptiNewton(maxit,NTS,sm,Delta,rho,X,in)
 !
 	implicit real*8 (a-h,o-z)
 !
-!  N˙mero m·ximo de iteraciÛnes
+!  N√∫mero m√°ximo de iteraci√≥nes
 !  parameter(maxit = 1000)
 !
-!  Par·metros de entrada de asociaciÛn
+!  Par√°metros de entrada de asociaci√≥n
 	dimension delta(NTS,NTS),sm(NTS)
 !
-!  Par·metros de salida e intermedios
+!  Par√°metros de salida e intermedios
 	dimension X(NTS),Xnew(NTS),g(NTS),H(NTS,NTS),minXindx(1),indx(NTS)
 !
-!  Par·metros auxiliares
+!  Par√°metros auxiliares
 	dimension Xold(NTS),DX(NTS),A(NTS,NTS),gnew(NTS),Hnew(NTS,NTS)
 !
-!  C·lculo inicial.
+!  C√°lculo inicial.
 	call Qfunction(NTS,X,sm,rho,Delta,Q,g,H)
 	im = 0
 !
@@ -2892,7 +2892,7 @@ subroutine OptiNewton(maxit,NTS,sm,Delta,rho,X,in)
 1	  do i = 1,NTS
 	    Xnew(i) = X(i) + alpha*DX(i)
 !
-!	    Si una fracciÛn es negativa de disminuye pero no se hace 0
+!	    Si una fracci√≥n es negativa de disminuye pero no se hace 0
 	    if(Xnew(i).LE.0.0)then
 	      Xnew(i) = 2.D-1*X(i)
 	    endif
@@ -2904,7 +2904,7 @@ subroutine OptiNewton(maxit,NTS,sm,Delta,rho,X,in)
 !	  Nuevo valor de Q:
 2	  call Qfunction(NTS,Xnew,sm,rho,Delta,Qnew,gnew,Hnew)
 !
-!	  AumentÛ Q?
+!	  Aument√≥ Q?
 	  if(Qnew.GT.(Q + 1.D-14))then
 
 3	    Q = Qnew
@@ -2929,14 +2929,14 @@ subroutine OptiNewton(maxit,NTS,sm,Delta,rho,X,in)
 !---------------------------------------------------------------------------------------------
 !
 !
-!	La subrutina Qfunction calcula el valor de la funciÛn Q, su gra-
-!	diente y Hessiano para el c·lculo de segundo orden de la fracciÛn
-!	no asociada, seg˙n lo sugerido por M. L. Michelsen, IECR 2002, 45,
+!	La subrutina Qfunction calcula el valor de la funci√≥n Q, su gra-
+!	diente y Hessiano para el c√°lculo de segundo orden de la fracci√≥n
+!	no asociada, seg√∫n lo sugerido por M. L. Michelsen, IECR 2002, 45,
 !	8449-8453.
 !
 subroutine Qfunction(NTS,X,sm,rho,Delta,Q,g,H)
 !
-!	Q = Sum(sm(k)∑(ln X(k) - X(k) + 1) - 1/2∑Sum(Sum(sm(k)∑sm(l)∑Delta(k,l)∑X(l)/V),l=1,NST),k=1,NST)
+!	Q = Sum(sm(k)¬∑(ln X(k) - X(k) + 1) - 1/2¬∑Sum(Sum(sm(k)¬∑sm(l)¬∑Delta(k,l)¬∑X(l)/V),l=1,NST),k=1,NST)
 !
 !	  = Q1 + Q2
 !
@@ -2947,39 +2947,39 @@ subroutine Qfunction(NTS,X,sm,rho,Delta,Q,g,H)
 !	"H"(k,l) = -(sm(k) + SUMA)/X(k)*d(k,l) - sm(k)*sm(l)*Delta(k,l)/V
 !
 !	Donde: sm(k)      = es la cantidad de moles de sitios "k"
-!	       X(k)       = es la fracciÛn de sitio "k" no asociada
-!	       Delta(k,l  = fuerza de asociaciÛn entre sitios "k" y "l"
-!	       NST        = n˙mero de sitios totales
+!	       X(k)       = es la fracci√≥n de sitio "k" no asociada
+!	       Delta(k,l  = fuerza de asociaci√≥n entre sitios "k" y "l"
+!	       NST        = n√∫mero de sitios totales
 !	       d(k,l)	= delta de Kronocker, = 1 si "l" = "k", sino = 0.
-!	       g(k)       = gradiente de Q en la direcciÛn "k"
+!	       g(k)       = gradiente de Q en la direcci√≥n "k"
 !	      "H"(k,l)   = hessiano k,l
-!	nota1: tomo a rho = 1/V donde V = vol total. Asume que son iguales porque los moles est·n normalizados (creo).
+!	nota1: tomo a rho = 1/V donde V = vol total. Asume que son iguales porque los moles est√°n normalizados (creo).
 !
 !	Francisco, febrero de 2010.
 !
 !	---------------------------------------
-!	Siendo que cada vez que se corta un c·lculo, el programa corta casi siempre en esta subrutina.
-!	Eso indica que esta es un cuello de botella, por eso, comprimÌ≠ el c·lculo de las variables
+!	Siendo que cada vez que se corta un c√°lculo, el programa corta casi siempre en esta subrutina.
+!	Eso indica que esta es un cuello de botella, por eso, comprim√≠ el c√°lculo de las variables
 !	Q, g y H en la menor cantidad de lazos posible. v-1.9.18
 !
 	implicit real*8 (a-h,o-z)
 !	implicit real*16 (a-h,o-z)
 	dimension X(NTS),sm(NTS),Delta(NTS,NTS),g(NTS),H(NTS,NTS)
 !
-!	IniciaciÛn
+!	Iniciaci√≥n
 	Q1 = 0.0D0
 	Q2 = 0.0D0
 	g = 0.0D0
 	H = 0.0D0
 !
-!	C·lculo de Q1, gradiente y hessiano:
+!	C√°lculo de Q1, gradiente y hessiano:
 	do k = 1,NTS
 
 	  do l = 1,NTS
 
 	    if (Delta(k,l) > 0) then
 	      H(k,l) = -sm(k)*sm(l)*Delta(k,l)*rho
-!	      Nota: g(k) a˙n NO ES el gradiente_k. Fran 18/02/2010.
+!	      Nota: g(k) a√∫n NO ES el gradiente_k. Fran 18/02/2010.
 	      g(k) = g(k) - H(k,l)*X(l)
 	      Q2 = Q2 + 5D-1*H(k,l)*X(k)*X(l)
 	    endif
@@ -2990,12 +2990,12 @@ subroutine Qfunction(NTS,X,sm,rho,Delta,Q,g,H)
 	  if(H(k,k).EQ.0.0D0)H(k,k) = 1.0D-20
 	  Q1 = Q1 + sm(k)*(dLOG(X(k)) - X(k) + 1.D0)
 !
-!	  Ahora sÌ≠, g es el gradiente_k:
+!	  Ahora s√≠, g es el gradiente_k:
 	  g(k) = sm(k)/X(k) - sm(k) - g(k)
 
 	enddo
 !
-!	C·lculo de Q:
+!	C√°lculo de Q:
 	Q = Q1 + Q2
 !
 	return
@@ -3003,11 +3003,11 @@ endsubroutine
 !--------------------------------------------------------------------------------
 !
 !
-!	Halla la soluciÛn del sistema
-!	                                 U ∑ x = b
+!	Halla la soluci√≥n del sistema
+!	                                 U ¬∑ x = b
 !	                                 =   -   -
 !
-!	por sustiticiÛn hacia atr·s, complementando la subrutina LUDcmp que
+!	por sustitici√≥n hacia atr√°s, complementando la subrutina LUDcmp que
 !	descompone a A en U*L.
 !	indx es el vector de pivoteo para b.
 !
@@ -3053,7 +3053,7 @@ ENDsubroutine
 !
 !	LUDcmp halla la matriz U tal que
 !
-!	                         A = U ∑ L
+!	                         A = U ¬∑ L
 !	                         =   =   =
 !	Donde U es una matriz "diagonal superior" y L "diagonal inferior
 !	con sus elementos diagonales unitarios".

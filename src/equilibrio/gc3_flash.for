@@ -13,26 +13,26 @@ C     Common areas in program complex do not interfere with common
 C     areas in thermodynamic part except in /STYR/ In the present
 C     interface routine SRK
 C
-C		-Esto ya no es asÌ, a partir de la versiÛn 1.2.0 de la GC3: se impri-
-C	       men tanto la versiÛn del paquete termodin·mico (leÌdo dentro del pa-
-C	       quete) como la versiÛn de esta subrutina. Implica un nuevo COMMON.
+C		-Esto ya no es as√≠, a partir de la versi√≥n 1.2.0 de la GC3: se impri-
+C	       men tanto la versi√≥n del paquete termodin√°mico (le√≠do dentro del pa-
+C	       quete) como la versi√≥n de esta subrutina. Implica un nuevo COMMON.
 C			Francisco, 20/05/2011, durante v1.2.0
 C
-C		-Adem·s, ahora hay un common en "iEntalp" para ver si calcula o no entalpÌas
+C		-Adem√°s, ahora hay un common en "iEntalp" para ver si calcula o no entalp√≠as
 C------------------------------------------------------------------
 C
-C	Aprovechando las modificaciones introducidas en la versiÛn 1.3.3 del paque-
-C	te termodin·mico GCA, se modifica esta subrutina para poder imprimir valo-
-C	res de Z (coef de compr) afectados por una correcciÛn de Peneloux.
+C	Aprovechando las modificaciones introducidas en la versi√≥n 1.3.3 del paque-
+C	te termodin√°mico GCA, se modifica esta subrutina para poder imprimir valo-
+C	res de Z (coef de compr) afectados por una correcci√≥n de Peneloux.
 C
-C	El usuario debe tener en cuenta que esta correcciÛn no es "m·gica", se pasa
-C	de tener una predicciÛn pÈsima, a una simplemente mala.
+C	El usuario debe tener en cuenta que esta correcci√≥n no es "m√°gica", se pasa
+C	de tener una predicci√≥n p√©sima, a una simplemente mala.
 C
-C	La correcciÛn de Peneloux ingresada es siempre negativa (al menos en la ver-
-C	siÛn 1.3.3), ya que el V predicho por la GC es demasiado grande. La lÌnea de
-C	ingreso es la siguiente a las propiedades crÌticas.
+C	La correcci√≥n de Peneloux ingresada es siempre negativa (al menos en la ver-
+C	si√≥n 1.3.3), ya que el V predicho por la GC es demasiado grande. La l√≠nea de
+C	ingreso es la siguiente a las propiedades cr√≠ticas.
 C
-C	Ej: lÌneas correspondientes al compuesto "H2O":
+C	Ej: l√≠neas correspondientes al compuesto "H2O":
 C
 C	H2O                                                               !nombre
 C	647.13    217.67    0.345     373.15     1.0000     2.5763        !Tc  Pc  w  Ts  Ps   dc
@@ -40,24 +40,24 @@ C	18	-10	0	0	0	0	0	0				!PM  Peneloux   coeficientes de H(gas ideal) de Passut-D
 C
 C
 C	v1.2.90 (1.3.0 beta0): comienzo de soporte para GCA-v2.0
-C	     91                cambiada dimensiÛn de versSUB
+C	     91                cambiada dimensi√≥n de versSUB
 C
 C	v1.2.92 	           Limpieza de algunas impresiones
-C	                       C·lculo de entalpÌas
+C	                       C√°lculo de entalp√≠as
 C
-C	v1.2.93: limpieza de cÛdigo.
+C	v1.2.93: limpieza de c√≥digo.
 C	         algunas identaciones
-C	         agregado par·metros NCM
+C	         agregado par√°metros NCM
 C
-C	v1.2.96: PARAGC llamado con nTemp = 1, pero no asÌ GCEOS.
+C	v1.2.96: PARAGC llamado con nTemp = 1, pero no as√≠ GCEOS.
 !
-!	v1.2.100: las versiones 98-99 est·n falladas. Esta comienza siendo un clon de la 96, incluyendo modificaciiones
+!	v1.2.100: las versiones 98-99 est√°n falladas. Esta comienza siendo un clon de la 96, incluyendo modificaciiones
 !	          hechas en 97 y 98.
 !
-!	v-1.2.100.0-paraest: 	ModificaciÛn para usar el programa como subrutina en el ParaEst. La versiÛn
-!	anterior estaba hecha con las "97" y "98", que estaban falladas en alg˙n punto.
+!	v-1.2.100.0-paraest: 	Modificaci√≥n para usar el programa como subrutina en el ParaEst. La versi√≥n
+!	anterior estaba hecha con las "97" y "98", que estaban falladas en alg√∫n punto.
 !
-!	      101.0 Existe un m·ximo de iteraciones
+!	      101.0 Existe un m√°ximo de iteraciones
 C
 	subroutine GC3Flash(NComp,NGrup,NSit,TEMP,PRES,feed,xFrac,
      &                    Zcomp,indFase,IERRTP)
@@ -82,7 +82,7 @@ C
 C-----SUbroutine arguments for Murray routine
       EXTERNAL FSTAB,PHASN
 C
-C-----Nuevas declaraciones incluidas en la versiÛn 1.2.0------------------------
+C-----Nuevas declaraciones incluidas en la versi√≥n 1.2.0------------------------
 	dimension Hgi(NCM)
 	character*10 aname
 ! 	character*20 versGCA
@@ -115,13 +115,13 @@ C
 !	open(unit=9,file='Compres.dat',form='formatted')
 !------------------------------------------------------------------------------------
 !	write(1,500)
-!	write(1,*)'Programa de c·lculo flash multif·sico GC3, versiÛn ',
-!     &version,'usando el paquete termodin·mico GCA-v',versGCA
+!	write(1,*)'Programa de c√°lculo flash multif√°sico GC3, versi√≥n ',
+!     &version,'usando el paquete termodin√°mico GCA-v',versGCA
 !	write(1,*)
 !	write(1,500)
 !	write(iOut,500)
-!	write(iOut,*)'Programa de c·lculo flash multif·sico GC3, versiÛn ',
-!     &version,'usando el paquete termodin·mico GCA-v',versGCA
+!	write(iOut,*)'Programa de c√°lculo flash multif√°sico GC3, versi√≥n ',
+!     &version,'usando el paquete termodin√°mico GCA-v',versGCA
 !	write(iOut,*)
 !	write(iOut,500)
 !------------------------------------------------------------------------------------
@@ -138,7 +138,7 @@ C
 	nIt = 0
 !
 !	write(1,*)'Fases     Z          P(atm)    T(K)   Frac   H(J/mol)',
-!     &	 '     ComposiciÛn'	       !Fran, durante v1.2.0
+!     &	 '     Composici√≥n'	       !Fran, durante v1.2.0
 !	write(1,15)AName(:N)
 !15	format(' ----- ---------   ----------  ------ ----- ------------'
 !     *,2X,16(A10,X))
@@ -280,23 +280,23 @@ C
   170 FORMAT(/,'  Solution is now stable * * * ')
       nPunto = nPunto + 1
 C
-C	EntalpÌa del gas ideal, si se ingresaron coef de Passut&Danner de
+C	Entalp√≠a del gas ideal, si se ingresaron coef de Passut&Danner de
 C	al menos 1 componente
 !	if(iEntalp.GT.0)call NTLPY_GI(N,T,Hgi)
 	NFases = NF
 	if(NF.GT.1)then
 !	  do j=1,NF
 
-C---------CorrecciÛn de Peneloux:
+C---------Correcci√≥n de Peneloux:
 !	    CorrPen = dot_product(Pen(:N),zFrac(:N,j))
 !	    Z_corr = zval(j)+CorrPen*P/82.05D0/T
 !	    HR = 0D0
 !	    H = 0D0
 !	    if(iEntalp.GT.0)then
 
-!	      C·lculo de entalpÌas:
+!	      C√°lculo de entalp√≠as:
 !	      La variable indF guarda el resultado de los llamados a la sub-
-!	      rutina termodin·mica, evaluando la fase (L o V) con menor G
+!	      rutina termodin√°mica, evaluando la fase (L o V) con menor G
 !	      iGz = -1
 !	      if(indF(j).EQ.1)iGz = 2
 !	      call NTLPY(N,NG,NST,T,P,zfrac(:NCM,j),HR,zVal(j),iGz,
@@ -315,16 +315,16 @@ C---------CorrecciÛn de Peneloux:
 
 	else
 
-!	  ImpresiÛn a partir del c·lculo original.
+!	  Impresi√≥n a partir del c√°lculo original.
 !	  CorrPen = dot_product(Pen(:N),z(:N))
 !	  Z_corr = Zx + CorrPen*P/82.05D0/T
 !	  HR = 0D0
 !	  H = 0D0
 !	  if(iEntalp.GT.0)then
 
-!	    C·lculo de entalpÌas:
+!	    C√°lculo de entalp√≠as:
 !	    La variable indF guarda el resultado de los llamados a la sub-
-!	    rutina termodin·mica, evaluando la fase (L o V) con menor G
+!	    rutina termodin√°mica, evaluando la fase (L o V) con menor G
 !	    iGz = -1
 !	    if(iTypOrig.EQ.1)iGz = 2
 
@@ -837,7 +837,7 @@ C     DERIVATIVES OF THE FUGACITY COEFFICIENTS (NTEMP=1), SINCE
 C     THIS PERMITS A CALCULATION OF OTHER RESIDUAL PROPERTIES DI-
 C     RECTLY, E.G. ENTHALPY AND ENTROPY
 C
-C	Se modificÛ nTemp
+C	Se modific√≥ nTemp
 C
 C
       NTEMP=0

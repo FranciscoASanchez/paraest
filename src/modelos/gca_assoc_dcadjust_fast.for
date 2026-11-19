@@ -40,7 +40,7 @@ C       DC(I)= Diametro de esferas rigidas en el punto critico
 C                                          (un valor por componente)
 C
 C       D(I) es el diametro de una esfera imaginaria de un volumen
-C       igual al de un mol de esferas rigidas. Por eso se da por mol (en realidad est· en mol^(1/3))
+C       igual al de un mol de esferas rigidas. Por eso se da por mol (en realidad est√° en mol^(1/3))
 C
 C
 C       NC  = Numero de componentes (mAX 1)
@@ -276,7 +276,7 @@ C			Estimacion utilizando Newton
 !	  Paso:
 	  dDc = -(DC2 - DC1)*RISOFAP1/(RISOFAP2 - RISOFAP1)
 !
-!	  Chequeo paso m·ximo:
+!	  Chequeo paso m√°ximo:
 	  if(dabs(dDc).GT.1D-1)dDc = 1D-1*(dDc/dabs(dDc))
 	  DC3 = dDc + DC1
 

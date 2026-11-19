@@ -1,17 +1,17 @@
 !
-!	Paquete termodin·mico A-GC-EOS versiÛn 3.0.1. Este paquete es el utilizado por el
+!	Paquete termodin√°mico A-GC-EOS versi√≥n 3.0.1. Este paquete es el utilizado por el
 !	programa Paraest, y es fundamentalmente distinto del utilizado por programas como
 !	GC3, GCEnvel, GCDist, THDist, GCExtract, GCXS, GCDB, etc.
 !
 !
 !	Control de cambios:
-!	v3.0.0: VersiÛn tal cual lo encontrÈ de entrada al llegar a PLAPIQUI en abril de
+!	v3.0.0: Versi√≥n tal cual lo encontr√© de entrada al llegar a PLAPIQUI en abril de
 !	        2008.
 !
-!	v3.0.1: CorrecciÛn de errores. Se amplio la presiciÛn de diversos n˙meros presen-
+!	v3.0.1: Correcci√≥n de errores. Se amplio la presici√≥n de diversos n√∫meros presen-
 !	        tes, ej: 1.0 -> 1.0D0
 !	        Acomodo de identaciones en algunas subroutinas.
-!	        EliminaciÛn de parte de cÛdigo antigo y comentado. Si se desea recuperar,
+!	        Eliminaci√≥n de parte de c√≥digo antigo y comentado. Si se desea recuperar,
 !	        ver el archivo "A-gc-eso3.for".
 !
 !
@@ -743,9 +743,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 	    abs_AX = 1.
 	    do while(abs_AX.GT.1.D-15)
 
-!	      FunciÛn a ser igualada a 0 = AX(Tspl)
+!	      Funci√≥n a ser igualada a 0 = AX(Tspl)
 16	      AX=1.D0+Gdot(I)*(TR-1.D0)+Gddot(I)*DLOG(TR)-1.D0/4.D0
-!	      Derivada de dicha funciÛn: d(AX)/d(Tspl)
+!	      Derivada de dicha funci√≥n: d(AX)/d(Tspl)
 	      DAX=GDOT(I)+GDDOT(I)/TR
 !	      Cociente de Newton:
 	      DTR=-AX/DAX
@@ -762,7 +762,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 	      else
 
-!	        Si Ts est· dando < 0 o no converge, Ts = 1000000.
+!	        Si Ts est√° dando < 0 o no converge, Ts = 1000000.
 	        TSPLINE(I)=1.D7
 	        exit
 
@@ -772,7 +772,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 	  else
 !
-!	   Si g' > 0, no puede haber una Ts > 0 (o difÌ≠cilmente la haya)
+!	   Si g' > 0, no puede haber una Ts > 0 (o dif√≠cilmente la haya)
 18	   TSPLINE(I)=1.D3
 
 	  endif
@@ -1076,13 +1076,13 @@ C            - FUERZA DE ASOCIACION (ADIMENSIONAL)
 !--------------------------------------------------------------------------
 !
 !
-!	Antigua subrutina de c·lculo de la fracciÛn no asociada. Ahora es
+!	Antigua subrutina de c√°lculo de la fracci√≥n no asociada. Ahora es
 !	puente a la subrutina OptiNewton, utilizada en el paquete GCA-2,
 !	presente en GC3, GCDist, GCEnvel, etc.
-!	Se eliminÛ el cÛdigo antiguo. Si se quiere recuperar, buscarlo en
-!	la versiÛn 3.0.0 (A-gc-eos3.for)
+!	Se elimin√≥ el c√≥digo antiguo. Si se quiere recuperar, buscarlo en
+!	la versi√≥n 3.0.0 (A-gc-eos3.for)
 !
-!	Francisco, durante versiÛn 3.1.0.
+!	Francisco, durante versi√≥n 3.1.0.
 !
 	SUBROUTINE FRACNOAS(NGA,MASSOC,DELTASS,XNOASS, nc, ONUASOC,V,
      &                    RNGRUP,iErrAssoc)
@@ -1135,7 +1135,7 @@ C            - FUERZA DE ASOCIACION (ADIMENSIONAL)
 
       end if
 
-!	Fin del C·lculo de la  ffracciÛn no asociada
+!	Fin del C√°lculo de la  ffracci√≥n no asociada
 	return
       endsubroutine
 
@@ -2002,7 +2002,7 @@ C                    MOLES DEL COMPUESTO M (ESTO ES LO QUE SE CALCULA)
 C	real d1, psin
 	dimension indx(NCM)
 !
-!	Para informaciÛn sobre el cÛdigo anterior a las modificaciones de Alfonsina,
+!	Para informaci√≥n sobre el c√≥digo anterior a las modificaciones de Alfonsina,
 !	ver subroutina "FracNoAsoc".
 !	Francisco.
 
@@ -2058,7 +2058,7 @@ c Calcula los elementos de la matriz [Yp]
 	  m_lambda1=m_lambda
 	  call  ludcmp(m_lambda1,N,NP,indx,d1)
 	  call lubksb(m_lambda1,N,NP,indx,psin)
-c colectando las derivadas en su correspondiente subÌndice
+c colectando las derivadas en su correspondiente sub√≠ndice
 	  w=0
 	  do j=1,2
 
@@ -2835,7 +2835,7 @@ C
         DIMENSION RNGRUP(12)
 C
 C Calcula el numero de moles de cada grupo considerado en el termino de
-C  asociacion. Se realiza el c·lculo tanto para los grupos que presentan
+C  asociacion. Se realiza el c√°lculo tanto para los grupos que presentan
 C  sitios de asociacion como para los que no los presentan. Tal vez
 C   alguna modificacion futura del modelo introduzca en la expresion
 C    de la funcion de Helmholtz de asociacion, el efecto de dilucion
@@ -3018,7 +3018,7 @@ C XNOASS(I,J) = FRACCION NO ASOCIADA DEL SITIO I DEL GRUPO J
 C
 C DXNOASSV(I,J) = DERIVADA DE LA XNOASS(I,J) CON RESPECTO AL VOLUMEN
 C                   DEL SISTEMA (ESTO ES LO QUE SE CALCULA)
-c C·lculo de la derivada de la fracciÛn no asociada respecto VOLUMEN
+c C√°lculo de la derivada de la fracci√≥n no asociada respecto VOLUMEN
 cCalcula los elementos de la matriz deltapq
 
       w=0;
@@ -3054,7 +3054,7 @@ c Calcula los elementos de la matriz [Yp]
       call  ludcmp(m_lambda1,N,NP,indx,d1)
        call lubksb(m_lambda1,N,NP,indx,psiv)
 
-c colectando las derivadas en correspondiente subÌndice
+c colectando las derivadas en correspondiente sub√≠ndice
       w=0
 	do j=1,2
 	do i=1, nga

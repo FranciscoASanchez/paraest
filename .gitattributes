@@ -1,0 +1,10 @@
+# Fuentes y scripts siempre con fin de línea LF
+*.f90 text eol=lf
+*.for text eol=lf
+*.sh  text eol=lf
+makefile text eol=lf
+# Datos: no tocar (Latin-1/CRLF, como los generan los programas)
+*.dat -text
+*.DAT -text
+Archivos/** -text
+legacy/** -text

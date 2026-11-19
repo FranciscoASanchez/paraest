@@ -1,12 +1,12 @@
-! Cálculo de un punto de desviación de función objetivo para ajuste de puntos
-! críticos a través de un enfoque semi-implícito.[1]
+! CÃ¡lculo de un punto de desviaciÃ³n de funciÃ³n objetivo para ajuste de puntos
+! crÃ­ticos a travÃ©s de un enfoque semi-implÃ­cito.[1]
 !
 ! [1] J.I. Ramello, Aspectos avanzados en el modelados del equilibrio entre fases 
-!     de mezclas en sistemas asimétricos y a altas presiones. Tesis doctoral, UNS
+!     de mezclas en sistemas asimÃ©tricos y a altas presiones. Tesis doctoral, UNS
 !     2014, pp. 50-52.
 ! 
 ! dlnF_dz1   = derivada del ln(f1) con respecto a z1 a T y P constantes, calculada
-!              analíticamente.
+!              analÃ­ticamente.
 ! d2lnF_dz12 = derivada segunda de ln(f1) respecto de z1 a T y P constantes, calcu-
 !              lada por diferencias finitas centradas.
 ! 
@@ -21,9 +21,9 @@ subroutine implicitPCrit(NC, NG, NST, T, P, zn, dlnF_dz1, d2lnF_dz12, Z)
 	real(8) ::                     T, P, Z, dlnF_dz1, d2lnF_dz12, dlnFper1, dlnFper2
 	real(8), dimension(NCM) ::     zn, aux, aux2
 	
-! Cálculo de dlnF_dz1 a T, P y z:
+! CÃ¡lculo de dlnF_dz1 a T, P y z:
 	call dFug_z1(NC, NG, NST, T, P, zn, dlnF_dz1, Z)
-! Cálculo de d2lnF_dz12 por diferencias finitas centradas:
+! CÃ¡lculo de d2lnF_dz12 por diferencias finitas centradas:
 	aux(1) = zn(1)*(1.D0 - delta)
 	aux(2) = 1.D0 - aux(1)
 	call dFug_z1(NC, NG, NST, T, P, aux, dlnFper1, aux2(1))

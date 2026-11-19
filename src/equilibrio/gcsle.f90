@@ -2,12 +2,12 @@
 !
 !      SOLID SOLUBILITY IN SCFs USING THE GCAEOS
 !                  con efectos asociativos
-!         (implementación de mecanismo generalizado)
+!         (implementaciÃ³n de mecanismo generalizado)
 !
 !                      Susana Bottini
 !                      NOVEMBER 2003
 
-! Agregado de la asociación Alfonsina Ester Andreatta 10/08/07
+! Agregado de la asociaciÃ³n Alfonsina Ester Andreatta 10/08/07
 !
 ! Modificado para insertar en ParaEst
 !	Francisco, 03/08/13
@@ -17,7 +17,7 @@
 subroutine GCSLE (NC, NG, NST, T, P, XN0, DHfu, DVfu, Tfu, Pfu, DCpfu, TtrSS, DHss, CZ, XN, phiL, iErrorSol)
 !
 !	I M P O R T A N T E:
-!	                      El soluto es siempre el compuesto 1. Si se desea calcular toda la línea de ESL se debe
+!	                      El soluto es siempre el compuesto 1. Si se desea calcular toda la lÃ­nea de ESL se debe
 !	                      cambiar el orden de los compuestos.
 
 	IMPLICIT REAL*8(A-H,O-Z)
@@ -69,7 +69,7 @@ subroutine GCSLE (NC, NG, NST, T, P, XN0, DHfu, DVfu, Tfu, Pfu, DCpfu, TtrSS, DH
 	  XN(1)=1D0 - dfloat(NC-1)*1D-8
 	  XN(2:NC) = 1D-8
 !
-!	  Parámetros dependientes de T:
+!	  ParÃ¡metros dependientes de T:
 	  CALL PARAGC(T,NC,NG,NST,0)
 !
 !	  Calculo de la fugacidad de 1 "puro":
@@ -96,7 +96,7 @@ subroutine GCSLE (NC, NG, NST, T, P, XN0, DHfu, DVfu, Tfu, Pfu, DCpfu, TtrSS, DH
 !	    Fugacidad del componente 1 en la mezcla
 	    PHIL(1)=DEXP(PHI(1))
 !
-!	    xs = f(i)/fº(i)*DEXP(-DHFU/8.314D0*(1D0/T-1D0/TFU)) = gamma(i)*DEXP(-DHFU/8.314D0*(1D0/T-1D0/TFU))
+!	    xs = f(i)/fÂº(i)*DEXP(-DHFU/8.314D0*(1D0/T-1D0/TFU)) = gamma(i)*DEXP(-DHFU/8.314D0*(1D0/T-1D0/TFU))
 	    SOLUB = (PHILH(1))/(PHIL(1))*SOLUTO
 !
 	    ERROR=SOLUB*1.0D-03	!Error relativo = 10^-3
@@ -107,10 +107,10 @@ subroutine GCSLE (NC, NG, NST, T, P, XN0, DHfu, DVfu, Tfu, Pfu, DCpfu, TtrSS, DH
 ! 	    XN(2:NC)=XN0(2:NC)*(1.0-XN(1))
 	    XN(2) = 1D0 - xn(1)
 	    
-	    if(i.EQ.0) iGz = 1	!si ya se realizó al menos una iteración, aprovecho el valor calculado de Z_liq.
+	    if(i.EQ.0) iGz = 1	!si ya se realizÃ³ al menos una iteraciÃ³n, aprovecho el valor calculado de Z_liq.
 	    IF (i+1 > maxIt)then		!GO TO 100
 
-	      WRITE(*,'("No se logró converger en ",I2," iteraciones")')maxIt
+	      WRITE(*,'("No se logrÃ³ converger en ",I2," iteraciones")')maxIt
 !	      CLOSE(UNIT=5)
 	      iErrorSol = 1
 	      return

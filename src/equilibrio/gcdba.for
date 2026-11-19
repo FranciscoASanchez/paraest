@@ -5,14 +5,14 @@
 !
 !
 !
-!	GC DB con  AsociaciÛn cruzada y de autoasociaciÛn (Abril 2006) -ALFONSINA-
+!	GC DB con  Asociaci√≥n cruzada y de autoasociaci√≥n (Abril 2006) -ALFONSINA-
 !
 !
 !	Modificado para incluir paquete GCA 2.0 (calc. asoc. propuestos por Michelsen
 !		Francisco, 2011-2012
 !--------------------------------------------------------------------------------------
-!	VersiÛn adaptada para ser incluida en ParaEst, para reemplazar a ATXFLASH()
-!	No estoy eliminando cÛdigo que no hace nada. Solo adaptando para que fun-
+!	Versi√≥n adaptada para ser incluida en ParaEst, para reemplazar a ATXFLASH()
+!	No estoy eliminando c√≥digo que no hace nada. Solo adaptando para que fun-
 !	cione.
 !		Francisco, 03/2012.
 !
@@ -97,7 +97,7 @@
 !
 !40	READ(5,*,ERR=700,END=700) (Z(I),I=1,NC)                           00005600
 !
-!	Lectura en una sola lÌnea, al estilo GC3
+!	Lectura en una sola l√≠nea, al estilo GC3
 40	continue
 !	if(init.EQ.0)then
 
@@ -155,10 +155,10 @@
 !
 !	Si se calculan P, calcula propiedades dependiente de T (=cte)
 !	ahora. Si se calculan T, como van variando hasta converger, se
-!	recalculan en cada iteraciÛn y no ac·.
+!	recalculan en cada iteraci√≥n y no ac√°.
 	IF(ITYPE.EQ.3.OR.ITYPE.EQ.4) CALL PARAGC(T,NC,NG,NST,1)
 !
-!	Llamado al punto de saturaciÛn. iType entra por COMMON aparentemente.
+!	Llamado al punto de saturaci√≥n. iType entra por COMMON aparentemente.
 	NC1=NC+1
       CALL DBTP(NC,NC1,NG,NST,T,P,X,Y,K,GG,ICH)
 	ZLiq = ZL
@@ -167,8 +167,8 @@
 !	Variable de error:
       IF(ICH.EQ.99)then
 !
-!	  La siguiente modificaciÛn nace para tener una entrada de una sola lÌnea por
-!	  punto de composiciÛn corrido:
+!	  La siguiente modificaci√≥n nace para tener una entrada de una sola l√≠nea por
+!	  punto de composici√≥n corrido:
 !	  GO TO 45
 500	  WRITE(6,3600)
 	  IF(IOUT.EQ.1) WRITE(3,3600)
@@ -182,8 +182,8 @@
 
 !	IF(ITYPE.EQ.2.OR.iType.EQ.4)then		!EQ.1.OR.ITYPE.EQ.3) GO TO 300
 
-!       Se calcularon putos de rocÌo. Por lo tanto, la salida (Y) es lÌquido
-!	  y la alimentaciÛn (Z) es vapor.
+!       Se calcularon putos de roc√≠o. Por lo tanto, la salida (Y) es l√≠quido
+!	  y la alimentaci√≥n (Z) es vapor.
 !	  DO 200 I=1,NC
 
 !	    X(I)=Y(I)
@@ -210,7 +210,7 @@
 	IF(IOUT.EQ.1) WRITE(3,3300)
 !	DO 400 I=1,NC
 
-!       Si se calcularon puntos de burbuja, la salida (Y), es lÌquido.
+!       Si se calcularon puntos de burbuja, la salida (Y), es l√≠quido.
 !	  IF(ITYPE.EQ.1.OR.ITYPE.EQ.3) X(I)=Y(I)
 !	  WRITE(6,3400) I,Z(I),X(I),K(I)
 !	  IF(IOUT.EQ.1) WRITE(3,3400) I,Z(I),X(I),K(I)
@@ -547,7 +547,7 @@ C                                                                       00002340
 !	Replace dim. 15 by K and dim. 120 by  K(K+1)/2
 !
 !
-!	CambiÈ nombre por conflictos con INDAT en GC3
+!	Cambi√© nombre por conflictos con INDAT en GC3
 !		Francisco, durante "1.3.1.paraest"
 !                                                                       00002780
 	SUBROUTINE INDAT_cubica(NC,NONHY)
@@ -796,7 +796,7 @@ C                                                                       00004390
 !
 !
 !
-!	Inicio de K(i) con una relaciÛn entre Tr y Pr de los puros, similar a una pv.
+!	Inicio de K(i) con una relaci√≥n entre Tr y Pr de los puros, similar a una pv.
 !
 	SUBROUTINE KInit(NC,X,Y,Z,T,P)
 

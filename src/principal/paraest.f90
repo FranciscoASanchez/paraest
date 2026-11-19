@@ -2,7 +2,7 @@ PROGRAM ASSOCPARAEST
 !
 !
 !	Ajuste de parametros con modelo GCA-EoS: La estructura molecular
-!	puede ser definida de distinta manera seg˙n se trate de cuantificar
+!	puede ser definida de distinta manera seg√∫n se trate de cuantificar
 !	la contribucion dispersiva o de asociacion.
 !
 !
@@ -64,7 +64,7 @@ PROGRAM ASSOCPARAEST
 !
 !
 !
-!	Double precisionamiento  nro. de datos de pvap comp puros øpor quÈ es entero el n˙mero de datos?
+!	Double precisionamiento  nro. de datos de pvap comp puros ¬øpor qu√© es entero el n√∫mero de datos?
 	INTEGER NSAT(NCM)
 !
 !	Funcion objetivo para el comp. puro
@@ -86,13 +86,13 @@ PROGRAM ASSOCPARAEST
 !
 !	Nro. de param. identicos a c/gii o kij
 	INTEGER NIDG(8)
-!	Identificacion (indices) de IDENTicos a gii Û kij
+!	Identificacion (indices) de IDENTicos a gii √≥ kij
 	INTEGER IDIDG(104,2)
 !
 !
 !	           8 X 13 = 104
 !
-!	IdentificaciÛn par·metros de ·rea
+!	Identificaci√≥n par√°metros de √°rea
 	INTEGER IDQ(8)
 !
 !	Identif (indices) de parametros ALFAij
@@ -116,7 +116,7 @@ PROGRAM ASSOCPARAEST
 !	Identif (indices) de identicos a c/RKASSijkl
 	INTEGER IDIDRKASS(104,4)
 !
-!	Õndices para dc
+!	√çndices para dc
 	INTEGER IDDC(8)
 !	Indice de los parametros temperatura critica
       INTEGER idtc(8)
@@ -124,19 +124,19 @@ PROGRAM ASSOCPARAEST
 	DOUBLE PRECISION XX(8)
 	INTEGER IDXX(8)
 !
-!	IDXX(i) =	identificaciÛn del tipo de par·metro a ser ajustado.
+!	IDXX(i) =	identificaci√≥n del tipo de par√°metro a ser ajustado.
 !	            IDXX se utiliza para saber que factor de escalado
-!	            debe aplicarse al par·metro que se esta ajustando.
+!	            debe aplicarse al par√°metro que se esta ajustando.
 !
 !	IDXX(i) = 1   g*
 !	          2   k*ij
 !	          3   g'ij / g''ij / k'ij   coeficientes var. Con temp
-!	          4   q (param. de ·rea)
+!	          4   q (param. de √°rea)
 !	          5   alfa  (param. de no azar)
-!	          6   Èpsilon (energ. asoc.)
+!	          6   √©psilon (energ. asoc.)
 !	          7   kappa (vol. asoc.)
-!	          8   dc (di·metro critico)
-!	          9   Tc (temperatura crÌtica)
+!	          8   dc (di√°metro critico)
+!	          9   Tc (temperatura cr√≠tica)
 !
 	DOUBLE PRECISION XJAC(NDM,8), XJTJ(36), WORK(500)
 	DOUBLE PRECISION FCION(NDM)
@@ -153,12 +153,12 @@ PROGRAM ASSOCPARAEST
 	dimension rgamcalc1(NDM),rgamcalc2(NDM),rgamcalc3(NDM)
 	DOUBLE PRECISION ZLicalc(NDM)
 !
-!	Doble precisionamiento desviaciones st·ndar para mezclas
+!	Doble precisionamiento desviaciones st√°ndar para mezclas
 	dimension STDVA(NSetM),STDVB(NSetM),STDVC(NSetM),stDvD(NSetM)
 !
-!	A partir de esta versiÛn, A-Paraest est· en Fortran 90, lo que me permite + de 73 columnas.
-!	A˙n asÌ separo en renglones cerca de la col. 100 para no restar legibilidad.
-!	La separaciÛn como se ve, es con un "&" al final, y otro "&" al principio.
+!	A partir de esta versi√≥n, A-Paraest est√° en Fortran 90, lo que me permite + de 73 columnas.
+!	A√∫n as√≠ separo en renglones cerca de la col. 100 para no restar legibilidad.
+!	La separaci√≥n como se ve, es con un "&" al final, y otro "&" al principio.
 	INTEGER NC,NG,NGA,NGA2,NSIG,ISAT,IGLE,IVE,IUNI,NPRED,NNP,NNQ,NALFA,NENASS,NRKASS,NPAR,NCXP,IOPT,&
 
 &	        NUMDC,NUMTC,NOPCION,MAXFN,IXJAC,INFER,IER
@@ -191,7 +191,7 @@ PROGRAM ASSOCPARAEST
 !
 	COMMON/IDSC/IDXX
 !
-!	LÌmites:
+!	L√≠mites:
 !
 !		NGM Grupos diferentes en la contribucion dispersiva
 !		12 Grupos diferentes en la contribucion de asociacion
@@ -199,7 +199,7 @@ PROGRAM ASSOCPARAEST
 !		NDM Datos experimentales de cualquier tipo, sea  de presion de vapor de comp puros o cualquier
 !		otro tipo de dato de equilibrio
 !		NSetM Data sets de ELV
-!		8  (Ajuste de a lo sumo 8 par·etros diferentes)
+!		8  (Ajuste de a lo sumo 8 par√°etros diferentes)
 !		13  (A lo sumo 13 parametros IDENTicos a alguno de los ajustados)
 !
 !
@@ -230,13 +230,13 @@ PROGRAM ASSOCPARAEST
 !
 !
 !	Inicio de DC en base al punto critico predicho por la GC-EoS, para todo componente (no tiene en 
-!	cuenta asociaciÛn), sÛlo si no se ha ingresado por parte del usuario.
+!	cuenta asociaci√≥n), s√≥lo si no se ha ingresado por parte del usuario.
 	CALL INICDC(NC,PRCRIT,TEMPCRIT,DC)
 !
-!	De ahora en m·s, los dc iniciales (cuando se ajustan) se cargan abajo.
+!	De ahora en m√°s, los dc iniciales (cuando se ajustan) se cargan abajo.
 !
 !	Cuando numDc no es cero: carga de los valores de dc iniciales en XX
-!	CALL FORDC(NUMDC,IDDC,DC,NPAR,XX)Á
+!	CALL FORDC(NUMDC,IDDC,DC,NPAR,XX)√ß
 !
 !	Calculo de las temperaturas de spline para los valores iniciales de los parametros dispersivos.
 	CALL SPLINECALC(NG, TSTR, GSTR, GDOT, GDDOT, TSPLINE)
@@ -260,7 +260,7 @@ PROGRAM ASSOCPARAEST
 !	Escalado de los valores de xx
 	CALL XXSCAL(NPAR,XX,IDXX)
 !
-!	C·lculos de simulacion o Ajuste
+!	C√°lculos de simulacion o Ajuste
 !	----------------------------------------------------
 	IF(NPRED.EQ.1)THEN
 !	  Prediccion (o simulacion)
@@ -288,13 +288,13 @@ PROGRAM ASSOCPARAEST
 !       No chequeo de deriv.
 	  NOPCION = 0
 !
-!	  Llamado a la subrutina de optimizaciÛn.
+!	  Llamado a la subrutina de optimizaci√≥n.
 	  CALL ZXSSQ(FUNC,NCXP,NPAR,NSIG,EPS,DELTAZ,MAXFN,IOPT,PARM,XX,SSQ,FCION,XJAC,IXJAC,XJTJ,WORK,INFER,IER)
 !
 !	  Escribe estadisticas de la optimizacion
 	  CALL WRITESTAT(SSQ,XJAC,WORK,INFER,IER)
 !
-!	  C·lculo de las temperaturas de spline para los valores FINALES de los parametros dispersivos
+!	  C√°lculo de las temperaturas de spline para los valores FINALES de los parametros dispersivos
 	  CALL SPLINECALC(NG,TSTR,GSTR,GDOT,GDDOT,TSPLINE)
 	  IF (OPDER.EQ.'S')NOPCION = 1
 !
@@ -328,7 +328,7 @@ ENDprogram
 !
 !
 !
-!	Subrutina de lectura del programa Paraest. Lee la informaciÛn del archivo de entrada paraest.dat. Al mismo
+!	Subrutina de lectura del programa Paraest. Lee la informaci√≥n del archivo de entrada paraest.dat. Al mismo
 !	tiempo, imprime lo que va leyendo con formato, para -ayudar a- identificar un error en la entrada, de
 !	haberlo.
 !
@@ -493,14 +493,14 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	endif
 	write(*,'(//)')
-!	Lectura de ·reas y T de referencia de cada grupo dispersivo
+!	Lectura de √°reas y T de referencia de cada grupo dispersivo
 	DO I=1,NG
 
 	  READ(1,*) QAREA(I), TSTR(I)
 	  write(*,'(F6.3,F7.2)')qArea(i),Tstr(i)
 
 	END DO
-!	Lectura de energÌa de segmento de grupo
+!	Lectura de energ√≠a de segmento de grupo
 	READ(1,*) (GSTR(I), I=1,NG)
 	write(*,'(/,<NG>(F7.0,2X),"   !g*")')(GSTR(I), I=1,NG)
 !
@@ -510,7 +510,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	READ(1,*) (GDDOT(I), I=1,NG)
 	write(*,'(<NG>(F7.4,2X),"   !g``",//)')(GDdOT(I), I=1,NG)
 !
-!	Par·metros de interacciÛn binaria: k*
+!	Par√°metros de interacci√≥n binaria: k*
 	DO I=1,NG
 
 	  READ(1,*) (RKIJ(I,J), J=1,NG)
@@ -541,7 +541,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	  endif
 
 	END DO
-!	alfa: par·metros de "no-azar"
+!	alfa: par√°metros de "no-azar"
 	DO I=1,NG
 
 	  READ(1,*) (ALFAIJ(I,J), J=1,NG)
@@ -559,12 +559,12 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 !
 	IF(NGA.GT.0)THEN
 !
-!	  ContribuciÛn asociativa
-!	  Lectura de vector de sitios de asociaciÛn:
+!	  Contribuci√≥n asociativa
+!	  Lectura de vector de sitios de asociaci√≥n:
 	  READ(1,*) (MASSOC(I),I=1,NGA)
-	  write(*,'(//,<NGA>(I2,2X),5X,"! Vector de sitios de asociaciÛn",/)') (MASSOC(I),I=1,NGA)
+	  write(*,'(//,<NGA>(I2,2X),5X,"! Vector de sitios de asociaci√≥n",/)') (MASSOC(I),I=1,NGA)
 
-!	  Lectura de energÌa y volumen de asociaciÛn en una misma lÌnea
+!	  Lectura de energ√≠a y volumen de asociaci√≥n en una misma l√≠nea
 	  NST = 0
 	  EnAss(:6,:12,:6,:12) = 0D0
 	  rKAss(:6,:12,:6,:12) = 0D0
@@ -577,14 +577,14 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	          read(1,*)EnAss(k,i,l,j),rKAss(k,i,l,j)
 		    if(NST.EQ.1)then
 
-	            write(*,'(F6.1,4X,F8.5,4X,"! ",2I2,3X,2I2,4X,"EnergÌa y vol˙men de asociaciÛn")')EnAss(k,i,l,j),rKAss(k,i,l,j)
+	            write(*,'(F6.1,4X,F8.5,4X,"! ",2I2,3X,2I2,4X,"Energ√≠a y vol√∫men de asociaci√≥n")')EnAss(k,i,l,j),rKAss(k,i,l,j)
 
 	          else
 
 	            write(*,'(F6.1,4X,F8.5,4X,"! ",2I2,3X,2I2,4X)')EnAss(k,i,l,j),rKAss(k,i,l,j)
 
 	          endif
-!	          SimetrÌas
+!	          Simetr√≠as
 	          EnAss(l,i,k,j) = EnAss(k,i,l,j)
 	          EnAss(l,j,k,i) = EnAss(k,i,l,j)
 	          EnAss(k,j,l,i) = EnAss(k,i,l,j)
@@ -610,14 +610,14 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	END DO
 	write(*,'(//)')
 !
-!	ConfiguraciÛn grupal de fuerzas dispersivas:
+!	Configuraci√≥n grupal de fuerzas dispersivas:
 	DO I=1,NG
 !
 !	  NU (I,J)= numero de grupos del tipo i en el compuesto de tipo j.
 	  READ(1,*) (NU(I,J), J=1,NC)
 	  if(i.EQ.1)then
 
-	    write(*,'(//,<NC>(I2,4X),"!  Grupo disp. Nro.",I2,"   ConfiguraciÛn grupal dispersiva")')(NU(I,J), J=1,NC),I
+	    write(*,'(//,<NC>(I2,4X),"!  Grupo disp. Nro.",I2,"   Configuraci√≥n grupal dispersiva")')(NU(I,J), J=1,NC),I
 
 	  else
 
@@ -630,14 +630,14 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 !
 	IF(NGA.GT.0) THEN
 !
-!	  ConfiguraciÛn grupal asociativa, si corresponde:
+!	  Configuraci√≥n grupal asociativa, si corresponde:
 	  DO I=1,NGA
 !
-!	    ONUASOC(I,J) = n˙mero de grupos del tipo i en el compuesto de tipo j (asociaciÛn).
+!	    ONUASOC(I,J) = n√∫mero de grupos del tipo i en el compuesto de tipo j (asociaci√≥n).
 	    READ(1,*) (ONUASOC(I,J), J=1,NC)
 	    if(i.EQ.1)then
 
-	      write(*,'(/,<NC>(F2.0,4X),"!  Grupo asoc. Nro.",I2,"   ConfiguraciÛn grupal asocitiva")')(oNUAsoc(I,J), J=1,NC),I
+	      write(*,'(/,<NC>(F2.0,4X),"!  Grupo asoc. Nro.",I2,"   Configuraci√≥n grupal asocitiva")')(oNUAsoc(I,J), J=1,NC),I
 
 	    else
 
@@ -683,7 +683,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	    elseif(ifl(i).EQ.2)then
 
-	      write(*,'(//,I2,5X,"Datos de entalpÌa en exceso")')ifl(i)
+	      write(*,'(//,I2,5X,"Datos de entalp√≠a en exceso")')ifl(i)
 
 	    endif
 	    read(1,*)nObs(i), (idC(i,j), j = 1, 2)
@@ -691,13 +691,13 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	  elseif(iHen(i).EQ.2)then
 	    
-	    write(*,'(//,I2,5X,"Datos solubilidad de sÛlido")')iHen(i)
+	    write(*,'(//,I2,5X,"Datos solubilidad de s√≥lido")')iHen(i)
 	    read(1,*)nObs(i), (idC(i,j), j = 1, 2)
 	    write(*,'(4(I2,4X))')NOBS(I),(IDC(I,j),j=1,2)
 	    
 	  elseif(iHen(i) == 3)then
 	  
-	    write(*,'(//, I2, 5X, "Datos de punto crÌtico")') iHen(i)
+	    write(*,'(//, I2, 5X, "Datos de punto cr√≠tico")') iHen(i)
 	    read(1,*)nObs(i), (idC(i,j), j = 1, 2)
 	    write(*,'(4(I2,4X))')NOBS(I),(IDC(I,j),j=1,2)	    
 	    
@@ -755,7 +755,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	      
 	    elseif(iHen(i) == 3)then
 		
-!	      ******************Punto crÌtico*****************
+!	      ******************Punto cr√≠tico*****************
 	      read(1,*)Texp(j), Pexp(j), xExp(j), wBin(:2,j)
 	      write(*,'(F7.2,2(2X,F7.4), "! ", i3)')TEXP(J), PEXP(J), XEXP(J), j     
 
@@ -788,7 +788,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 !
 	if(NNP.NE.0) then
 !
-!	  Lectura de identificaciÛn de par·metros de interacciÛn dispertiva a ser ajustados: g(i,i) y k(i,j)
+!	  Lectura de identificaci√≥n de par√°metros de interacci√≥n dispertiva a ser ajustados: g(i,i) y k(i,j)
 	  READ(1,*) (IDG(I,1),IDG(I,2),I=1,NNP)
 	  write(*,'(<NNP>(2(I2,X),4X))')(IDG(I,1),IDG(I,2),I=1,NNP)
 !
@@ -799,7 +799,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	  write(*,'(<NNP>(I2,6X))')(NIDG(I), I=1,NNP)
 !
 	  NSSS = 0
-!	  Lectura de par·metros idÈnticos:
+!	  Lectura de par√°metros id√©nticos:
 	  DO L=1,NNP
 !
 	    if(NIDG(L).NE.0) then
@@ -815,7 +815,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	end if
 !
-!	Lectura de identificaciÛn de par·metros de ·rea a ser ajustados
+!	Lectura de identificaci√≥n de par√°metros de √°rea a ser ajustados
 	if(NNQ.NE.0)then
 
 	  READ(1,*) (IDQ(I), I=1,NNQ)
@@ -823,7 +823,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	endif
 !
-!	Lectura de identificaciÛn de par·metros de no-azar a ser ajustados
+!	Lectura de identificaci√≥n de par√°metros de no-azar a ser ajustados
 	if(NALFA.NE.0) then
 !
 	  READ(1,*) (IDALF(I,1),IDALF(I,2),I=1,NALFA)
@@ -847,7 +847,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	end if
 !
-!	Lectura de identiciaciÛn de par·metros de energÌa de asociaciÛn a ser ajustados
+!	Lectura de identiciaci√≥n de par√°metros de energ√≠a de asociaci√≥n a ser ajustados
 	if(NENASS.NE.0) then
 
 	  DO I=1,NENASS
@@ -859,7 +859,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	  READ(1,*) (NIDENASS(I), I=1,NENASS )
 	  write(*,'(<nEnAss>(I2,X))')(NIDENASS(I), I=1,NENASS )
 !
-!	  Lectura de idÈnticos:
+!	  Lectura de id√©nticos:
 	  NSSE = 0
 	  DO L=1,NENASS
 
@@ -879,7 +879,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 !
 	end if
 !
-!	Lectura de identiciaciÛn de par·etros de volumen de asociaciÛn a ser ajustados:
+!	Lectura de identiciaci√≥n de par√°etros de volumen de asociaci√≥n a ser ajustados:
 	if(NRKASS.NE.0) then
 !
 	  DO I=1,NRKASS
@@ -910,7 +910,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	end if
 !
-!	Lectura de identiciaciÛn de compuestos a los cuales se les ajustar· su Tc:
+!	Lectura de identiciaci√≥n de compuestos a los cuales se les ajustar√° su Tc:
 	IF(numTc.NE.0)then
 
 	  READ(1,*) (idTc(I), I=1,numtc)
@@ -918,7 +918,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	endif
 !
-!	Ahora, para ajustar dc, lee la identificaciÛn del componente (idDc(i)), sumado al error asociado al dc de ese
+!	Ahora, para ajustar dc, lee la identificaci√≥n del componente (idDc(i)), sumado al error asociado al dc de ese
 !	componente (vMaxDc(i).
 	IF(NUMDC.NE.0)then
 
@@ -929,7 +929,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	endif
 !
-!	N˙mero de parametros
+!	N√∫mero de parametros
 	NPAR = NNP+NNQ+NALFA+NENASS+NRKASS+numTc+NUMDC
 	IF(NNP.NE.0) THEN
 
@@ -945,7 +945,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 !	Lectura de los valores iniciales de los parametros
 	if(nPar > 0)READ(1,*)  (XX(I),I=1,NPAR)
 !
-!	Guardo los valores que sean de dc en una variable aparte, para el escalado con cota m·x y mÌn.:
+!	Guardo los valores que sean de dc en una variable aparte, para el escalado con cota m√°x y m√≠n.:
 	if(numDc > 0)then
 	
 	  dc_medio(nPar - numDc + 1:nPar) = xx(nPar - numDc + 1:nPar)
@@ -963,8 +963,8 @@ ENDsubroutine !FIN READ
 !
 !
 !
-!	Esta subrutina imprime en paraest.out la lectura de los disintos par·metros alimentados en la subrutina READ
-!	mas no los resultados de optimizaciÛn
+!	Esta subrutina imprime en paraest.out la lectura de los disintos par√°metros alimentados en la subrutina READ
+!	mas no los resultados de optimizaci√≥n
 !
 SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC,ENASS,RKASS,&
 
@@ -1064,18 +1064,18 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 !
 1	FORMAT(/,X,' Factores de peso utilizados en la funcion objetivo:',/,                             &
 &	       X,'Peso a las presiones de vapor:                   ',F10.4,/,                            &
-&	       X,'Peso a la presiÛn de burbuja de mezclas binarias:',F10.4,/,                            &
+&	       X,'Peso a la presi√≥n de burbuja de mezclas binarias:',F10.4,/,                            &
 &	       X,'Peso a la temp. de burbuja de mezclas binarias:  ',F10.4,/,                            &
-&	       X,'Peso a la composiciÛn del comp. 1 en la fase II: ',F10.4,/,                            &
-&	       X,'Peso a la composiciÛn del comp. 1 en la fase I:  ',F10.4,/,                            &
-&	       X,'Peso a la composiciÛn del comp. 2 en la fase I:  ',F10.4,' (sÛlo mezclas ternarias)',/ &
-&	       X,'Peso a la composiciÛn del comp. 2 en la fase II: ',F10.4,' (sÛlo mezclas ternarias)',/ &
+&	       X,'Peso a la composici√≥n del comp. 1 en la fase II: ',F10.4,/,                            &
+&	       X,'Peso a la composici√≥n del comp. 1 en la fase I:  ',F10.4,/,                            &
+&	       X,'Peso a la composici√≥n del comp. 2 en la fase I:  ',F10.4,' (s√≥lo mezclas ternarias)',/ &
+&	       X,'Peso a la composici√≥n del comp. 2 en la fase II: ',F10.4,' (s√≥lo mezclas ternarias)',/ &
 &	       X,'Peso al coef. de actividad del comp. 1:          ',F10.4,/                             &
 &	       X,'Peso al coef. de actividad del comp. 2:          ',F10.4,/                             &
-&	       X,'Peso al coef. de actividad del comp. 3:          ',F10.4,' (sÛlo mezclas ternarias)',/ &
+&	       X,'Peso al coef. de actividad del comp. 3:          ',F10.4,' (s√≥lo mezclas ternarias)',/ &
 &	       x,'Peso al volumen en exceso:                       ',F10.4,/                             &
-&	       x,'Peso a la entalpÌa en exceso:                    ',F10.4,/                             &
-&	       x,'Peso a la solubilidad de sÛlidos:                ',F10.4,/                             &
+&	       x,'Peso a la entalp√≠a en exceso:                    ',F10.4,/                             &
+&	       x,'Peso a la solubilidad de s√≥lidos:                ',F10.4,/                             &
 &	       X,' PARM(1) = ',F10.4,'     PARM(2) = ',F10.4,/,                                          &
 &	       X,' Algoritmo de optimizacion: IOPT = ',I3)
 !
@@ -1098,7 +1098,7 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	END DO
 !	NU (I,J)= Numero de grupos del tipo i en el compuesto de tipo j
 	WRITE(1,5)
- 5	FORMAT(/,X,' EnergÌas de interaccion gjj ',/,X,'(la forma funcional cambia a altas temperaturas)',/)
+ 5	FORMAT(/,X,' Energ√≠as de interaccion gjj ',/,X,'(la forma funcional cambia a altas temperaturas)',/)
 !
 	DO I=1,NG
 !
@@ -1130,12 +1130,12 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	END DO
 !
 	WRITE(1,186) NGA
- 186	FORMAT(/,X,' N˙mero de grupos considerados en la contribucion de asociaciÛn = ',I3)
+ 186	FORMAT(/,X,' N√∫mero de grupos considerados en la contribucion de asociaci√≥n = ',I3)
 !
 	IF(NGA.GT.0) THEN
 
 	  WRITE(1,11) (I, I=1,NC)
-11	  FORMAT(/,X,' Parametros de asociaciÛn ',/,23X,'Componentes',/,' Grupo 	  # Sit asoc  ',<NC>I5,/)
+11	  FORMAT(/,X,' Parametros de asociaci√≥n ',/,23X,'Componentes',/,' Grupo 	  # Sit asoc  ',<NC>I5,/)
 	  DO I=1,NGA
 
 	    WRITE(1,12) I, MASSOC(I), (ONUASOC(I,J), J=1,NC)
@@ -1143,7 +1143,7 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 
 	  END DO
 	  WRITE(1,13)
-13	  FORMAT(/,X,'Par·metros de energÌa de asociaciÛn (K)  ',/)
+13	  FORMAT(/,X,'Par√°metros de energ√≠a de asociaci√≥n (K)  ',/)
 !
 	  DO J=1,NGA
 
@@ -1245,7 +1245,7 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	end if
 !
 	if(NNQ.NE.0) WRITE(1,211) (IDQ(I), I=1,NNQ)
-211	FORMAT(/,X,' Par·metros de Area  ',/,X,<NNQ>I3)
+211	FORMAT(/,X,' Par√°metros de Area  ',/,X,<NNQ>I3)
 !
 	if(NALFA.ne.0) then
 
@@ -1342,7 +1342,7 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
  235	FORMAT(/,X,' Valores iniciales de los parametros a ajustar ',/,X,<NPAR>F13.4)
 !
 	WRITE(1,91)
-91	FORMAT(//,X,' Curso de la optimizaciÛn ',X)
+91	FORMAT(//,X,' Curso de la optimizaci√≥n ',X)
 	WRITE(1,93) (I,I=1,NPAR)
  93	FORMAT(//,X,' Parametro nro (ESCALADO). ',/,X,<NPAR>I15,X,'         FC OBJ ',/)
 !
@@ -1431,7 +1431,7 @@ SUBROUTINE MODIFPAR(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ON
 	DIMENSION DC(NCM)
 	DIMENSION IDDC(8)
 !
-!	Par·metros siendo ajustados:
+!	Par√°metros siendo ajustados:
 	DIMENSION XXAUX(8)
 !
 !	NPAR2 es una variable que tiene en cuenta el numero de parametros ya actualizados. Una vez que termina la ejecucion
@@ -1518,7 +1518,7 @@ SUBROUTINE MODIFPAR(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ON
 
 	END IF
 !
-!	Asignacion de valores a parametros de ·rea
+!	Asignacion de valores a parametros de √°rea
 	IF(NNQ.NE.0) THEN
 
 	  DO I=1,NNQ
@@ -1853,7 +1853,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	      CALL ASSOCDCADJUSTFASTSUB(1,WDC(1),WTEMPCRIT,NG,NUW,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,      &
 &	                                NGA,ONUASOCW,MASSOC,ENASS,RKASS,WTEMP,WPSAT,NCM,IERRDC2)
 !
-!	      NCM es el numero m·ximo de iteraciones en ASSOCDCADJUSTFASTSUB
+!	      NCM es el numero m√°ximo de iteraciones en ASSOCDCADJUSTFASTSUB
 !
 !	      Si hubo un error en el ajuste:
 	      IF(IERRDC2 /= 0) THEN
@@ -1863,7 +1863,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !	        Ajuste de DC por un metodo un poco mas robusto pero unas 5 veces mas lento
 	        CALL AssocDcAdjustSUB(1,WDC,WTEMPCRIT,NG,NUW,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,         &
 &	                              NGA,ONUASOCW,MASSOC,ENASS,RKASS,WTEMP,WPSAT,2,PSATCALC)
-!	        2  es el numero m·ximo de iteraciones ASSOCDCADJUSTSUB
+!	        2  es el numero m√°ximo de iteraciones ASSOCDCADJUSTSUB
 	        PSTCLC(I) = PSATCALC
 
 	      END IF
@@ -1876,7 +1876,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	END DO
 !
 !
-!	C·lculo de presiones de vapor o de isofugacidad de puros
+!	C√°lculo de presiones de vapor o de isofugacidad de puros
 !	Numero de Datos experimentales
 	NUMEXP=0
 	DO I=1,NC
@@ -1907,7 +1907,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	        WPSAT=PEXP(NUMEXP+1)
 	        IF(IOBJSAT(I).EQ.50) THEN
 
-!	          FunciÛn objetivo: isofugacidad
+!	          Funci√≥n objetivo: isofugacidad
 	          write(6,'("Punto = ",I3," del compuesto",I3)')j,i
 	          CALL assocIsofPurosSub(WTEMPCRIT,NG,NUW,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOCW, &
 &	                                 MASSOC,ENASS,RKASS,WDC,WTEMP,WPSAT,WZFASL,WZFASV,APART,IERRYAF)
@@ -1934,7 +1934,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	        END IF
 	        IF(IOBJSAT(I).GE.80) THEN
 !
-!	          FunciÛn objetivo: presiÛn de vapor + [if(iObj .GT. 80)then densidad endif]
+!	          Funci√≥n objetivo: presi√≥n de vapor + [if(iObj .GT. 80)then densidad endif]
 	          write(6,'("Punto = ",I3," del compuesto",I3)')j,i
 	          call fakePARGR(1,NG,NGA,NST,IOUt,NUW(:NG,1),QAREA(:NG),TStr(:NG),gStr(:NG),GDOT(:NG),GDDOT(:NG), &
 &			                 RKIJ(:NG,:NG),RKTIJ(:NG,:NG),ALFAIJ(:NG,:NG),ONUASOCW(:NGA,1),MASSOC(:NGA),         &
@@ -1942,7 +1942,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	          call fakePARMOL(1,NG,NST,IOUt,WDC,WTEMPCRIT,wPRCRIT)
 	          call paraGC(wTemp, 1, NG, NST, 1)
 	          iGP = 1
-	          iGz = 0 !deberÌa usar el resultado de ajuste del dc...
+	          iGz = 0 !deber√≠a usar el resultado de ajuste del dc...
 	          iErrPSat = 0
 			  iComp = 1
 	          if (wPsat > 1E-10) then
@@ -2037,7 +2037,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !	************************Datasets*****************
 	  DO KS=1,IGLE
 
-!	    Carga de Datos para los 2 componentes del binario (3 en el caso de c·lculo de gammas)
+!	    Carga de Datos para los 2 componentes del binario (3 en el caso de c√°lculo de gammas)
 	    I1 = IDC(KS,1)
 	    I2 = IDC(KS,2)
 	    WWDC(1) = DC(I1)
@@ -2091,19 +2091,19 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !---------------------------------------------------------------------------------->
 !
 !
-!	    Esta subrutina falsea la versiÛn de PARGR del paquete GCA, teniendo dentro de sÌ los COMMON's
-!	    necesarios para los par·metros grupales y de compuesto puro que necesita el paquete.
+!	    Esta subrutina falsea la versi√≥n de PARGR del paquete GCA, teniendo dentro de s√≠ los COMMON's
+!	    necesarios para los par√°metros grupales y de compuesto puro que necesita el paquete.
 	    call fakePARGR(NCw,NG,NGA,NST,IOUt,NUWW(:NG,:NCw),QAREA(:NG),TStr(:NG),GStr(:NG),GDOT(:NG),GDDOT(:NG), &
 &	                   RKIJ(:NG,:NG),RKTIJ(:NG,:NG),ALFAIJ(:NG,:NG),ONUASOCWW(:NGA,:NCw),MASSOC(:NGA),         &
 &	                   ENASS(:2,:NGA,:2,:NGA),RKASS(:2,:NGA,:2,:NGA),Tspline(:NG))
 !
-!	    Esta hace lo mismo que la anterior, sÛlo que para los par·metros por componente que define
+!	    Esta hace lo mismo que la anterior, s√≥lo que para los par√°metros por componente que define
 !	    originalmente PARMOL:
 	    call fakePARMOL(NCw,NG,NST,IOUt,WWDC(:NCw),WWTEMPCRIT(:NCw),wwPRCRIT(:NCw))
 !
 !<--------------------------------------------------------------------------------
 !
-!---------C·lculo de equilibrio fluido: ELV y ELL. 
+!---------C√°lculo de equilibrio fluido: ELV y ELL. 
 	    IF(IHEN(KS).EQ.0) THEN   ! TPXY (IHEN=0)
 !
 	      NFAILURE = NOBS(KS)
@@ -2161,10 +2161,10 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !	            Inicio de la variable de error.
 	            iErrTP = 0
 !
-!	            Este es el respectivo llamado al flash multif·sico, en este caso binario. ZLIQUIDO se refiere
-!	            siempre a la fase 1, que ser· lÌquida. ZVAPOR puede ser vapor o lÌquido, dependiendo del resul-
-!	            tado del test de estabilidad. En el caso de ELL, se eval˙a quÈ composiciÛn es mayor: X1 o Y1.
-!	            El resultado del flash multif·sico se ordena en base a eso.
+!	            Este es el respectivo llamado al flash multif√°sico, en este caso binario. ZLIQUIDO se refiere
+!	            siempre a la fase 1, que ser√° l√≠quida. ZVAPOR puede ser vapor o l√≠quido, dependiendo del resul-
+!	            tado del test de estabilidad. En el caso de ELL, se eval√∫a qu√© composici√≥n es mayor: X1 o Y1.
+!	            El resultado del flash multif√°sico se ordena en base a eso.
 !
 	            feed(1) = (X1 + Y1)/2
 	            feed(2) = 1D0-feed(1)
@@ -2172,7 +2172,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	            zFrac = 0
 	            zVal = 0
 !
-!	            OrganizaciÛn de fases (en el caso de ELL)
+!	            Organizaci√≥n de fases (en el caso de ELL)
 	            orden = Y1 - X1
 	            if(orden.LT.0)then
 
@@ -2208,7 +2208,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 
 !	              ELV: se procede a asignar cada fase, como se ingresaron:
 !	              minval(indF) = -1, porque a esta altura, debe haber haber vapor
-!	              "minLoc" identifica en quÈ posiciÛn est· el "-1".
+!	              "minLoc" identifica en qu√© posici√≥n est√° el "-1".
 !	              iVap(1) = minLoc(indF(:4),1)
 !	              Y1 = zFrac(1,iVap(1))
 !	              X1 = zFrac(1,3-iVap(1))
@@ -2249,14 +2249,14 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !&	                                 NGA,ONUASOCWW,MASSOC,ENASS,RKASS,TEMP,PRESS,X1,Y1,Z1,ZVAPVAP,IERRTX)
 
 
-!	            La variable iType est· relacionada con IFL. IFL = 1 implica Pburb, que corresponde a
-!	            iType = 3. Ahora existir· IFL = 2, que corresponde a Tburb que para GCADBE es iType = 1
+!	            La variable iType est√° relacionada con IFL. IFL = 1 implica Pburb, que corresponde a
+!	            iType = 3. Ahora existir√° IFL = 2, que corresponde a Tburb que para GCADBE es iType = 1
 	            if(IFL(KS).EQ.1)iType = 3
 	            if(IFL(KS).EQ.2)iType = 1
 
 	            call GCADB(1,NCw,NG,NST,iType,TEMP,PRESS,X1,Y1,iErrBurb,ZLiq,ZVap)
 !
-!	            IF(IERRTX.EQ.0) THEN	!ahora son c·lculos de burbuja.
+!	            IF(IERRTX.EQ.0) THEN	!ahora son c√°lculos de burbuja.
 	            IF(IERRBurb.EQ.0) THEN
 
 	              ZLCALC(NUMEXP+1) = ZLIQ
@@ -2293,7 +2293,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	          END IF   ! fin ifl = 1
 
 !
-!	          Equilibrio ternario a TP. Si se estuvieran haciendo las cosas bien, esto irÌa
+!	          Equilibrio ternario a TP. Si se estuvieran haciendo las cosas bien, esto ir√≠a
 !	          todo junto con el flash binario a TP.
 	          IF(IFL(KS).EQ.3) THEN   !  ifl=3
 !
@@ -2301,13 +2301,13 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !	            Inicio de la variable de error.
 	            iErrTP = 0
 	            !
-!	            Este es el respectivo llamado al flash multif·sico, en este caso ternario
+!	            Este es el respectivo llamado al flash multif√°sico, en este caso ternario
 !
 	            feed(1) = (xExp(numExp+1) + yExp(numExp+1))/2
 	            feed(2) = (xExp2(numExp+1) + yExp2(numExp+1))/2
 	            feed(3) = 1D0-feed(1)-feed(2)
 !
-!	            OrganizaciÛn de fases (en el caso de ELL)
+!	            Organizaci√≥n de fases (en el caso de ELL)
 	            orden = yExp(numExp+1) - xExp(numExp+1)
 	            if(orden.LT.0)then
 
@@ -2347,7 +2347,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 
 !	              ELV: se procede a asignar cada fase, como se ingresaron:
 !	              minval(indF) = -1, porque a esta altura, debe haber haber vapor
-!	              "minLoc" identifica en quÈ posiciÛn est· el "-1".
+!	              "minLoc" identifica en qu√© posici√≥n est√° el "-1".
 	              iVap(1) = minLoc(indF(:4),1)
 	              Y1 = zFrac(1,iVap(1))
 	              Y2 = zFrac(2,iVap(1))
@@ -2390,21 +2390,21 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !&	                              (1-IFL(KS))*(XCALC(NUMEXP+1)/(XEXP(NUMEXP+1))  - 1.D0)**2
 	          IF(IFL(KS).EQ.0.AND.IERRTP.EQ.0)then
 
-!	            Para optimizar org·nicos+agua (sol baja de org en agua)
+!	            Para optimizar org√°nicos+agua (sol baja de org en agua)
 	            if(yExp(numExp+1) .GT. 0D0 .AND. xExp(numExp+1) .GT. 0D0)then
 
 !	              Errores relativos al dato experimental:
 !	              FCION(NUMEXP+1) = SQRT(w4**2*(YCALC(NUMEXP+1)/YEXP(NUMEXP+1) - 1.D0)**2*wBin(2,numExp+1)**2 + &
 !&	                                     w5**2*(XCALC(NUMEXP+1)/(XEXP(NUMEXP+1))  - 1.D0)**2*wBin(1,numExp+1)**2)
 !
-!	              Errores relativos a la inversa del "peso" dado a cada valor, relacionado con su error/desviaciÛn
-!	              est·ndar experimental.
+!	              Errores relativos a la inversa del "peso" dado a cada valor, relacionado con su error/desviaci√≥n
+!	              est√°ndar experimental.
 !	                                             Francisco, 07/08/2013
 	              FCION(NUMEXP+1) = SQRT(w4**2*(YCALC(NUMEXP+1) - YEXP(NUMEXP+1))**2*wBin(2,numExp+1)**2 + &
 &	                                     w5**2*(XCALC(NUMEXP+1) - XEXP(NUMEXP+1))**2*wBin(1,numExp+1)**2)
 
 !
-!	              OptimizaciÛn general de LL:
+!	              Optimizaci√≥n general de LL:
 !	              FCION(NUMEXP+1) = SQRT((YCALC(NUMEXP+1)/YEXP(NUMEXP+1) - 1.D0)**2 + &
 !&	                                     (XCALC(NUMEXP+1)/(XEXP(NUMEXP+1))  - 1.D0)**2)
 
@@ -2415,7 +2415,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 
 	          elseif(IFL(KS).EQ.1.AND.IERRBurb.EQ.0.)THEN
 !
-!	            Error en c·lculo de Pburb e y:
+!	            Error en c√°lculo de Pburb e y:
 	            if(yExp(numExp+1) .GT. 0D0)then
 !
 !	              Error relativo al dato experimental:
@@ -2430,7 +2430,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	            endif
 
 	          elseif(IFL(KS).EQ.2.AND.IERRBurb.EQ.0.)THEN
-!	            Error en c·lculo de Tburb e y:
+!	            Error en c√°lculo de Tburb e y:
 	            if(yExp(numExp+1) .GT. 0D0)then
 
 !	              Error relativo al dato experimental:
@@ -2575,8 +2575,8 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	        feed(1) = xExp(numexp+1)
 	        feed(2) = 1D0 - feed(1)
 	        iErrSol = 0
-!	        zFrac(1:15,1) almacena la composiciÛn del lÌquido.
-!	        zFrac(1:15,2) almacena la fugacidad. La conservo sÛlo porque en el programa original de Susana se imprimÌa.
+!	        zFrac(1:15,1) almacena la composici√≥n del l√≠quido.
+!	        zFrac(1:15,2) almacena la fugacidad. La conservo s√≥lo porque en el programa original de Susana se imprim√≠a.
 	        call GCSLE (NCw, NG, NST, Temp, Press, feed(:15), wwDHfu, wwDVfu, wwTfu, wwPfu, wwDCpfu, wwTtrSS, wwDHss, &
 	                    CZ, zFrac(:15,1), zFrac(:15,2),iErrSol)	  
 	        if(iErrSol.EQ.0)then
@@ -2610,12 +2610,12 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !  
 !
 !
-!---------Datos de puntos crÌticos--------------------------------------------------------------------------------
+!---------Datos de puntos cr√≠ticos--------------------------------------------------------------------------------
 	    elseif (iHen(ks) == 3) then
 	    
 	      nFailure = nObs(ks)
 	      StDva(ks) = 0D0
-	      write(*,'("Datos de punto crÌtico ", I2)')ks
+	      write(*,'("Datos de punto cr√≠tico ", I2)')ks
 	      do i = 1, nObs(ks)
 	      
 	        Temp = Texp(numExp+1)
@@ -2956,13 +2956,13 @@ SUBROUTINE XXSCAL(NPAR,XX,IDXX)
 !	FRKASS = 1.D-4     !TENTATIVO
 !	FDC = 1.D-6        !TENTATIVO
 !
-!	Valor m·ximo kij* (0 y vMaxKstr):
+!	Valor m√°ximo kij* (0 y vMaxKstr):
 	vMaxKstr = 3.D1
-!	Valor m·ximo para los kij' (entre -vMaxKp y vMaxKp):
+!	Valor m√°ximo para los kij' (entre -vMaxKp y vMaxKp):
 	vMaxkp = 0.9D1
-!	Valor m·ximo para los alfas (entre -vMaxAlfa y vMaxAlfa):
+!	Valor m√°ximo para los alfas (entre -vMaxAlfa y vMaxAlfa):
 	vMaxAlfa = 29D0
-!	Valores mÌnimo y m·ximo de g'
+!	Valores m√≠nimo y m√°ximo de g'
 	vMaxGp = 2.D0
 	vMinGp = -2.D0 !1D-3
 !
@@ -2977,13 +2977,13 @@ SUBROUTINE XXSCAL(NPAR,XX,IDXX)
 !	  Escalado de k*
 	  elseIF(IDXX(I).EQ.2)then
 
-!	      DTan(x) es la "T"angente de "x" con "D"oble precisiÛn.
+!	      DTan(x) es la "T"angente de "x" con "D"oble precisi√≥n.
 !	      xx(i) = dtan(pi*(xx(i)/vMaxKstr - 1D0)/2D0)*frKij
 !
-!	      SuprimÌ el uso de tangente por ser funciÛn cÌclica, redondeos de muchos decimales pueden
+!	      Suprim√≠ el uso de tangente por ser funci√≥n c√≠clica, redondeos de muchos decimales pueden
 !	      invertir el signo
 !	      xx(i) = frKij*dlog(xx(i)/(vMaxKstr - xx(i)))
-!	      La funciÛn fScld se encarga de escalar la variable xx entre un valor m·ximo y mÌnimo, multiplicada por el
+!	      La funci√≥n fScld se encarga de escalar la variable xx entre un valor m√°ximo y m√≠nimo, multiplicada por el
 !	      factor "f".
 	      xx(i) = fScld(xx(i),frKij,.2D0,vMaxKstr)
 
@@ -2999,7 +2999,7 @@ SUBROUTINE XXSCAL(NPAR,XX,IDXX)
 
 	    else
 
-!	      SÌ para los k':
+!	      S√≠ para los k':
 !	      xx(i) = dtan(xx(i)*pi/2D0/vMaxkp)*fTemp
 	      xx(i) = fScld(xx(i),fTemp,-vMaxkp,vMaxkp)
 
@@ -3007,7 +3007,7 @@ SUBROUTINE XXSCAL(NPAR,XX,IDXX)
 
 	  elseif(idXX(i).EQ.10)then
 
-!	    De momento, g" no tiene ninguna limitaciÛn...
+!	    De momento, g" no tiene ninguna limitaci√≥n...
 	    xx(i) = fTemp*xx(i)
 
 	  elseIF(IDXX(I).EQ.4)then
@@ -3016,20 +3016,20 @@ SUBROUTINE XXSCAL(NPAR,XX,IDXX)
 
 	  elseif(idXX(i).EQ.5)then
 
-!	    Escalado con lÌmites para alfas:
+!	    Escalado con l√≠mites para alfas:
 !	    xx(i) = dtan(xx(i)*pi/2D0/vMaxAlfa)*fAlfa
 	    xx(i) = fScld(xx(i),fAlfa,-vMaxAlfa,vMaxAlfa)
 
 	  elseIF(IDXX(I).EQ.6)then
 
 !	    XX(I) = FENASS*XX(I)
-!	    Escalado logarÌtmico para energÌa de asociaciÛn, para evitar valores negativos
+!	    Escalado logar√≠tmico para energ√≠a de asociaci√≥n, para evitar valores negativos
 	    xx(i) = fEnAss*dlog(xx(i))
 
 	  elseIF(IDXX(I).EQ.7)then
 
 !	    XX(I) = FRKASS*XX(I)
-!	    Escalado logarÌtmico para energÌa de asociaciÛn, para evitar valores negativos
+!	    Escalado logar√≠tmico para energ√≠a de asociaci√≥n, para evitar valores negativos
 !	    xx(i) = frKAss*dlog(xx(i))
 	    xx(i) = fScld(xx(i),frKass,0D0,2D1)
 
@@ -3041,7 +3041,7 @@ SUBROUTINE XXSCAL(NPAR,XX,IDXX)
 
 !	    XX(I) = FDC*XX(I)
 !
-!	    Valores m·ximo y mÌnimo para dc:
+!	    Valores m√°ximo y m√≠nimo para dc:
 !	    xx(i) = fDc*dtan(pi*(xx(i) - dc_medio(i))/2.D0/error_Dc(i))
 	    xx(i) = fScld(xx(i), fDc, dc_medio(i) - error_Dc(i), dc_medio(i) + error_Dc(i))
 
@@ -3078,7 +3078,7 @@ SUBROUTINE XXDESSCAL(NPAR,XX,IDXX,FGGG,FRKIJ,FTEMP,FQAREA,FALFA,FENASS,FRKASS,XX
 
 	  elseIF(IDXX(I).EQ.2)then
 
-!	    "DATan(x)" es el "A"rco "T"angente de "x" con "D"oble precisiÛn.
+!	    "DATan(x)" es el "A"rco "T"angente de "x" con "D"oble precisi√≥n.
 !	    xxAux(i) = vMaxKstr*(1D0 + daTan(xxAux(i)/frKij)*2D0/pi)
 !	    xxAux(i) = dexp(xxAux(i)/frKij)/(1 + dexp(xxAux(i)/frKij))
 	    xxAux(i) = fDscld(xxAux(i),frKij,.2D0,vMaxKstr)
@@ -3111,7 +3111,7 @@ SUBROUTINE XXDESSCAL(NPAR,XX,IDXX,FGGG,FRKIJ,FTEMP,FQAREA,FALFA,FENASS,FRKASS,XX
 
 !	    xxAux(i) = datan(xxAux(i)/fAlfa)*vMaxAlfa*2D0/pi
 	    xxAux(i) = fDscld(xxAux(i),fAlfa,-vMaxAlfa,vMaxAlfa)
-!	    Problemas con alfas que por redondeo generan errores numÈricos
+!	    Problemas con alfas que por redondeo generan errores num√©ricos
 	    if(vMaxAlfa - dabs(xxAux(i)).LT.1D-8)then
 	      xxAux(i) = xxAux(i)/dabs(xxAux(i))*(1.D0-1D-8)*vMaxAlfa
 	    endif
@@ -3175,8 +3175,8 @@ END !FIN WRITESTAT
 !------------------------------------------------------------------------------------------------------------------------------------
 !
 !
-!	Esta subrutina escribe los resultados de evaluaciÛn de los datos experimentales alimentados frente a la predicciÛn del
-!	modelo GCA-EoS, sea con los par·metros ingresados o el resultado final del ajuste.
+!	Esta subrutina escribe los resultados de evaluaci√≥n de los datos experimentales alimentados frente a la predicci√≥n del
+!	modelo GCA-EoS, sea con los par√°metros ingresados o el resultado final del ajuste.
 !	Escribe datos archivo de salida paraest.out
 !
 SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC,ENASS,RKASS,&
@@ -3260,7 +3260,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	END DO
 !
 	WRITE(1,5)
-5	FORMAT(/,X,' Energias de interacciÛn gjj ',/,X,'(la forma funcional cambia a altas temperaturas)',/)
+5	FORMAT(/,X,' Energias de interacci√≥n gjj ',/,X,'(la forma funcional cambia a altas temperaturas)',/)
 !
 	DO I=1,NG
 !
@@ -3415,8 +3415,8 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	NCXP = 0
  2	FORMAT(<NCM>I3)
 !
-!	Nueva unidad de escritura, sÛlo para graficar con facilidad. No tiene intenciÛn de reemplazar
-!	al archivo "paraest.out". La extensiÛn "CSV" es "texto delimitado por comas".
+!	Nueva unidad de escritura, s√≥lo para graficar con facilidad. No tiene intenci√≥n de reemplazar
+!	al archivo "paraest.out". La extensi√≥n "CSV" es "texto delimitado por comas".
 
 !
 	IF(ISAT.NE.0) THEN
@@ -3445,7 +3445,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 3331	        FORMAT(/,X,'Comp,Texp(K),Pexp(atm),Pcalc(atm),Zliq,Zvap,DP%,DH_LV(J/mol)',/)
 
 	      END IF
-!           De paso calculo desviacion standar para cada componente. ---> no m·s. 
+!           De paso calculo desviacion standar para cada componente. ---> no m√°s. 
 !
 !
 	      NFOLI=NSAT(I)
@@ -3462,7 +3462,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 
 	      END DO
 !
-!	      Escritura de errores y desviaciones est·ndar, absolutos y relativos promedio:
+!	      Escritura de errores y desviaciones est√°ndar, absolutos y relativos promedio:
 	      N1 = NCXP-nSat(i)+1
 	      E1 = AAD(Pexp(N1:NCXP),Pcalc(N1:NCXP),nSat(i)); E2 = 100*ARD(Pexp(N1:NCXP),Pcalc(N1:NCXP),nSat(i))
 	      E3 = ASD(Pexp(N1:NCXP),Pcalc(N1:NCXP),nSat(i)); E4 = 100*RSD(Pexp(N1:NCXP),Pcalc(N1:NCXP),nSat(i))
@@ -3481,7 +3481,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 !	Escritura del resultado del ajuste de datos sobre mezclas binarias
 	IF(IGLE.NE.0) THEN   
 
-!     Escritura est·ndar en paraest.out
+!     Escritura est√°ndar en paraest.out
 	  WRITE(1,340)
 	  write (2, 340)
 	  write(10,340)
@@ -3494,7 +3494,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	    WRITE(10,339) (NTEXT(KS,J),J=1,65)
 339	    FORMAT(//,80A2)
 !
-!	    DimensiÛn del n˙mero entre parÈntesis al imprimir x(i). Si hay espacios, Excel no separa
+!	    Dimensi√≥n del n√∫mero entre par√©ntesis al imprimir x(i). Si hay espacios, Excel no separa
 !	    Correctamente la cabecera de las columnas:
 	    if(idC(ks,1).LT.10)then
 
@@ -3519,7 +3519,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 !	      ********************Equilibrio binario***********************
 !
 !
-!	      Escritura en archivo CSV para gr·ficos generados en planilla de c·lculo
+!	      Escritura en archivo CSV para gr√°ficos generados en planilla de c√°lculo
 !	      datos binarios
 !	      IF (IFL(KS) > -1 .AND. IFL(KS) < 3) then
 !                        
@@ -3543,7 +3543,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	      IF(IFL(KS).EQ.-2) WRITE(1,343) IDC(KS,2)
 	      IF(IFL(KS).EQ.-2) WRITE(10,343) IDC(KS,2)
 343	      FORMAT(X,/,' NOTA: El apartamiento con respecto a la isofugacidad del componente ',I3,/, &
-&	             X,' no fue utilizado en la evaluaciÛn de la funcion objetivo, aunque',/,' igualmente se informa ',/)
+&	             X,' no fue utilizado en la evaluaci√≥n de la funcion objetivo, aunque',/,' igualmente se informa ',/)
 
 
 	      
@@ -3580,7 +3580,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 
 3511	        FORMAT(/,X," (x-y)(",I<iDim>,")exp,(x-y)(",I<iDim>,")calc,T/K,P/atm")
 !
-!	        Recontador para "gr·ficos"
+!	        Recontador para "gr√°ficos"
 	        NCXPy = NCXP
 	        DO I=1,NOBS(KS)
 !
@@ -3588,7 +3588,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 &	                       ZLCALC(NCXP+1),tab, ZVCALC(NCXP+1)
 349	          FORMAT(A,2(F10.5,A),6(G10.4,A),G10.4,A,F10.8)
 !
-!	          "x" en "gr·ficos.cvs":
+!	          "x" en "gr√°ficos.cvs":
 	          write(10,3490)XEXP(NCXP+1),XCALC(NCXP+1),TEXP(NCXP+1),PEXP(NCXP+1)
 	          write(11,'(F7.2,3(",",G10.4),A,F7.2,3(",",G10.4))')Texp(NCXP+1),Pexp(NCXP+1),xExp(NCXP+1),yExp(NCXP+1),",|,",Texp(NCXP+1),Pexp(NCXP+1),xCalc(NCXP+1),yCalc(NCXP+1)
 	          NCXP = NCXP + 1
@@ -3634,7 +3634,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 &	                         tab,YCALC(NCXP+1),tab,FCAUX2(NCXP+1),tab,ZLCALC(NCXP+1),tab,ZVCALC(NCXP+1)
 357	          FORMAT(A,F10.2,A,G10.4,A,G10.4,A,G10.4,A,F10.5,A,G10.5,A,F10.5,A,F10.5,A,F10.8,A,F10.8)
 !
-!	          "x" en "gr·ficos.cvs":
+!	          "x" en "gr√°ficos.cvs":
 	          write(10,3570)TEXP(NCXP+1),XEXP(NCXP+1),PEXP(NCXP+1),XEXP(NCXP+1),PCALC(NCXP+1)
 	          NCXP = NCXP + 1
 
@@ -3707,7 +3707,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 &	                       ZLCALC(NCXP+1), ZVCALC(NCXP+1)
 358	          FORMAT(F10.5,2X,F10.5,2X,F10.5,2X,F10.5,2X,F10.5,2X,F10.5,2X,F10.5,2X,F10.5,2X,'  ZLIQ = ',F10.8,'      ZVAP = ',F10.8)
 !
-!	          "x" en "gr·ficos.cvs":
+!	          "x" en "gr√°ficos.cvs":
 	          write(10,3580)PEXP(NCXP+1),XEXP(NCXP+1),TEXP(NCXP+1),XEXP(NCXP+1),PCALC(NCXP+1)
 	          NCXP = NCXP + 1
 
@@ -3715,7 +3715,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	        write(10,*)
 	        do i = 1,NObs(ks)
 
-!	          "y" en "gr·ficos.cvs":
+!	          "y" en "gr√°ficos.cvs":
 	          write(10,3580)PEXP(NCXPy+1),yEXP(NCXPy+1),TEXP(NCXPy+1),ycalc(NCXPy+1),PCALC(NCXPy+1)
 	          NCXPy = NCXPy + 1
 
@@ -3745,7 +3745,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	        WRITE(10,4511) IDC(KS,1),IDC(KS,2),IDC(KS,1),IDC(KS,2)
 4511	        FORMAT(/,X,"xExp(",I<iDim>,"),xExp(",I<iDim>,"),xClc(",I<iDim>,"),xClc(",I<iDim>,"),T /K,P /atm")
 !
-!	        Recontador para "gr·ficos"
+!	        Recontador para "gr√°ficos"
 	        NCXPy = NCXP
 	        DO I=1,NOBS(KS)
 !
@@ -3755,7 +3755,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 &	                       YEXP2(NCXP+1),YCALC2(NCXP+1),ZLCALC(NCXP+1), ZVCALC(NCXP+1)
 449	          FORMAT(F7.2,7F10.5,5(X,F10.5,X),2X,' ZI = ',G12.4,'       ZII =  ',G12.4)
 !
-!	          "x" en "gr·ficos.cvs":
+!	          "x" en "gr√°ficos.cvs":
 	          write(10,4490)XEXP(NCXP+1),xExp2(NCXP+1),xCalc(ncXP+1),xCalc2(ncXP+1),TEXP(NCXP+1),PEXP(NCXP+1),yExp(ncXp+1),yExp2(ncXp+1), yCalc(ncXP+1),yCalc2(ncXP+1)
 	          NCXP = NCXP + 1
 
@@ -3797,7 +3797,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 
 	      elseif(ifl(ks).EQ.2)then
 
-!	        Resultados de entalpÌa en exceso:
+!	        Resultados de entalp√≠a en exceso:
 	        write(1,'(/,"  T(K)       P(atm)    Xexp(",I<iDim>,")  Hexp^E(J/mol)   Hcalc^E(J/mol)       Z",/)')idC(ks,1)
 	        write(10,'(/,"T (K),P (atm),Xexp(",I<iDim>,"),Hexp^E (J/mol),Hcalc^E (J/mol),Z",/)')idC(ks,1)
 
@@ -3817,10 +3817,10 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 ! 	      write(*,*)NCXP, NO, N1
 ! 	      write(*,*)prop_E_exp(N1:NCXP)
 ! 	      write(*,*)prop_E_calc(N1:NCXP)
-	      E1 = AAD(prop_E_exp(N1:NCXP), prop_E_calc(N1:NCXP), NO)	!desvÌo absoluto promedio
-	      E2 = ARD(prop_E_exp(N1:NCXP), prop_E_calc(N1:NCXP), NO)*100	!desvÌo relativo promedio
-	      E3 = ASD(prop_E_exp(N1:NCXP), prop_E_calc(N1:NCXP), NO)	!desvÌo est·ndar
-	      E4 = RSD(prop_E_exp(N1:NCXP), prop_E_calc(N1:NCXP), NO)*100 !desvÌo relativo est·ndar
+	      E1 = AAD(prop_E_exp(N1:NCXP), prop_E_calc(N1:NCXP), NO)	!desv√≠o absoluto promedio
+	      E2 = ARD(prop_E_exp(N1:NCXP), prop_E_calc(N1:NCXP), NO)*100	!desv√≠o relativo promedio
+	      E3 = ASD(prop_E_exp(N1:NCXP), prop_E_calc(N1:NCXP), NO)	!desv√≠o est√°ndar
+	      E4 = RSD(prop_E_exp(N1:NCXP), prop_E_calc(N1:NCXP), NO)*100 !desv√≠o relativo est√°ndar
 	      if(ifl(ks).EQ.1)then
 	        write(1,5000)E1,E2,E3,E4
 	        write(10,5000)E1,E2,E3,E4
@@ -3835,7 +3835,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 !
 	    elseif(iHen(ks).EQ.2)then
 
-!	      Resultados de solubidad de sÛlidos en lÌquidos
+!	      Resultados de solubidad de s√≥lidos en l√≠quidos
 	      write(1,'(/,2X,"T(K)",6X,"P(atm)",5X,"xExp(",I<iDim>,")",5x,"xCal(",I<iDim>,")",8X,"Zliq",7X,"PhiL(",I<iDim>,")",/)')idC(ks,1),idC(ks,1),idC(ks,1)
 	      write(10,'(/,"xExp(",I<iDim>,"),xCalc(",I<iDim>,"),T(K),P(atm)",/)')idC(ks,1),idC(ks,1)
 	      do i = 1, nObs(ks)
@@ -3847,8 +3847,8 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	      enddo
 	      NO = nObs(ks)
 	      N1 = NCXP - NO + 1
-	      E1 = AAD(xExp(N1:NCXP),xCalc(N1:NCXP),NO)	!desvÌo absoluto promedio
-	      E2 = ARD(xExp(N1:NCXP),xCalc(N1:NCXP),NO)*100	!desvÌo relativo promedio
+	      E1 = AAD(xExp(N1:NCXP),xCalc(N1:NCXP),NO)	!desv√≠o absoluto promedio
+	      E2 = ARD(xExp(N1:NCXP),xCalc(N1:NCXP),NO)*100	!desv√≠o relativo promedio
 	      write(1,5002)idC(ks,1),E1,E2
 	      write(*,'(/"ARD(xS) = ",F10.4)')E2
 	      write(10,5002)idC(ks,1),E1,E2
@@ -3859,7 +3859,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	
 	    elseif(iHen(ks) == 3)then
 	    
-! 	      Resultados de puntos crÌticos
+! 	      Resultados de puntos cr√≠ticos
 	      write(1,'(/, 2X, "Tc(K)", 5X, "Pc(atm)", 4X, "xcExp(", I<iDim>, ")", 8X, "Zc", 4X, "d[ln(f(", I<iDim>, "))]/dz(", I<iDim>, ")", 2X, "d2[ln(f(", I<iDim>, "))]/dz(", I<iDim>, ")2",  /)')idC(ks,1), idC(ks,1), idC(ks,1), idC(ks,1), idC(ks,1)
 ! 	      write(10,'(/, 2X, "Tc(K),Pc(atm),xcExp(", I<iDim>, "),xcCal(",I<iDim>,")", /)')idC(ks,1), idC(ks,1)
 	      do i = 1, nObs(ks)
@@ -3974,8 +3974,8 @@ SUBROUTINE FORDC(NUMDC,IDDC,DC,NPAR,XX)
 ENDsubroutine !FIN FORDC
 !--------------------------------------------------------------------------------------------------------------
 !
-!	Falsa subrutina de lectura, para traspasar al paquete termodin·mico
-!	que usa GC3 las variables leÌdas desde ParaEst.
+!	Falsa subrutina de lectura, para traspasar al paquete termodin√°mico
+!	que usa GC3 las variables le√≠das desde ParaEst.
 !
 !	Una variable de entrada no puede estar en un COMMON, por lo tanto,
 !	hay que asignar la entrada de esta subrutina a las variables que
@@ -3990,7 +3990,7 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 	DIMENSION qArea(NG),Ts(NG),nuWW(NG,NC),Gs(NG),GDOT(NG),GDDOT(NG),rKij(NG,NG),rKTij(NG,NG), &
 &	          alfaij(NG,NG),Tspline(NG)
 !
-!	EnergÌa y volumen de asociaciÛn con 4 subÌndices: sÛlo est·n en
+!	Energ√≠a y volumen de asociaci√≥n con 4 sub√≠ndices: s√≥lo est√°n en
 !	esta subrutina.
 	dimension enAss(2,NGA,2,NGA),rkAss(2,NGA,2,NGA),onuAsocWW(NGA,NC),MAssoc(NGA)
 	integer sigma
@@ -4008,23 +4008,23 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 
 	if(NC.GT.NCM)then
 
-	  write(*,*)'Error: n˙mero de compuestos m·ximo sobrepasado en GC3'
+	  write(*,*)'Error: n√∫mero de compuestos m√°ximo sobrepasado en GC3'
 	  stop
 
 	elseif(NG.GT.NGM)then
 
-	  write(*,*)'Error: n˙mero m·ximo de grupos atractivos sobrepasado en GC3'
+	  write(*,*)'Error: n√∫mero m√°ximo de grupos atractivos sobrepasado en GC3'
 	  stop
 
 	elseif(NGA.GT.NGAM)then
 
-	  write(*,*)'Error: n˙mero m·ximo de grupos asociativos sobrepasado en GC3'
+	  write(*,*)'Error: n√∫mero m√°ximo de grupos asociativos sobrepasado en GC3'
 	  stop
 
 	endif
 	iOut = 20
 !
-!	N˙mero de coordinaciÛn:
+!	N√∫mero de coordinaci√≥n:
 	ZZ=10.D0
 !
 !	Constante de los gases ideales
@@ -4059,7 +4059,7 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 
 !-----------------------------------------------------------------------
 !
-!	ImpresiÛn de par·metros binarios
+!	Impresi√≥n de par√°metros binarios
 33	WRITE(iOut,115)
 	do i = 1,NG
 
@@ -4120,7 +4120,7 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 	  enddo
 	  NST = sum(Massoc(:NGA))
 !
-!	  ReasignaciÛn en notaciÛn 1..NST:
+!	  Reasignaci√≥n en notaci√≥n 1..NST:
 	  do i = 1,NC
 
 	    m1 = 0
@@ -4137,10 +4137,10 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 !
 !-------Impresion parametros asociativos
 	  WRITE(IOUT,217) NGA
-217	  FORMAT(//,X,"N˙mero de grupos considerados en la asociaciÛn =",I3)
+217	  FORMAT(//,X,"N√∫mero de grupos considerados en la asociaci√≥n =",I3)
 !
 	  WRITE(IOUT,218)
-218	  FORMAT(/,X,' ConfiguraciÛn grupal asociativa ',/,30X,'Compuesto Nro.')
+218	  FORMAT(/,X,' Configuraci√≥n grupal asociativa ',/,30X,'Compuesto Nro.')
 
 	  write(iOut,'(" Grupo    Nro. de sitios  ",<NC>(I5,X))')((I), I=1,NC)
 !
@@ -4153,9 +4153,9 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 	  END DO
 !
 	  WRITE(iout,220)
- 220	  FORMAT(/,X,'EnergÌa de asociaciÛn [Èpsilon/R] (K)',/)
+ 220	  FORMAT(/,X,'Energ√≠a de asociaci√≥n [√©psilon/R] (K)',/)
 
-!	  Escritura de par·metros energÈticos de asociaciÛn en forma de matriz
+!	  Escritura de par√°metros energ√©ticos de asociaci√≥n en forma de matriz
 	  do i = 1,NGA
 	    do k = 1,Massoc(i)
 
@@ -4164,8 +4164,8 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 	    enddo
 	  enddo
 2210	  format(3X,'|',<NST>(X,F7.1),'|')
-!	  Escritura del volumen de asociaciÛn
-	  write(IOUT,'(/," Volumen de asociaciÛn [kappa] (cm3/mol)",/)')
+!	  Escritura del volumen de asociaci√≥n
+	  write(IOUT,'(/," Volumen de asociaci√≥n [kappa] (cm3/mol)",/)')
 	  do i = 1,NGA
 	    do k = 1,Massoc(i)
 
@@ -4183,22 +4183,22 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 102	FORMAT(I3,5F10.2)
 111	FORMAT(8F7.2)
 116	FORMAT(3X,'|',<NG>F8.3,'|')
-115	FORMAT(/,1X,'Par·metros de interacciÛn binaria, [k*]',/)
+115	FORMAT(/,1X,'Par√°metros de interacci√≥n binaria, [k*]',/)
 117	FORMAT(/,1X,'Dependencia con la temperatura, [k`]',/)
-118	FORMAT(/,1X,'Par·metros de composiciÛn local, [alfa]',/)
+118	FORMAT(/,1X,'Par√°metros de composici√≥n local, [alfa]',/)
 119	FORMAT(2I3,4F10.2)
 105	FORMAT(///,2X,'Grupos atractivos:',33X,'Compuesto Nro.',/,3X,'GN',4X,'T*',6X,'q',5X,'g*',10X,'g`',8X,'g"',3X,15I4,/)
 106	FORMAT(1X,I4,F7.1,F8.4,F10.1,2F10.5,15I4)
 120	FORMAT(1X,90("-"))
-130	FORMAT(/,1X,'Los par·metros de interacciÛn binaria entre los ','grupos',I2,' y ',I2,' no est·n disponibles.',/,1X,'Se usar·n', &
-&	        'valores est·ndar a menos que estos sean ingresador por el usuario')
+130	FORMAT(/,1X,'Los par√°metros de interacci√≥n binaria entre los ','grupos',I2,' y ',I2,' no est√°n disponibles.',/,1X,'Se usar√°n', &
+&	        'valores est√°ndar a menos que estos sean ingresador por el usuario')
 	return
 endsubroutine
 !---------------------------------------------------------------------------------------------------------
 !
 !
 !
-!	An·loga de la subrutina anterior pero para PARMOL
+!	An√°loga de la subrutina anterior pero para PARMOL
 !
 !
 subroutine fakePARMOL(NC,NG,NST,IOUt,WWDC,WWTEMPCRIT,wwPRCRIT)
@@ -4234,7 +4234,7 @@ subroutine fakePARMOL(NC,NG,NST,IOUt,WWDC,WWTEMPCRIT,wwPRCRIT)
 	real*8 kappa_bak(NST,NST),kappa
 	integer sigma,sigma_bak(NST,NC)
 
-	write(iOut,'(//,"Di·metros crÌticos",/)')
+	write(iOut,'(//,"Di√°metros cr√≠ticos",/)')
 	iEntalp = 0
 	do i = 1,NC
 
@@ -4264,7 +4264,7 @@ subroutine fakePARMOL(NC,NG,NST,IOUt,WWDC,WWTEMPCRIT,wwPRCRIT)
 
 	enddo
 !
-!	Constantes de Passut-Danner: impresiÛn sÛlo si al menos se le ingresa valores a un compuesto:
+!	Constantes de Passut-Danner: impresi√≥n s√≥lo si al menos se le ingresa valores a un compuesto:
 	iEntalp = NC
 	do i = 1,NC
 	  if((HHA(i).EQ.0).AND.(HHB(i).EQ.0).AND.(HHC(i).EQ.0).AND.(HHD(i).EQ.0).AND.(HHE(i).EQ.0).AND.(HHF(i).EQ.0))then
@@ -4275,8 +4275,8 @@ subroutine fakePARMOL(NC,NG,NST,IOUt,WWDC,WWTEMPCRIT,wwPRCRIT)
 	enddo
 	if(iEntalp.NE.0)then
 
-!	  write(iOut,'(/,"Constantes de Passut-Danner para entalpÌa del ","gas ideal",/,"   Compuesto  A(BTU/lb)  B(BTU/(lb ∫R))  ", &
-!     &             "C(BTU/(lb ∫R2)∑1E3  D(BTU/(lb ∫R3))∑1E6  E(BTU/(lb ∫R4))∑1E10  F(BTU/(lb ∫R5))∑1E14",/,128("-"))')
+!	  write(iOut,'(/,"Constantes de Passut-Danner para entalp√≠a del ","gas ideal",/,"   Compuesto  A(BTU/lb)  B(BTU/(lb ¬∫R))  ", &
+!     &             "C(BTU/(lb ¬∫R2)¬∑1E3  D(BTU/(lb ¬∫R3))¬∑1E6  E(BTU/(lb ¬∫R4))¬∑1E10  F(BTU/(lb ¬∫R5))¬∑1E14",/,128("-"))')
 	  do i = 1,NC
 
 !	    write(iOut,14)AName(i),HHA(i),HHB(i),1.D3*HHC(i),1.D6*HHD(i),1D10*HHE(i),1D14*HHF(i)
@@ -4296,9 +4296,9 @@ subroutine fakePARMOL(NC,NG,NST,IOUt,WWDC,WWTEMPCRIT,wwPRCRIT)
 endsubroutine
 !--------------------------------------------------------------------------------------------------------------------------
 !
-!	FunciÛn de escalado de variables: ˙til para variables con topes m·ximo y mÌnimo.
+!	Funci√≥n de escalado de variables: √∫til para variables con topes m√°ximo y m√≠nimo.
 !
-!	vMin y vMax son las cotas mÌnima y  m·xima que puede tomar "x". 
+!	vMin y vMax son las cotas m√≠nima y  m√°xima que puede tomar "x". 
 !
 !	scl es la variable de escalado, que estira o comprime el valor devuelto por fScld.
 !
@@ -4311,7 +4311,7 @@ doubleprecision function fScld(x,scl,vMin,vMax)
 endfunction
 !--------------------------------------------------------------------------------------------------------------------------
 !
-!	FunciÛn de desescalado de variables: inversa de la funciÛn fScld
+!	Funci√≥n de desescalado de variables: inversa de la funci√≥n fScld
 !
 doubleprecision function fDscld(x,scl,vMin,vMax)
 	implicit real*8(A-H,O-Z)
@@ -4323,8 +4323,8 @@ doubleprecision function fDscld(x,scl,vMin,vMax)
 endfunction
 !--------------------------------------------------------------------------------------------------------------------------
 !
-!	Esta funciÛn devuelve la desviaciÛn absoluta promedio de datos experimentales. La misma mantiene las unidades del 
-!	dato experimental. Los valores que no convirgieron son considerads "0", y excluidos del c·lculo.
+!	Esta funci√≥n devuelve la desviaci√≥n absoluta promedio de datos experimentales. La misma mantiene las unidades del 
+!	dato experimental. Los valores que no convirgieron son considerads "0", y excluidos del c√°lculo.
 !
 doubleprecision function AAD(Xexp,Xcalc,N)
 	implicit real*8(A-H,O-Z)
@@ -4352,8 +4352,8 @@ doubleprecision function AAD(Xexp,Xcalc,N)
 endfunction
 !--------------------------------------------------------------------------------------------------------------------------
 !
-!	Esta funciÛn devuelve la desviaciÛn relativa promedio de datos experimentales. Esta desviaciÛn no tiene unidades.
-!	Los valores que no convirgieron son considerads "0", y excluidos del c·lculo.
+!	Esta funci√≥n devuelve la desviaci√≥n relativa promedio de datos experimentales. Esta desviaci√≥n no tiene unidades.
+!	Los valores que no convirgieron son considerads "0", y excluidos del c√°lculo.
 !
 doubleprecision function ARD(Xexp,Xcalc,N)
 	implicit real*8(A-H,O-Z)
@@ -4381,7 +4381,7 @@ doubleprecision function ARD(Xexp,Xcalc,N)
 endfunction
 !--------------------------------------------------------------------------------------------------------------------------
 !
-!	Esta funciÛn devuelve la desviaciÛn est·ndar absoluta de datos experimentales. La misma mantiene las unidades del 
+!	Esta funci√≥n devuelve la desviaci√≥n est√°ndar absoluta de datos experimentales. La misma mantiene las unidades del 
 !	dato experimental
 !
 doubleprecision function ASD(Xexp,Xcalc,N)
@@ -4409,7 +4409,7 @@ doubleprecision function ASD(Xexp,Xcalc,N)
 endfunction
 !--------------------------------------------------------------------------------------------------------------------------
 !
-!	Esta funciÛn devuelve la desviaciÛn est·ndar absoluta de datos experimentales. La misma mantiene las unidades del 
+!	Esta funci√≥n devuelve la desviaci√≥n est√°ndar absoluta de datos experimentales. La misma mantiene las unidades del 
 !	dato experimental
 !
 doubleprecision function RSD(Xexp,Xcalc,N)
