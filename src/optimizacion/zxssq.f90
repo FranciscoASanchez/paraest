@@ -902,286 +902,65 @@
 !      CALL UERTS (LEVOLD,6HUERSET)
       CALL UERTS(Levold,"UERSET")
       END
-!*==UERTS.spg  processed by SPAG 6.72Dc at 22:52 on 28 May 2017
-!******************************************************************
-!   IMSL ROUTINE NAME   - UERTST
-!
 !-----------------------------------------------------------------------
+!   UERTS: mensajes de error de las rutinas IMSL (reemplaza a UERTST).
 !
-!   COMPUTER            - VAX/SINGLE
+!   CALL UERTS(IER, NOMBRE)
+!     IER    - código de error de la rutina que llama. IER = I + J, con
+!                I = 128: error terminal
+!                I =  64: advertencia con corrección
+!                I =  32: advertencia
+!              y J el código propio de la rutina.
+!     NOMBRE - nombre de la rutina que llama ('ZXSSQ', 'LUDECP', ...).
 !
-!   LATEST REVISION     - JUNE 1, 1982
+!   Caso especial: UERSET llama con NOMBRE = 'UERSET' para cambiar el nivel
+!   de mensajes. Entonces IER trae el nivel nuevo y devuelve el anterior.
+!     nivel 4: se informan todos los errores
+!     nivel 3: solo IER > 32;  nivel 2: solo IER > 64;  nivel 1: solo IER > 128
+!     nivel 0: no se informa nada
 !
-!   PURPOSE             - PRINT A MESSAGE REFLECTING AN ERROR CONDITION
-!
-!   USAGE               - CALL UERTST (IER,NAME)
-!
-!   ARGUMENTS    IER    - ERROR PARAMETER. (INPUT)
-!                           IER = I+J WHERE
-!                             I = 128 IMPLIES TERMINAL ERROR MESSAGE,
-!                             I =  64 IMPLIES WARNING WITH FIX MESSAGE,
-!                             I =  32 IMPLIES WARNING MESSAGE.
-!                             J = ERROR CODE RELEVANT TO CALLING
-!                                 ROUTINE.
-!                NAME   - A CHARACTER STRING OF LENGTH SIX PROVIDING
-!                           THE NAME OF THE CALLING ROUTINE. (INPUT)
-!
-!   PRECISION/HARDWARE  - SINGLE/ALL
-!
-!   REQD. IMSL ROUTINES - UGETIO,USPKD
-!
-!   NOTATION            - INFORMATION ON SPECIAL NOTATION AND
-!                           CONVENTIONS IS AVAILABLE IN THE MANUAL
-!                           INTRODUCTION OR THROUGH IMSL ROUTINE UHELP
-!
-!   REMARKS      THE ERROR MESSAGE PRODUCED BY UERTST IS WRITTEN
-!                TO THE STANDARD OUTPUT UNIT. THE OUTPUT UNIT
-!                NUMBER CAN BE DETERMINED BY CALLING UGETIO AS
-!                FOLLOWS..   CALL UGETIO(1,NIN,NOUT).
-!                THE OUTPUT UNIT NUMBER CAN BE CHANGED BY CALLING
-!                UGETIO AS FOLLOWS..
-!                                NIN = 0
-!                                NOUT = NEW OUTPUT UNIT NUMBER
-!                                CALL UGETIO(3,NIN,NOUT)
-!                SEE THE UGETIO DOCUMENT FOR MORE DETAILS.
-!
-!   COPYRIGHT           - 1982 BY IMSL, INC. ALL RIGHTS RESERVED.
-!
-!   WARRANTY            - IMSL WARRANTS ONLY THAT IMSL TESTING HAS BEEN
-!                           APPLIED TO THIS CODE. NO OTHER WARRANTY,
-!                           EXPRESSED OR IMPLIED, IS APPLICABLE.
-!
-!	Revisado por mí, dado que da error la variable "NAME" al compilar con el comilador
-!	de Intel.
-!
+!   Los mensajes se agregan al final de PARA.HIS. Con IER = 0 no se escribe
+!   nada (antes se escribía un falso "UNDEFINED ERROR (IER = 0)").
 !-----------------------------------------------------------------------
-!
       SUBROUTINE UERTS(Ier,Name)
       IMPLICIT NONE
-!*--UERTS961
-!*** Start of declarations inserted by SPAG
-      INTEGER ijkl
-!*** End of declarations inserted by SPAG
-!                                  SPECIFICATIONS FOR ARGUMENTS
-      INTEGER Ier
-!      INTEGER            NAME(1)
-      CHARACTER(6) Name(1)
-!                                  SPECIFICATIONS FOR LOCAL VARIABLES
-      INTEGER i , ieq , ieqdf , iounit , level , levold , nameq(6) ,    &
-            & namset(6) , namupk(6) , nin , nmtb
-      DATA namset/'U' , 'E' , 'R' , 'S' , 'E' , 'T'/
-      DATA nameq/6*' '/
-      DATA level/4/ , ieqdf/0/ , ieq/'='/
-!                                  UNPACK NAME INTO NAMUPK
-!                                  FIRST EXECUTABLE STATEMENT
-      ijkl = 6
-      iounit = 2
-      OPEN (UNIT=iounit,FILE='PARA.HIS',STATUS='UNKNOWN',               &
-           &FORM='FORMATTED')
-                   !Su
-!      CALL USPK(NAME,ijkl,NAMUPK,NMTB)
-!                                  GET OUTPUT UNIT NUMBER
-      CALL UGETI(1,nin,iounit)
-!                                  CHECK IER
-      IF ( Ier.LE.999 ) THEN
-         IF ( Ier.LT.-32 ) THEN
-!
-!                                  SAVE P FOR P = R CASE
-!                                    P IS THE PAGE NAMUPK
-!                                    R IS THE ROUTINE NAMUPK
-            ieqdf = 1
-            DO i = 1 , 6
-               nameq(i) = namupk(i)
-            ENDDO
-            RETURN
-            CLOSE (UNIT=iounit)
-            GOTO 99999
-         ELSE
-            IF ( Ier.LE.128 ) THEN
-               IF ( Ier.LE.64 ) THEN
-                  IF ( Ier.LE.32 ) THEN
-!                                  CHECK FOR UERSET CALL
-                     DO i = 1 , 6
-                        IF ( namupk(i).NE.namset(i) ) GOTO 100
-                     ENDDO
-                     levold = level
-                     level = Ier
-                     Ier = levold
-                     IF ( level.LT.0 ) level = 4
-                     IF ( level.GT.4 ) level = 4
-!                                  PRINT WARNING MESSAGE
-                  ELSEIF ( level.GE.3 ) THEN
-                     IF ( ieqdf.EQ.1 ) WRITE (iounit,99003) Ier ,       &
-                        & nameq , ieq , namupk
-                     IF ( ieqdf.EQ.0 ) WRITE (iounit,99003) Ier , namupk
-                  ENDIF
-               ELSEIF ( level.GE.2 ) THEN
-!                                  PRINT WARNING WITH FIX MESSAGE
-                  IF ( ieqdf.EQ.1 ) WRITE (iounit,99002) Ier , nameq ,  &
-                     & ieq , namupk
-                  IF ( ieqdf.EQ.0 ) WRITE (iounit,99002) Ier , namupk
-               ENDIF
-            ELSEIF ( level.GE.1 ) THEN
-!                                  PRINT TERMINAL MESSAGE
-               IF ( ieqdf.EQ.1 ) WRITE (iounit,99001) Ier , nameq ,     &
-                                      & ieq , namupk
-               IF ( ieqdf.EQ.0 ) WRITE (iounit,99001) Ier , namupk
-            ENDIF
-            GOTO 200
-         ENDIF
+      INTEGER, INTENT(INOUT) :: Ier
+      CHARACTER(*), INTENT(IN) :: Name
+      INTEGER, SAVE :: nivel = 4
+      INTEGER :: nivel_anterior, unidad
+      CHARACTER(30) :: tipo
+      LOGICAL :: informar
+
+      IF ( Name=='UERSET' ) THEN
+         nivel_anterior = nivel
+         nivel = Ier
+         IF ( nivel<0 .OR. nivel>4 ) nivel = 4
+         Ier = nivel_anterior
+         RETURN
       ENDIF
- 100  IF ( level.GE.4 ) THEN
-!                                  PRINT NON-DEFINED MESSAGE
-         IF ( ieqdf.EQ.1 ) WRITE (iounit,99004) Ier , nameq , ieq ,     &
-                                & namupk
-         IF ( ieqdf.EQ.0 ) WRITE (iounit,99004) Ier , namupk
+
+      IF ( Ier==0 ) RETURN
+
+      IF ( Ier>128 .AND. Ier<=999 ) THEN
+         tipo = 'TERMINAL ERROR'
+         informar = nivel>=1
+      ELSEIF ( Ier>64 .AND. Ier<=128 ) THEN
+         tipo = 'WARNING WITH FIX ERROR'
+         informar = nivel>=2
+      ELSEIF ( Ier>32 .AND. Ier<=64 ) THEN
+         tipo = 'WARNING ERROR'
+         informar = nivel>=3
+      ELSE
+         tipo = 'UNDEFINED ERROR'
+         informar = nivel>=4
       ENDIF
- 200  ieqdf = 0
-      RETURN
-99001 FORMAT (' *** TERMINAL ERROR',10X,'(IER = ',I3,                   &
-             &') FROM IMSL ROUTINE ',6A1,A1,6A1)
-99002 FORMAT (' *** WARNING WITH FIX ERROR',2X,'(IER = ',I3,            &
-             &') FROM IMSL ROUTINE ',6A1,A1,6A1)
-99003 FORMAT (' *** WARNING ERROR',11X,'(IER = ',I3,                    &
-             &') FROM IMSL ROUTINE ',6A1,A1,6A1)
-99004 FORMAT (' *** UNDEFINED ERROR',9X,'(IER = ',I5,                   &
-             &') FROM IMSL ROUTINE ',6A1,A1,6A1)
-99999 END
-!*==UGETI.spg  processed by SPAG 6.72Dc at 22:52 on 28 May 2017
-!***********************************************
-!   IMSL ROUTINE NAME   - UGETIO
-!
-!-----------------------------------------------------------------------
-!
-!   COMPUTER            - VAX/SINGLE
-!
-!   LATEST REVISION     - JUNE 1, 1981
-!
-!   PURPOSE             - TO RETRIEVE CURRENT VALUES AND TO SET NEW
-!                           VALUES FOR INPUT AND OUTPUT UNIT
-!                           IDENTIFIERS.
-!
-!   USAGE               - CALL UGETIO(IOPT,NIN,NOUT)
-!
-!   ARGUMENTS    IOPT   - OPTION PARAMETER. (INPUT)
-!                           IF IOPT=1, THE CURRENT INPUT AND OUTPUT
-!                           UNIT IDENTIFIER VALUES ARE RETURNED IN NIN
-!                           AND NOUT, RESPECTIVELY.
-!                           IF IOPT=2, THE INTERNAL VALUE OF NIN IS
-!                           RESET FOR SUBSEQUENT USE.
-!                           IF IOPT=3, THE INTERNAL VALUE OF NOUT IS
-!                           RESET FOR SUBSEQUENT USE.
-!                NIN    - INPUT UNIT IDENTIFIER.
-!                           OUTPUT IF IOPT=1, INPUT IF IOPT=2.
-!                NOUT   - OUTPUT UNIT IDENTIFIER.
-!                           OUTPUT IF IOPT=1, INPUT IF IOPT=3.
-!
-!   PRECISION/HARDWARE  - SINGLE/ALL
-!
-!   REQD. IMSL ROUTINES - NONE REQUIRED
-!
-!   NOTATION            - INFORMATION ON SPECIAL NOTATION AND
-!                           CONVENTIONS IS AVAILABLE IN THE MANUAL
-!                           INTRODUCTION OR THROUGH IMSL ROUTINE UHELP
-!
-!   REMARKS      EACH IMSL ROUTINE THAT PERFORMS INPUT AND/OR OUTPUT
-!                OPERATIONS CALLS UGETIO TO OBTAIN THE CURRENT UNIT
-!                IDENTIFIER VALUES. IF UGETIO IS CALLED WITH IOPT=2 OR
-!                IOPT=3, NEW UNIT IDENTIFIER VALUES ARE ESTABLISHED.
-!                SUBSEQUENT INPUT/OUTPUT IS PERFORMED ON THE NEW UNITS.
-!
-!   COPYRIGHT           - 1978 BY IMSL, INC. ALL RIGHTS RESERVED.
-!
-!   WARRANTY            - IMSL WARRANTS ONLY THAT IMSL TESTING HAS BEEN
-!                           APPLIED TO THIS CODE. NO OTHER WARRANTY,
-!                           EXPRESSED OR IMPLIED, IS APPLICABLE.
-!
-!-----------------------------------------------------------------------
-!
-      SUBROUTINE UGETI(Iopt,Nin,Nout)
-      IMPLICIT NONE
-!*--UGETI1103
-!                                  SPECIFICATIONS FOR ARGUMENTS
-      INTEGER Iopt , Nin , Nout
-!                                  SPECIFICATIONS FOR LOCAL VARIABLES
-      INTEGER nind , noutd
-      DATA nind/1/ , noutd/2/
-!                                  FIRST EXECUTABLE STATEMENT
-      IF ( Iopt.EQ.3 ) THEN
-         noutd = Nout
-      ELSEIF ( Iopt.EQ.2 ) THEN
-         nind = Nin
-      ELSEIF ( Iopt.EQ.1 ) THEN
-         Nin = nind
-         Nout = noutd
-      ENDIF
-      END
-!*==USPK.spg  processed by SPAG 6.72Dc at 22:52 on 28 May 2017
-!******************************
-!   IMSL ROUTINE NAME   - USPKD
-!
-!-----------------------------------------------------------------------
-!
-!   COMPUTER            - VAX/SINGLE
-!
-!   LATEST REVISION     - JUNE 1, 1982
-!
-!   PURPOSE             - NUCLEUS CALLED BY IMSL ROUTINES THAT HAVE
-!                           CHARACTER STRING ARGUMENTS
-!
-!   USAGE               - CALL USPKD  (PACKED,NCHARS,UNPAKD,NCHMTB)
-!
-!   ARGUMENTS    PACKED - CHARACTER STRING TO BE UNPACKED.(INPUT)
-!                NCHARS - LENGTH OF PACKED. (INPUT)  SEE REMARKS.
-!                UNPAKD - INTEGER ARRAY TO RECEIVE THE UNPACKED
-!                         REPRESENTATION OF THE STRING. (OUTPUT)
-!                NCHMTB - NCHARS MINUS TRAILING BLANKS. (OUTPUT)
-!
-!   PRECISION/HARDWARE  - SINGLE/ALL
-!
-!   REQD. IMSL ROUTINES - NONE
-!
-!   REMARKS  1.  USPKD UNPACKS A CHARACTER STRING INTO AN INTEGER ARRAY
-!                IN (A1) FORMAT.
-!            2.  UP TO 129 CHARACTERS MAY BE USED.  ANY IN EXCESS OF
-!                THAT ARE IGNORED.
-!
-!   COPYRIGHT           - 1982 BY IMSL, INC. ALL RIGHTS RESERVED.
-!
-!   WARRANTY            - IMSL WARRANTS ONLY THAT IMSL TESTING HAS BEEN
-!                           APPLIED TO THIS CODE. NO OTHER WARRANTY,
-!                           EXPRESSED OR IMPLIED, IS APPLICABLE.
-!
-!-----------------------------------------------------------------------
-      SUBROUTINE USPK(Packed,Nchars,Unpakd,Nchmtb)
-      IMPLICIT NONE
-!*--USPK1158
-!*** Start of declarations inserted by SPAG
-      INTEGER n , nn
-!*** End of declarations inserted by SPAG
-!                                  SPECIFICATIONS FOR ARGUMENTS
-      INTEGER nc , Nchars , Nchmtb
-!
-      INTEGER Unpakd(1) , iblank
-!      INTEGER            PACKED(1)
-!
- 
-      CHARACTER(6) Packed
- 
-      DATA iblank/' '/
-!                                  INITIALIZE NCHMTB
-      Nchmtb = 0
-!                                  RETURN IF NCHARS IS LE ZERO
-      IF ( Nchars.LE.0 ) RETURN
-!                                  SET NC=NUMBER OF CHARS TO BE DECODED
-      nc = MIN0(129,Nchars)
-!      DECODE (NC,150,PACKED) (UNPAKD(I),I=1,NC)
-99001 FORMAT (129A1)
-!                                  CHECK UNPAKD ARRAY AND SET NCHMTB
-!                                  BASED ON TRAILING BLANKS FOUND
-      DO n = 1 , nc
-         nn = nc - n + 1
-         IF ( Unpakd(nn).NE.iblank ) GOTO 100
-      ENDDO
- 100  Nchmtb = nn
-      END
+      IF ( .NOT.informar ) RETURN
+
+!     NEWUNIT elige un número de unidad libre: así no se pisa ninguna
+!     unidad que el programa tenga abierta (antes se usaba la 2, la misma
+!     de tables.csv).
+      OPEN (NEWUNIT=unidad,FILE='PARA.HIS',STATUS='UNKNOWN',POSITION='APPEND')
+      WRITE (unidad,'(" *** ",A," (IER = ",I0,") FROM IMSL ROUTINE ",A)')  &
+            TRIM(tipo), Ier, TRIM(Name)
+      CLOSE (unidad)
+      END SUBROUTINE UERTS
