@@ -257,8 +257,15 @@ PROGRAM ASSOCPARAEST
 !	Identificacion de los valores contenidos en XX, para luego poder asignarles factores de escalado adecuados
 	CALL FORSCAL(NNP,IDG,ITEMP,NNQ,NALFA,NENASS,NRKASS,IDXX,numTc,NUMDC)
 !
-!	Escalado de los valores de xx
-	CALL XXSCAL(NPAR,XX,IDXX)
+!	Escalado de los valores de xx. En un ajuste, los valores iniciales que estén
+!	en una cota (o muy cerca) se apartan un 0,1 % del intervalo, para que el
+!	optimizador pueda moverlos; en predicción se usan tal cual.
+	IF(NPRED.EQ.1)THEN
+	  fracCota = 0D0
+	ELSE
+	  fracCota = 1D-3
+	ENDIF
+	CALL XXSCAL(NPAR,XX,IDXX,fracCota)
 !
 !	Cálculos de simulacion o Ajuste
 !	----------------------------------------------------
@@ -2942,7 +2949,10 @@ ENDsubroutine !FIN FORSCAL
 !
 !
 !
-SUBROUTINE XXSCAL(NPAR,XX,IDXX)
+!	fracCota: fracción del intervalo de cada parámetro acotado que se deja
+!	libre junto a las cotas (ver fScld). 0 en predicción, 1e-3 en ajuste.
+!
+SUBROUTINE XXSCAL(NPAR,XX,IDXX,fracCota)
 	use dimensiones
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
@@ -3003,7 +3013,7 @@ SUBROUTINE XXSCAL(NPAR,XX,IDXX)
 !	      xx(i) = frKij*dlog(xx(i)/(vMaxKstr - xx(i)))
 !	      La función fScld se encarga de escalar la variable xx entre un valor máximo y mínimo, multiplicada por el
 !	      factor "f".
-	      xx(i) = fScld(xx(i),frKij,.2D0,vMaxKstr)
+	      xx(i) = fScld(xx(i),frKij,.2D0,vMaxKstr, fracCota)
 
 !	  Escalado de g' y k':
 	  elseIF(IDXX(I).EQ.3)then
@@ -3013,13 +3023,13 @@ SUBROUTINE XXSCAL(NPAR,XX,IDXX)
 !	      g' es siempre < -0.001
 !	      XX(I) = FTEMP*dlog(-(XX(I)+ vMinGp))
 !	      xx(i) = fTemp*dtan(pi*((xx(i) + vMinGp)/vMaxGp - 1D0)/2D0)
-	      xx(i) = fScld(xx(i),fTemp,-vMaxGp,-vMinGp)
+	      xx(i) = fScld(xx(i),fTemp,-vMaxGp,-vMinGp, fracCota)
 
 	    else
 
 !	      Sí para los k':
 !	      xx(i) = dtan(xx(i)*pi/2D0/vMaxkp)*fTemp
-	      xx(i) = fScld(xx(i),fTemp,-vMaxkp,vMaxkp)
+	      xx(i) = fScld(xx(i),fTemp,-vMaxkp,vMaxkp, fracCota)
 
 	    endif
 
@@ -3036,20 +3046,27 @@ SUBROUTINE XXSCAL(NPAR,XX,IDXX)
 
 !	    Escalado con límites para alfas:
 !	    xx(i) = dtan(xx(i)*pi/2D0/vMaxAlfa)*fAlfa
-	    xx(i) = fScld(xx(i),fAlfa,-vMaxAlfa,vMaxAlfa)
+	    xx(i) = fScld(xx(i),fAlfa,-vMaxAlfa,vMaxAlfa, fracCota)
 
 	  elseIF(IDXX(I).EQ.6)then
 
 !	    XX(I) = FENASS*XX(I)
 !	    Escalado logarítmico para energía de asociación, para evitar valores negativos
-	    xx(i) = fEnAss*dlog(max(xx(i), tiny(1D0)))   ! max: log de 0 o negativo
+!	    Solo tiene cota inferior (0). max: evita el log de 0 o de un negativo.
+!	    En un ajuste, al menos 1 K (despreciable frente a valores típicos de
+!	    1000-3000 K): desde 0 el optimizador no podría moverla.
+	    if(fracCota > 0D0)then
+	      xx(i) = fEnAss*dlog(max(xx(i), 1D0))
+	    else
+	      xx(i) = fEnAss*dlog(max(xx(i), tiny(1D0)))
+	    endif
 
 	  elseIF(IDXX(I).EQ.7)then
 
 !	    XX(I) = FRKASS*XX(I)
 !	    Escalado logarítmico para energía de asociación, para evitar valores negativos
 !	    xx(i) = frKAss*dlog(xx(i))
-	    xx(i) = fScld(xx(i),frKass,0D0,2D1)
+	    xx(i) = fScld(xx(i),frKass,0D0,2D1, fracCota)
 
 	  elseIF(IDXX(I).EQ.8)then
 
@@ -3061,7 +3078,7 @@ SUBROUTINE XXSCAL(NPAR,XX,IDXX)
 !
 !	    Valores máximo y mínimo para dc:
 !	    xx(i) = fDc*dtan(pi*(xx(i) - dc_medio(i))/2.D0/error_Dc(i))
-	    xx(i) = fScld(xx(i), fDc, dc_medio(i) - error_Dc(i), dc_medio(i) + error_Dc(i))
+	    xx(i) = fScld(xx(i), fDc, dc_medio(i) - error_Dc(i), dc_medio(i) + error_Dc(i), fracCota)
 
 	  endif
 
@@ -4323,11 +4340,16 @@ endsubroutine
 !	las cotas. Así no importa si el valor inicial está justo en una cota
 !	(por ejemplo kappa = 0) o si el redondeo lo deja en la cota o afuera.
 !
-doubleprecision function fScld(x,scl,vMin,vMax)
+!	frac es la fracción del intervalo que se deja libre junto a cada cota,
+!	si es mayor que ese margen. En un ajuste se usa frac = 1e-3: en la cota
+!	la derivada es casi nula y el optimizador no movería el parámetro.
+!	En predicción, frac = 0 (se respeta el valor dado).
+!
+doubleprecision function fScld(x,scl,vMin,vMax,frac)
   implicit real*8(A-H,O-Z)
   real*8, parameter :: margen = 1D-10   ! declarado: con IMPLICIT, "margen" sería entero (= 0)
 
-  d = margen*(vMax - vMin)
+  d = max(frac, margen)*(vMax - vMin)
   xin = min(max(x, vMin + d), vMax - d)
   fScld = scl*dlog((xin - vMin)/(vMax - xin))
 
