@@ -287,7 +287,11 @@ PROGRAM ASSOCPARAEST
 !       Parametros para la rutina ZXSSQ
 	  EPS = 1.D-6
 	  DELTAZ = 1.D-6
-	  MAXFN = 100
+!	  Máximo de evaluaciones de FUNC. ZXSSQ gasta NPAR+1 evaluaciones por
+!	  iteración solo en el Jacobiano (diferencias finitas): con MAXFN = 100
+!	  fijo, 8 parámetros daban ~10 iteraciones y el ajuste terminaba con
+!	  IER = 133. Ahora alcanza para ~50 iteraciones, ajuste lo que ajuste.
+	  MAXFN = 50*(NPAR + 1)
 	  PARM(3)=2.D2
 	  PARM(4)=.1D0
 !	  Comentario      IXJAC = 180
