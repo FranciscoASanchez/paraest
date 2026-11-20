@@ -79,47 +79,47 @@ PROGRAM ASSOCPARAEST
 !		IDID	==> identificacion de identicos
 !
 !	Los parametros se identifican a traves de su naturaleza y de sus indices
-	INTEGER ITEMP(8)
+	INTEGER ITEMP(NPTIPOM)
 !
 !	Identificacion (indices) de param gii o kij a ajustar.
-	INTEGER IDG(8,2)
+	INTEGER IDG(NPTIPOM,2)
 !
 !	Nro. de param. identicos a c/gii o kij
-	INTEGER NIDG(8)
+	INTEGER NIDG(NPTIPOM)
 !	Identificacion (indices) de IDENTicos a gii ó kij
-	INTEGER IDIDG(104,2)
+	INTEGER IDIDG(NIDM,2)
 !
 !
 !	           8 X 13 = 104
 !
 !	Identificación parámetros de área
-	INTEGER IDQ(8)
+	INTEGER IDQ(NPTIPOM)
 !
 !	Identif (indices) de parametros ALFAij
-	INTEGER IDALF(8,2)
+	INTEGER IDALF(NPTIPOM,2)
 !	Nro. de param. identicos a c/alfaij
-	INTEGER NIDALF(8)
+	INTEGER NIDALF(NPTIPOM)
 !	Identificacion (indices) de IDENTicos
-	INTEGER IDIDALF(104,2)
+	INTEGER IDIDALF(NIDM,2)
 !
 !	IDENTif (indices) de parametros ENASSijkl
-	INTEGER IDENASS(8,4)
+	INTEGER IDENASS(NPTIPOM,4)
 !	Nro. de param. IDENTicos  a c/ENASSijkl
-	INTEGER NIDENASS(8)
+	INTEGER NIDENASS(NPTIPOM)
 !	IDENTif (indices) de IDENTicos a ENASSijkl
-	INTEGER IDIDENASS(104,4)
+	INTEGER IDIDENASS(NIDM,4)
 !
 !	Identif (indices) de param. RKASSijkl
-	INTEGER IDRKASS(8,4)
+	INTEGER IDRKASS(NPTIPOM,4)
 !	Nro. de param. identicos a c/RKASSijkl
-	INTEGER NIDRKASS(8)
+	INTEGER NIDRKASS(NPTIPOM)
 !	Identif (indices) de identicos a c/RKASSijkl
-	INTEGER IDIDRKASS(104,4)
+	INTEGER IDIDRKASS(NIDM,4)
 !
 !	Índices para dc
-	INTEGER IDDC(8)
+	INTEGER IDDC(NPTIPOM)
 !	Indice de los parametros temperatura critica
-      INTEGER idtc(8)
+      INTEGER idtc(NPTIPOM)
 !
 	DOUBLE PRECISION XX(NPARM)
 	INTEGER IDXX(NPARM)
@@ -348,7 +348,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 &	                DHfu, Tfu, DCpfu, Dvfu, TtrSS, DHss, Pfu)
 	use dimensiones
-	use utilidades, only: i2s, rep
+	use utilidades, only: i2s, rep, controla_tope
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
 !
@@ -389,41 +389,41 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 !		IDID	==> identificacion de identicos
 !
 !	Los parametros se identifican a traves de su naturaleza y de sus inidices
-	DIMENSION ITEMP(8)
+	DIMENSION ITEMP(NPTIPOM)
 !
 !	Identificacion (indices) de param gii o kij a ajustar.
-	DIMENSION IDG(8,2)
+	DIMENSION IDG(NPTIPOM,2)
 !	Nro. de param. IDENTicos a c/gii o kij
-	DIMENSION NIDG(8)
+	DIMENSION NIDG(NPTIPOM)
 !
 !	Identificacion (indices) de IDENTicos a gii o kij
-	DIMENSION IDIDG(104,2)
+	DIMENSION IDIDG(NIDM,2)
 !
 !                8 X 13 = 104
 !
 !	IDENTif param de area
-	DIMENSION IDQ(8)
+	DIMENSION IDQ(NPTIPOM)
 !
 !	Identif (indices) de parametros ALFAij
-	DIMENSION IDALF(8,2)
+	DIMENSION IDALF(NPTIPOM,2)
 !	Nro. de param. IDENTicos a c/alfaij
-	DIMENSION NIDALF(8)
+	DIMENSION NIDALF(NPTIPOM)
 !	Identificacion (indices) de IDENTicos
-	DIMENSION IDIDALF(104,2)
+	DIMENSION IDIDALF(NIDM,2)
 !
 !	IDENTif (indices) de parametros ENASSijkl
-	DIMENSION IDENASS(8,4)
+	DIMENSION IDENASS(NPTIPOM,4)
 !	Nro. de param. IDENTicos  a c/ENASSijkl
-	DIMENSION NIDENASS(8)
+	DIMENSION NIDENASS(NPTIPOM)
 !	IDENTif (indices) de IDENTicos a ENASSijkl
-	DIMENSION IDIDENASS(104,4)
+	DIMENSION IDIDENASS(NIDM,4)
 !
 !	Identif (indices) de param. RKASSijkl
-	DIMENSION IDRKASS(8,4)
+	DIMENSION IDRKASS(NPTIPOM,4)
 !	Nro. de param. identicos a c/RKASSijkl
-	DIMENSION NIDRKASS(8)
+	DIMENSION NIDRKASS(NPTIPOM)
 !	Identif (indices) de identicos a c/RKASSijkl
-	DIMENSION IDIDRKASS(104,4),IDDC(8),idTc(8)
+	DIMENSION IDIDRKASS(NIDM,4),IDDC(NPTIPOM),idTc(NPTIPOM)
 !
 	DIMENSION XX(NPARM)
 	common/escMax/vMaxAlfa,vMaxkp,vMaxKstr,vMinGp,vMaxGp,error_Dc(NPARM),dc_medio(NPARM)
@@ -789,6 +789,13 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	write(*,'(//)')
 	READ(1,*) NNP,NNQ,NALFA,NENASS,NRKASS,numTc, NUMDC
 	write(*,'(7(I2,4X),"! Interaccion - Area - No-azar - Energ. asoc. - Volumen asoc. - Temp. crit. - diametros  crit.")') NNP,NNQ,NALFA,NENASS,NRKASS,numTc, NUMDC
+	call controla_tope(NNP,    NPTIPOM, 'parámetros de interacción g/k (NNP)')
+	call controla_tope(NNQ,    NPTIPOM, 'parámetros de área (NNQ)')
+	call controla_tope(NALFA,  NPTIPOM, 'parámetros de no azar (NALFA)')
+	call controla_tope(NENASS, NPTIPOM, 'energías de asociación (NENASS)')
+	call controla_tope(NRKASS, NPTIPOM, 'volúmenes de asociación (NRKASS)')
+	call controla_tope(numTc,  NPTIPOM, 'temperaturas críticas (numTc)')
+	call controla_tope(NUMDC,  NPTIPOM, 'diámetros críticos (NUMDC)')
 !
 	if(NNP.NE.0) then
 !
@@ -800,6 +807,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	  write(*,'(*(I2,6X))')(ITEMP(I), I=1,NNP)
 !
 	  READ(1,*) (NIDG(I), I=1,NNP)
+	  call controla_tope(sum(NIDG(:NNP)), NIDM, 'parámetros g/k idénticos')
 	  write(*,'(*(I2,6X))')(NIDG(I), I=1,NNP)
 !
 	  NSSS = 0
@@ -834,6 +842,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	  write(*,'(*(2(I2,X),4X))')(IDALF(I,1),IDALF(I,2),I=1,NALFA)
 !
 	  READ(1,*) (NIDALF(I),I=1,NALFA)
+	  call controla_tope(sum(NIDALF(:NALFA)), NIDM, 'parámetros alfa idénticos')
 	  write(*,'(*(I2,6X))')(NIDALF(I),I=1,NALFA)
 	  NSSA = 0
 	  DO L=1,NALFA
@@ -861,6 +870,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	  END DO
 	  READ(1,*) (NIDENASS(I), I=1,NENASS )
+	  call controla_tope(sum(NIDENASS(:NENASS)), NIDM, 'energías de asociación idénticas')
 	  write(*,'(*(I2,X))')(NIDENASS(I), I=1,NENASS )
 !
 !	  Lectura de idénticos:
@@ -893,6 +903,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 	  END DO
 	  READ(1,*) (NIDRKASS(I), I=1,NRKASS )
+	  call controla_tope(sum(NIDRKASS(:NRKASS)), NIDM, 'volúmenes de asociación idénticos')
 	  write(*,'(*(I2,X))')(NIDRKASS(I), I=1,NRKASS )
 !
 	  NSSRK = 0
@@ -1020,42 +1031,42 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 !	IDID ==> identificacion de identicos
 !
 !	Los parametros se identifican a traves de su naturaleza y de sus inidices
-	DIMENSION ITEMP(8)
+	DIMENSION ITEMP(NPTIPOM)
 !	Identificacion (indices) de param gii o kij a ajust.
-	DIMENSION IDG(8,2)
+	DIMENSION IDG(NPTIPOM,2)
 !	nro. de param. IDENTicos a c/gii o kij
-	DIMENSION NIDG(8)
+	DIMENSION NIDG(NPTIPOM)
 !	identificacion (indices) de IDENTicos a gii o kij
-	DIMENSION IDIDG(104,2) !
+	DIMENSION IDIDG(NIDM,2) !
 !
 !	           8 X 13 = 104
 !
 !	IDENTif param de area
-	DIMENSION IDQ(8)
+	DIMENSION IDQ(NPTIPOM)
 !
 !	Identif (indices) de parametros ALFAij
-	DIMENSION IDALF(8,2)
+	DIMENSION IDALF(NPTIPOM,2)
 !	Nro. de param. IDENTicos a c/alfaij
-	DIMENSION NIDALF(8)
+	DIMENSION NIDALF(NPTIPOM)
 !	Identificacion (indices) de IDENTicos
-	DIMENSION IDIDALF(104,2)
+	DIMENSION IDIDALF(NIDM,2)
 !
 !	IDENTif (indices) de parametros ENASSijkl
-	DIMENSION IDENASS(8,4)
+	DIMENSION IDENASS(NPTIPOM,4)
 !	Nro. de param. IDENTicos  a c/ENASSijkl
-	DIMENSION NIDENASS(8)
+	DIMENSION NIDENASS(NPTIPOM)
 !	IDENTif (indices) de IDENTicos a ENASSijkl
-	DIMENSION IDIDENASS(104,4)
+	DIMENSION IDIDENASS(NIDM,4)
 !	Identif (indices) de param. RKASSijkl
-	DIMENSION IDRKASS(8,4)
+	DIMENSION IDRKASS(NPTIPOM,4)
 !	Nro. de param. identicos a c/RKASSijkl
-	DIMENSION NIDRKASS(8)
+	DIMENSION NIDRKASS(NPTIPOM)
 !	Identif (indices) de identicos a c/RKASSijkl
-	DIMENSION IDIDRKASS(104,4)
+	DIMENSION IDIDRKASS(NIDM,4)
 !
-	DIMENSION IDDC(8)
+	DIMENSION IDDC(NPTIPOM)
 !
-	dimension idtc(8)
+	dimension idtc(NPTIPOM)
 !
 	DIMENSION XX(NPARM)
 !
@@ -1404,38 +1415,38 @@ SUBROUTINE MODIFPAR(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ON
 !	IDID ==> identificacion de identicos
 !
 !	Los parametros se identifican a traves de su naturaleza y de sus indices
-	DIMENSION ITEMP(8)
+	DIMENSION ITEMP(NPTIPOM)
 !	Identificacion (indices) de param gii o kij a ajust.
-	DIMENSION IDG(8,2)
+	DIMENSION IDG(NPTIPOM,2)
 !
 !	Nro. de param. IDENTicos a c/gii o kij
-	DIMENSION NIDG(8)
+	DIMENSION NIDG(NPTIPOM)
 !
 !	Identificacion (indices) de IDENTicos a gii o kij
-	DIMENSION IDIDG(104,2)
+	DIMENSION IDIDG(NIDM,2)
 !
 !                8 X 13 = 104
 !
 !	IDENTif param de area
-	DIMENSION IDQ(8)
+	DIMENSION IDQ(NPTIPOM)
 !
-	DIMENSION IDALF(8,2) !identif (indices) de parametros ALFAij
-	DIMENSION NIDALF(8) !nro. de param. IDENTicos a c/alfaij
-	DIMENSION IDIDALF(104,2) !identificacion (indices) de IDENTicos
+	DIMENSION IDALF(NPTIPOM,2) !identif (indices) de parametros ALFAij
+	DIMENSION NIDALF(NPTIPOM) !nro. de param. IDENTicos a c/alfaij
+	DIMENSION IDIDALF(NIDM,2) !identificacion (indices) de IDENTicos
 !
-	DIMENSION IDENASS(8,4) !IDENTif (indices) de parametros ENASSijkl
-	DIMENSION NIDENASS(8) !Nro. de param. IDENTicos  a c/ENASSijkl
-	DIMENSION IDIDENASS(104,4) !IDENTif (indices) de IDENTicos a ENASSijkl
+	DIMENSION IDENASS(NPTIPOM,4) !IDENTif (indices) de parametros ENASSijkl
+	DIMENSION NIDENASS(NPTIPOM) !Nro. de param. IDENTicos  a c/ENASSijkl
+	DIMENSION IDIDENASS(NIDM,4) !IDENTif (indices) de IDENTicos a ENASSijkl
 !
-	DIMENSION IDRKASS(8,4) !Identif (indices) de param. RKASSijkl
-	DIMENSION NIDRKASS(8) !Nro. de param. identicos a c/RKASSijkl
-	DIMENSION IDIDRKASS(104,4) !Identif (indices) de identicos a c/RKASSijkl
+	DIMENSION IDRKASS(NPTIPOM,4) !Identif (indices) de param. RKASSijkl
+	DIMENSION NIDRKASS(NPTIPOM) !Nro. de param. identicos a c/RKASSijkl
+	DIMENSION IDIDRKASS(NIDM,4) !Identif (indices) de identicos a c/RKASSijkl
 !
 !
 !	Dimensionamiento diametro de esferas rigidas en el punto crit.
-	dimension idTc(8)
+	dimension idTc(NPTIPOM)
 	DIMENSION DC(NCM)
-	DIMENSION IDDC(8)
+	DIMENSION IDDC(NPTIPOM)
 !
 !	Parámetros siendo ajustados:
 	DIMENSION XXAUX(NPARM)
@@ -1717,28 +1728,28 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !	IDID ==> identificacion de identicos
 !
 !	Los parametros se identifican a traves de su naturaleza y de sus indices
-	DIMENSION ITEMP(8)
-	DIMENSION IDG(8,2) ! identificacion (indices) de param gii o kij a ajust.
-	DIMENSION NIDG(8)   !nro. de param. IDENTicos a c/gii o kij
-	DIMENSION IDIDG(104,2) !identificacion (indices) de IDENTicos a gii o kij
+	DIMENSION ITEMP(NPTIPOM)
+	DIMENSION IDG(NPTIPOM,2) ! identificacion (indices) de param gii o kij a ajust.
+	DIMENSION NIDG(NPTIPOM)   !nro. de param. IDENTicos a c/gii o kij
+	DIMENSION IDIDG(NIDM,2) !identificacion (indices) de IDENTicos a gii o kij
 !
 !                8 X 13 = 104
 !
-	DIMENSION IDQ(8)  !IDENTif param de area
+	DIMENSION IDQ(NPTIPOM)  !IDENTif param de area
 !
-	DIMENSION IDALF(8,2) !identif (indices) de parametros ALFAij
-	DIMENSION NIDALF(8) !nro. de param. IDENTicos a c/alfaij
-	DIMENSION IDIDALF(104,2) !identificacion (indices) de IDENTicos
+	DIMENSION IDALF(NPTIPOM,2) !identif (indices) de parametros ALFAij
+	DIMENSION NIDALF(NPTIPOM) !nro. de param. IDENTicos a c/alfaij
+	DIMENSION IDIDALF(NIDM,2) !identificacion (indices) de IDENTicos
 !
-	DIMENSION IDENASS(8,4) !IDENTif (indices) de parametros ENASSijkl
-	DIMENSION NIDENASS(8) !Nro. de param. IDENTicos  a c/ENASSijkl
-	DIMENSION IDIDENASS(104,4) !IDENTif (indices) de IDENTicos a ENASSijkl
+	DIMENSION IDENASS(NPTIPOM,4) !IDENTif (indices) de parametros ENASSijkl
+	DIMENSION NIDENASS(NPTIPOM) !Nro. de param. IDENTicos  a c/ENASSijkl
+	DIMENSION IDIDENASS(NIDM,4) !IDENTif (indices) de IDENTicos a ENASSijkl
 !
-	DIMENSION IDRKASS(8,4) !Identif (indices) de param. RKASSijkl
-	DIMENSION NIDRKASS(8) !Nro. de param. identicos a c/RKASSijkl
-	DIMENSION IDIDRKASS(104,4) !Identif (indices) de identicos a c/RKASSijkl
+	DIMENSION IDRKASS(NPTIPOM,4) !Identif (indices) de param. RKASSijkl
+	DIMENSION NIDRKASS(NPTIPOM) !Nro. de param. identicos a c/RKASSijkl
+	DIMENSION IDIDRKASS(NIDM,4) !Identif (indices) de identicos a c/RKASSijkl
 !
-	DIMENSION idTc(8), IDDC(8)
+	DIMENSION idTc(NPTIPOM), IDDC(NPTIPOM)
 !
 !
 !	*************La dimension variable que viene es muy importante que sea variable************
@@ -2821,13 +2832,13 @@ SUBROUTINE FORSCAL(NNP,IDG,ITEMP,NNQ,NALFA,NENASS,NRKASS,IDXX,numTc,NUMDC)
 	use dimensiones
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
-	logical inIJ(8)
+	logical inIJ(NPARM)
 	common/IJ/inIJ
 !
 !	Identificacion (indices) de param gii o kij a ajustar.
-	DIMENSION IDG(8,2),ITEMP(8),IDXX(NPARM),xx(NPARM)
+	DIMENSION IDG(NPTIPOM,2),ITEMP(NPTIPOM),IDXX(NPARM),xx(NPARM)
 !
-	inIJ(:8) = .FALSE.
+	inIJ(:) = .FALSE.
 	NPAR = 0
 	IF(NNP.NE.0) THEN
 
@@ -2937,7 +2948,7 @@ SUBROUTINE XXSCAL(NPAR,XX,IDXX)
 	IMPLICIT REAL*8 (A-H,O-Z)
 	parameter(pi=3.141592654D0)
 	DIMENSION XX(NPARM), IDXX(NPARM)
-	logical inIJ(8)
+	logical inIJ(NPARM)
 !
 	COMMON/ESCALADO/FGGG,FRKIJ,FTEMP,FQAREA,FALFA,FENASS,FRKASS,ftc,FDC
 	common/escMax/vMaxAlfa,vMaxkp,vMaxKstr,vMinGp,vMaxGp,error_Dc(NPARM),dc_medio(NPARM)
@@ -3072,7 +3083,7 @@ SUBROUTINE XXDESSCAL(NPAR,XX,IDXX,FGGG,FRKIJ,FTEMP,FQAREA,FALFA,FENASS,FRKASS,XX
 	IMPLICIT REAL*8 (A-H,O-Z)
 	DIMENSION XX(NPARM), IDXX(NPARM), XXAUX(NPARM)
 	parameter(pi=3.141592654D0)
-	logical inIJ(8)
+	logical inIJ(NPARM)
 !
 	common/escMax/vMaxAlfa,vMaxKp,vMaxKstr,vMinGp,vMaxGp,error_Dc(NPARM),dc_medio(NPARM)
 	common/IJ/inIJ
@@ -3245,7 +3256,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 	DIMENSION STDVA(NSetM),STDVB(NSetM),STDVC(NSetM),stDvD(NSetM)
 !
 !	Dimensionamiento arreglo de identificacion de param. dc considerados como simples variables de optimizcion
-	DIMENSION IDDC(8),idTc(8)
+	DIMENSION IDDC(NPTIPOM),idTc(NPTIPOM)
 !
 	OPEN (UNIT = 1, STATUS='OLD', file = 'paraest.out', FORM = 'FORMATTED', POSITION='APPEND')
 	open (unit = 2, file = "tables.csv", form = "formatted")
@@ -3964,7 +3975,7 @@ SUBROUTINE FORDC(NUMDC,IDDC,DC,NPAR,XX)
 	use dimensiones
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
-	DIMENSION IDDC(8)
+	DIMENSION IDDC(NPTIPOM)
 	DIMENSION DC(NCM)
 	DIMENSION XX(NPARM)
 !

@@ -46,4 +46,22 @@ contains
     end if
   end function rep
 
+  !> Detiene el programa con un mensaje claro si una cantidad leída del
+  !> archivo de datos supera el tamaño máximo de los arreglos:
+  !>
+  !>     call controla_tope(nnp, NPTIPOM, 'parámetros de interacción (NNP)')
+  !>
+  !> Sin este control, el programa escribiría fuera de los arreglos y los
+  !> resultados (o los títulos) saldrían con basura, sin aviso.
+  subroutine controla_tope(n, nmax, que)
+    integer, intent(in) :: n, nmax
+    character(*), intent(in) :: que
+
+    if (n > nmax) then
+      write(*, '(/, "Error: hay ", i0, " ", a, "; el máximo es ", i0, ".")') n, que, nmax
+      write(*, '("Para aumentarlo, cambiar src/principal/dimensiones.f90 y recompilar.")')
+      stop 1
+    end if
+  end subroutine controla_tope
+
 end module utilidades

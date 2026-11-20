@@ -10,10 +10,18 @@ module dimensiones
   integer, parameter :: NDM   = 1520   !< datos experimentales (en total)
   integer, parameter :: NSetM = 100    !< conjuntos de datos
 
-  !> Parámetros ajustables (en total). Hay 7 tipos (g, q, alfa, energía y
-  !> volumen de asociación, Tc, dc) con hasta 8 de cada uno; los g pueden
-  !> sumar además hasta 2 términos de dependencia con T: 8*3 + 6*8 = 72.
-  integer, parameter :: NPARM = 72
+  !> Parámetros ajustables de cada tipo (g o k, q, alfa, energía y volumen
+  !> de asociación, Tc, dc): cuántos de cada uno se pueden ajustar.
+  integer, parameter :: NPTIPOM = 20
+
+  !> Parámetros "idénticos" (los que copian el valor de uno ajustado),
+  !> sumando todos los de un mismo tipo.
+  integer, parameter :: NIDM = 104
+
+  !> Parámetros ajustables en total. Hay 7 tipos; los g pueden sumar además
+  !> hasta 2 términos de dependencia con T (g' y g''):
+  !> 3*NPTIPOM + 6*NPTIPOM = 9*20 = 180.
+  integer, parameter :: NPARM = 9*NPTIPOM
 
   !> Largo del vector de trabajo de ZXSSQ: 5*N + 2*M + N*(N+1)/2,
   !> con N = parámetros y M = datos.
