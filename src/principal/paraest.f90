@@ -3031,7 +3031,7 @@ SUBROUTINE XXSCAL(NPAR,XX,IDXX)
 
 !	    XX(I) = FENASS*XX(I)
 !	    Escalado logarítmico para energía de asociación, para evitar valores negativos
-	    xx(i) = fEnAss*dlog(xx(i))
+	    xx(i) = fEnAss*dlog(max(xx(i), tiny(1D0)))   ! max: log de 0 o negativo
 
 	  elseIF(IDXX(I).EQ.7)then
 
@@ -3128,7 +3128,7 @@ SUBROUTINE XXDESSCAL(NPAR,XX,IDXX,FGGG,FRKIJ,FTEMP,FQAREA,FALFA,FENASS,FRKASS,XX
 	  elseIF(IDXX(I).EQ.6)then
 	  
 !	    XXAUX(I) = XXAUX(I)/FENASS
-	    xxAux(i) = dexp(xxAux(i)/fEnAss)
+	    xxAux(i) = dexp(min(xxAux(i)/fEnAss, log(huge(1D0))))   ! min: exp no desborda
 	
 	  elseIF(IDXX(I).EQ.7)then
 	  
@@ -4307,24 +4307,53 @@ endsubroutine
 !
 !	scl es la variable de escalado, que estira o comprime el valor devuelto por fScld.
 !
+!	Para que nunca dé una excepción (log de 0 o de un negativo), x se lleva
+!	primero al interior del intervalo, a una distancia relativa de 1e-10 de
+!	las cotas. Así no importa si el valor inicial está justo en una cota
+!	(por ejemplo kappa = 0) o si el redondeo lo deja en la cota o afuera.
+!
 doubleprecision function fScld(x,scl,vMin,vMax)
-	implicit real*8(A-H,O-Z)
+  implicit real*8(A-H,O-Z)
+  real*8, parameter :: margen = 1D-10   ! declarado: con IMPLICIT, "margen" sería entero (= 0)
 
-	fScld = scl*dlog((x - vMin)/(vMax - x))
+  d = margen*(vMax - vMin)
+  xin = min(max(x, vMin + d), vMax - d)
+  fScld = scl*dlog((xin - vMin)/(vMax - xin))
 
-	return
+  return
 endfunction
 !--------------------------------------------------------------------------------------------------------------------------
 !
 !	Función de desescalado de variables: inversa de la función fScld
 !
+!	Se calcula de dos maneras según el signo de x/scl, para que la
+!	exponencial siempre tenga argumento <= 0: nunca desborda (con scl muy
+!	chico, exp(x/scl) daba infinito, y luego infinito/infinito = NaN).
+!	El resultado queda siempre entre vMin y vMax.
+!
+!	fScld aparta x de las cotas un margen relativo de 1e-10; si el resultado
+!	cae dentro de ese margen (el doble, por redondeo), se devuelve la cota
+!	misma. Así un valor dado justo en la cota (por ejemplo kappa = 0) vuelve
+!	igual, y el usuario no ve el margen.
+!
 doubleprecision function fDscld(x,scl,vMin,vMax)
-	implicit real*8(A-H,O-Z)
+  implicit real*8(A-H,O-Z)
+  real*8, parameter :: margen = 1D-10   ! el mismo de fScld
 
-	ex = dexp(x/scl)
-	fDscld = (vMin + vMax*ex)/(1.D0 + ex)
+  t = x/scl
+  if (t >= 0D0) then
+    ex = dexp(-t)
+    fDscld = (vMin*ex + vMax)/(1.D0 + ex)
+  else
+    ex = dexp(t)
+    fDscld = (vMin + vMax*ex)/(1.D0 + ex)
+  endif
 
-	return
+  d = 2D0*margen*(vMax - vMin)
+  if (fDscld - vMin <= d) fDscld = vMin
+  if (vMax - fDscld <= d) fDscld = vMax
+
+  return
 endfunction
 !--------------------------------------------------------------------------------------------------------------------------
 !
