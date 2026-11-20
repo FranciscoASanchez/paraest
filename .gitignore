@@ -11,16 +11,17 @@ build/
 # Proyecto Visual Studio / IVF (copia de trabajo en Windows)
 IFV XE2011/
 
-# Salidas del programa (se regeneran en cada corrida)
-paraest.out
-graficos.csv
-tables.csv
-GCTHREE.SAL
-PARA.HIS
-fort.9
-fort.11
-fort.20
-binary_graphic*.csv
+# Salidas del programa en la raíz (se regeneran en cada corrida).
+# Con "/" adelante: solo en la raíz, no en pruebas/casos/*/referencia/.
+/paraest.out
+/graficos.csv
+/tables.csv
+/GCTHREE.SAL
+/PARA.HIS
+/fort.9
+/fort.11
+/fort.20
+/binary_graphic*.csv
 
 # Editores / escritorio / backups
 *.kate-swp

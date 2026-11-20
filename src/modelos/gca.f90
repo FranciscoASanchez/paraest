@@ -2806,10 +2806,15 @@ subroutine GCAvirial(NC, NG, NST, T, n, x, B, Bvl, Bat, Bas, calc)
 !
 !	Contribución asociativa
 	Bas = 0D0
+!	(si en la mezcla no hay sitios presentes, sum(sm) = 0 y Bas queda en 0:
+!	antes se calculaba 0/0 = NaN)
 	if(NST.GT.0)then
+	  if(sum(sm(:NST)).GT.0D0)then
 
-	  aux(:NST) = matmul(sm(:NST),Delta(:NST,:NST))
-	  Bas = -dot_product(aux(:NST),sm(:NST))/2D0/sum(sm(:NST))
+	    aux(:NST) = matmul(sm(:NST),Delta(:NST,:NST))
+	    Bas = -dot_product(aux(:NST),sm(:NST))/2D0/sum(sm(:NST))
+
+	  endif
 
 	endif
 !

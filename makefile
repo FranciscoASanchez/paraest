@@ -18,7 +18,8 @@ ifeq ($(origin FC),default)
 endif
 
 # --- Archivos fuente, por capa ----------------------------------------------
-PRINCIPAL    = src/principal/utilidades.f90              \
+PRINCIPAL    = src/principal/dimensiones.f90             \
+               src/principal/utilidades.f90              \
                src/principal/paraest.f90
 
 OPTIMIZACION = src/optimizacion/zxssq.f90
@@ -52,7 +53,7 @@ ifeq ($(FC),gfortran)
   MODS  = -J
 else
   OPT   = -O3
-  DEBUG = -g -O0 -traceback -debug extended -fpe0 -check all -warn
+  DEBUG = -g -O0 -traceback -debug extended -fpe0 -check all,noarg_temp_created -warn
   COMUN = -diag-disable=remark
   MODS  = -module
 endif
@@ -70,12 +71,22 @@ vpath %.f90 src/principal src/optimizacion src/modelos src/equilibrio
 .PHONY: all debug prueba clean
 all: paraest.x
 
-paraest.x: $(OBJETOS)
-	$(FC) $(OPT) -o $@ $^
+# El "sello" obj/.compilador-<comp> recuerda con qué compilador se armaron
+# los ejecutables: al cambiar de compilador se borra el sello viejo y se crea
+# uno nuevo, más reciente que paraest.x, y así el ejecutable se vuelve a armar.
+SELLO    = obj/.compilador-$(COMP)
+
+paraest.x: $(OBJETOS) $(SELLO)
+	$(FC) $(OPT) -o $@ $(OBJETOS)
 
 debug: debug.paraest.x
-debug.paraest.x: $(OBJDEBUG)
-	$(FC) $(DEBUG) -o $@ $^
+debug.paraest.x: $(OBJDEBUG) $(SELLO)
+	$(FC) $(DEBUG) -o $@ $(OBJDEBUG)
+
+$(SELLO):
+	mkdir -p obj
+	rm -f obj/.compilador-*
+	touch $@
 
 $(OBJDIR)/%.o: %.f90 | $(OBJDIR)
 	$(FC) $(COMUN) $(OPT) $(MODS) $(OBJDIR) -c $< -o $@

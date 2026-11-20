@@ -1,0 +1,8 @@
+
+ ********** RESULTADOS: MEZCLAS BINARIAS *******************
+
+Compound,-,T (K),P (kPa),AARD%,-,No exp.,Reference
+1,2,-,-,P,y1,points,
+ 1, 3,  423.-  423.,  187.-  482.,   9.0,   15., 17,H2O(1) + PrOOH(3), 423 K, Román-Ramírez et al., Fluid Phase Equilib. 388 (2015)                                                   
+ 1, 3,  343.-  343.,   8.8-   32.,   11.,   12.,  9,H2O(1) + PrOOH(3), 343 K, Miyamoto et al., J. Chem. Eng. Data 46 (2001) 1225-123                                                  
+ 1, 3,  303.-  303.,  0.54-   4.2,   27.,   6.9,  9,H2O(1) + PrOOH(3), 303 K, Wright & Akhtar, Trans. Far. Soc. 66 (1970) 990-1003                                                    

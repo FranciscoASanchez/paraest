@@ -1034,7 +1034,10 @@
 !
 !            - FRACCIONES DE SITIOS NO ASOCIADOS y,
 !            - FUERZA DE ASOCIACION (ADIMENSIONAL)
-      DeltAss(:NGA,:2,:NGA,:2) = 0D0
+!     Orden de índices: (sitio, grupo, sitio, grupo). Antes decía
+!     DeltAss(:NGA,:2,:NGA,:2), con los índices invertidos: con NGA > 6
+!     se salía del arreglo y no anulaba los elementos correctos.
+      DeltAss(:,:NGA,:,:NGA) = 0D0
       DO J=1,NGA
 
         IF(MASSOC(J).NE.0)then	!EQ.0) GO TO 201
@@ -1129,7 +1132,9 @@
             end do
 
           end do
-          del=maxval(dif)
+!         Solo la parte usada de dif: el resto no está inicializado
+!         (con gfortran tiene basura y el lazo no terminaba nunca).
+          del=maxval(dif(:2,:NGA))
 
         end do
 
@@ -1996,11 +2001,12 @@
       DIMENSION DXNOASSN(6,12,NCM)
       DIMENSION ONUASOC(12,NC)
       DIMENSION RNGRUP(12)
-      dimension psin(12)
+!     psi e indx tienen tamaño 2*NGA, como m_lambda (antes 12: se salían con NGA > 6).
+      dimension psin(nga*2)
       real*8  m_lambda(nga*2,nga*2), m_lambda1(nga*2,nga*2)
       integer order,w,s
 !	real d1, psin
-      dimension indx(NCM)
+      integer indx(nga*2)
 !
 !	Para información sobre el código anterior a las modificaciones de Alfonsina,
 !	ver subroutina "FracNoAsoc".
@@ -2906,11 +2912,12 @@
         DIMENSION DXNOASSV(6,12)
         DIMENSION ONUASOC(12,NC)
 !	dimension m_lambda(nga*2,nga*2), m_lambda1(nga*2,nga*2)
-      dimension psiv(12)
+!     psi e indx tienen tamaño 2*NGA, como m_lambda (antes 12: se salían con NGA > 6).
+      dimension psiv(nga*2)
       real*8  m_lambda(nga*2,nga*2), m_lambda1(nga*2,nga*2)
       integer order
 !	real d1, psiv
-      dimension indx(12)
+      integer indx(nga*2)
 !     	sumsi=0
 !	do k=1, nc
 !		do i=1, nga
