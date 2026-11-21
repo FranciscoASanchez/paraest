@@ -53,6 +53,8 @@ PROGRAM ASSOCPARAEST
 	DOUBLE PRECISION XJAC(NDM,NPARM), XJTJ(NPARM*(NPARM+1)/2), WORK(LWORK)
 	DOUBLE PRECISION FCION(NDM)          ! residuos
 	DOUBLE PRECISION stDvD(NSetM)
+	INTEGER iGr
+	DOUBLE PRECISION epxOut               ! epx of spline_temperature (not used here)
 !
 !	IDC(J,1): componente para el que se dan las fracciones molares experimentales en el conjunto j.
 !	IDC(J,2): componente para el que NO se dan.
@@ -70,8 +72,11 @@ PROGRAM ASSOCPARAEST
 !	Cuando numDc no es cero: carga de los valores de dc iniciales en XX
 !	CALL FORDC(NUMDC,IDDC,DC,NPAR,XX)ç
 !
-!	Calculo de las temperaturas de spline para los valores iniciales de los parametros dispersivos.
-	CALL SPLINECALC(NG, TSTR, GSTR, GDOT, GDDOT, TSPLINE)
+!	Spline temperatures of the initial parameters (for the output only: the
+!	model computes them in fakePARGR).
+	do iGr = 1, NG
+	  call spline_temperature(TSTR(iGr), GDOT(iGr), GDDOT(iGr), TSPLINE(iGr), epxOut)
+	enddo
 !
 !	Escribe PARTE de los datos en archivo de salida paraest.out
 	CALL WRITESAL1(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
@@ -118,8 +123,10 @@ PROGRAM ASSOCPARAEST
 !	  Escribe estadisticas de la optimizacion
 	  CALL WRITESTAT(SSQ,XJAC,WORK,INFER,IER)
 !
-!	  Cálculo de las temperaturas de spline para los valores FINALES de los parametros dispersivos
-	  CALL SPLINECALC(NG,TSTR,GSTR,GDOT,GDDOT,TSPLINE)
+!	  Spline temperatures of the final parameters (for the output)
+	  do iGr = 1, NG
+	    call spline_temperature(TSTR(iGr), GDOT(iGr), GDDOT(iGr), TSPLINE(iGr), epxOut)
+	  enddo
 !
 	END IF
 !
@@ -1295,6 +1302,8 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !	Flash
 !	Arrays passed to the GCA package: dimensioned with its maximum number of components
 	integer, parameter :: NCMgca = 30
+!	Isofugacity of binary data
+	DIMENSION xIsof(2), yIsof(2), apartIsof(2)
 	DIMENSION feed(NCMgca), zFrac(NCMgca,4), help(NCMgca,NCMgca), zVal(4), iVap(1), indF(4)
 !
 	PENALIZ = 0	!1e-0
@@ -1330,7 +1339,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	if (any(TSAT(:NC) /= 0)) then
 	  call fakePARGR(NC,NG,NGA,NST,IOUt,NU(:NG,:NC),QAREA(:NG),TStr(:NG),gStr(:NG),GDOT(:NG),GDDOT(:NG),   &
 &	                 RKIJ(:NG,:NG),RKTIJ(:NG,:NG),ALFAIJ(:NG,:NG),ONUASOC(:NGA,:NC),MASSOC(:NGA),           &
-&	                 ENASS(:2,:NGA,:2,:NGA),RKASS(:2,:NGA,:2,:NGA),Tspline(:NG))
+&	                 ENASS(:2,:NGA,:2,:NGA),RKASS(:2,:NGA,:2,:NGA))
 	  call fakePARMOL(NC,NG,NST,IOUt,DC(:NC),TEMPCRIT(:NC),PRCRIT(:NC))
 	  DO I=1,NC
 	    IF (TSAT(I) == 0) CYCLE
@@ -1379,8 +1388,11 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 
 !	          Función objetivo: isofugacidad
 	          write(6,'("Punto = ",I3," del compuesto",I3)')j,i
-	          CALL assocIsofPurosSub(WTEMPCRIT,NG,NUW,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOCW, &
-&	                                 MASSOC,ENASS,RKASS,WDC,WTEMP,WPSAT,WZFASL,WZFASV,APART,IERRYAF)
+	          call fakePARGR(1,NG,NGA,NST,IOUt,NUW(:NG,1),QAREA(:NG),TStr(:NG),gStr(:NG),GDOT(:NG),GDDOT(:NG), &
+&	                         RKIJ(:NG,:NG),RKTIJ(:NG,:NG),ALFAIJ(:NG,:NG),ONUASOCW(:NGA,1),MASSOC(:NGA),       &
+&	                         ENASS(:2,:NGA,:2,:NGA),RKASS(:2,:NGA,:2,:NGA))
+	          call fakePARMOL(1,NG,NST,IOUt,WDC,WTEMPCRIT,WPRCRIT)
+	          call isofug_pure(NG,NST,WTEMP,WPSAT,APART,WZFASL,WZFASV,IERRYAF)
 !
 	          IF(IERRYAF.EQ.0) THEN
 
@@ -1408,7 +1420,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	          write(6,'("Punto = ",I3," del compuesto",I3)')j,i
 	          call fakePARGR(1,NG,NGA,NST,IOUt,NUW(:NG,1),QAREA(:NG),TStr(:NG),gStr(:NG),GDOT(:NG),GDDOT(:NG), &
 &			                 RKIJ(:NG,:NG),RKTIJ(:NG,:NG),ALFAIJ(:NG,:NG),ONUASOCW(:NGA,1),MASSOC(:NGA),         &
-&	                         ENASS(:2,:NGA,:2,:NGA),RKASS(:2,:NGA,:2,:NGA),Tspline(:NG))
+&	                         ENASS(:2,:NGA,:2,:NGA),RKASS(:2,:NGA,:2,:NGA))
 	          call fakePARMOL(1,NG,NST,IOUt,WDC,WTEMPCRIT,wPRCRIT)
 	          call paraGC(wTemp, 1, NG, NST, 1)
 	          iGP = 1
@@ -1565,7 +1577,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !	    necesarios para los parámetros grupales y de compuesto puro que necesita el paquete.
 	    call fakePARGR(NCw,NG,NGA,NST,IOUt,NUWW(:NG,:NCw),QAREA(:NG),TStr(:NG),GStr(:NG),GDOT(:NG),GDDOT(:NG), &
 &	                   RKIJ(:NG,:NG),RKTIJ(:NG,:NG),ALFAIJ(:NG,:NG),ONUASOCWW(:NGA,:NCw),MASSOC(:NGA),         &
-&	                   ENASS(:2,:NGA,:2,:NGA),RKASS(:2,:NGA,:2,:NGA),Tspline(:NG))
+&	                   ENASS(:2,:NGA,:2,:NGA),RKASS(:2,:NGA,:2,:NGA))
 !
 !	    Esta hace lo mismo que la anterior, sólo que para los parámetros por componente que define
 !	    originalmente PARMOL:
@@ -1591,9 +1603,13 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	          write(6,*) "i=",i
 !	          Inicio de la variable de error. Si no se inicia puede dar cualquier cosa.
 	          iErrMixIsof = 0
-	          CALL ASSocISOFmezclasSUB(2,WWDC,WWTEMPCRIT,NG,NUWW,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,  &
-&	                                   NGA,ONUASOCWW,MASSOC,ENASS,RKASS,TEMP,PRESS,X1,Y1,                       &
-&	                                   APART1,APART2,ZLL,ZVV,IERRMIXISOF)
+	          xIsof(1) = X1
+	          xIsof(2) = 1D0 - X1
+	          yIsof(1) = Y1
+	          yIsof(2) = 1D0 - Y1
+	          call isofug_mix(2,NG,NST,TEMP,PRESS,xIsof,yIsof,apartIsof,ZLL,ZVV,IERRMIXISOF)
+	          APART1 = apartIsof(1)
+	          APART2 = apartIsof(2)
 !
 	          IF(IERRMIXISOF.EQ.0) THEN
 
@@ -3184,14 +3200,14 @@ ENDsubroutine !FIN FORDC
 !	van en dicho COMMON.
 !
 subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,ONUASOCWW, &
-&	               MASSOC,ENASS,RKASS,Tspline)
+&	               MASSOC,ENASS,RKASS)
 	use utilidades, only: i2s, rep
 
 	IMPLICIT REAL*8(A-H,O-Z)
 	parameter(NCM=30,NGM=20,NGAM=12,NSM=24)
 
 	DIMENSION qArea(NG),Ts(NG),nuWW(NG,NC),Gs(NG),GDOT(NG),GDDOT(NG),rKij(NG,NG),rKTij(NG,NG), &
-&	          alfaij(NG,NG),Tspline(NG)
+&	          alfaij(NG,NG)
 !
 !	Energía y volumen de asociación con 4 subíndices: sólo están en
 !	esta subrutina.
@@ -3248,8 +3264,7 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 	  gStr(j) = Gs(j)
 	  g1(j) = GDOT(j)
 	  g2(j) = GDDOT(j)
-	  Tspl(j) = Tspline(j)
-	  epx(j) = -4.D0*(g1(j)*Tspl(j)/Tstr(j) + g2(j))
+	  call spline_temperature(Tstr(j), g1(j), g2(j), Tspl(j), epx(j))
 15	  WRITE(IOUT,106)j,TSTR(j),Q(j),GSTR(j),G1(j),G2(j),(NY(i,j),i=1,NC)
 	  do k = 1,NG
 

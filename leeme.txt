@@ -28,7 +28,7 @@ Organización
 ------------
     src/principal/     programa principal, lectura/escritura, FUNC
     src/optimizacion/  optimizadores (ZXSSQ: Marquardt-Levenberg)
-    src/modelos/       modelos termodinámicos (GCA y la versión "assoc")
+    src/modelos/       modelo termodinámico (paquete GCA) y su enlace con paraest
     src/equilibrio/    cálculos de equilibrio (flash, psat, isofugacidad...)
     pruebas/           prueba de regresión y salidas de referencia
     Archivos/          conjuntos de datos experimentales

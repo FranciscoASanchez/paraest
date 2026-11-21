@@ -28,22 +28,17 @@ PRINCIPAL    = src/principal/dimensiones.f90             \
 OPTIMIZACION = src/optimizacion/zxssq.f90
 
 MODELOS      = src/modelos/parametros_gca.f90            \
+               src/modelos/fugacity.f90                  \
                src/modelos/fit_dc.f90                    \
-               src/modelos/gca.f90                       \
-               src/modelos/gca_assoc.f90                 \
-               src/modelos/gca_assoc_fev.f90             \
-               src/modelos/gca_assoc_rutin_puros.f90     \
-               src/modelos/gca_assoc_rutin_mezclas.f90   \
-               src/modelos/gca_assoc_gamma.f90
+               src/modelos/spline_temperature.f90        \
+               src/modelos/gca.f90
 
 EQUILIBRIO   = src/equilibrio/gc3_flash.f90              \
+               src/equilibrio/isofugacity.f90            \
                src/equilibrio/gcdba.f90                  \
                src/equilibrio/gcxs.f90                   \
                src/equilibrio/gcsle.f90                  \
-               src/equilibrio/pcrit_semiimplicito.f90    \
-               src/equilibrio/psat_assoc.f90             \
-               src/equilibrio/isof_puros_assoc.f90       \
-               src/equilibrio/isof_mezclas_assoc.f90
+               src/equilibrio/pcrit_semiimplicito.f90
 
 # Orden de compilación: primero lo que define módulos, al final el programa.
 FUENTES = $(OPTIMIZACION) $(MODELOS) $(EQUILIBRIO) $(PRINCIPAL)
