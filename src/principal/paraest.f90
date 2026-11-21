@@ -1,6 +1,7 @@
 PROGRAM ASSOCPARAEST
 	use dimensiones
 	use datos_ajuste
+	use parametros_gca
 	use escalado, only: XXSCAL
 !
 !
@@ -44,7 +45,7 @@ PROGRAM ASSOCPARAEST
 !	módulo escalado.
 !
 !	Locales:
-	INTEGER NSIG, NPRED, NPAR, NCXP, IOPT, NOPCION, MAXFN, IXJAC, INFER, IER
+	INTEGER NSIG, NPRED, NPAR, NCXP, IOPT, MAXFN, IXJAC, INFER, IER
 	INTEGER NTEXT(NSetM,65)              ! título de cada conjunto de datos
 	DOUBLE PRECISION XX(NPARM)           ! parámetros a ajustar (escalados durante el ajuste)
 	DOUBLE PRECISION PARM(4)             ! parámetros de ZXSSQ
@@ -52,28 +53,12 @@ PROGRAM ASSOCPARAEST
 	DOUBLE PRECISION XJAC(NDM,NPARM), XJTJ(NPARM*(NPARM+1)/2), WORK(LWORK)
 	DOUBLE PRECISION FCION(NDM)          ! residuos
 	DOUBLE PRECISION stDvD(NSetM)
-	character(1) OPDER
 !
 !	IDC(J,1): componente para el que se dan las fracciones molares experimentales en el conjunto j.
 !	IDC(J,2): componente para el que NO se dan.
 !
-	opder = "N"
-
-
 !	Lectura desde el archivo de entrada "paraest.dat"
-	CALL READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC,ENASS,RKASS,&
-
-&	          W1,W2,W3,W4,W5,w6,W7,W8,W9,W10,W11,W12,W13,NSIG,ISAT,IGLE,IVE,IUNI,NPRED,            &
-
-&	          NNP,NNQ,NALFA,NENASS,NRKASS,NPAR,PARM,PRCRIT,TEMPCRIT,TSAT,PSAT,dc,                  &
-
-&	          NSAT,IDC,NOBS,iHEN,mez,IFL,NTEXT,rGamExp1,rGamExp2,rGamExp3,prop_E_calc,prop_E_exp,  &
-
-&	          TEXP,PEXP,XEXP,xexp2,YEXP,yExp2,rhoExp,XX,IDSAT,IDG,ITEMP,NIDG,IDIDG,iDQ,IDALF,      &
-
-&	          NIDALF,IDIDALF,IDENASS,NIDENASS,IDIDENASS,IDRKASS,NIDRKASS,IDIDRKASS,                &
-
-&	          NCXP,IOPT,IOBJSAT,NUMDC,IDDC,numTc,idTc,wSat,wBin,wTer,wEx,wGam,DHfu,Tfu,DCpfu, Dvfu, TtrSS, DHss, Pfu)
+	CALL READ(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
 !
 !
 !	Inicio de DC en base al punto critico predicho por la GC-EoS, para todo componente (no tiene en 
@@ -89,17 +74,7 @@ PROGRAM ASSOCPARAEST
 	CALL SPLINECALC(NG, TSTR, GSTR, GDOT, GDDOT, TSPLINE)
 !
 !	Escribe PARTE de los datos en archivo de salida paraest.out
-	CALL WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC,ENASS,RKASS,&
-
-&	               W1,W2,W3,W4,W5,w6,W7,W8,W9,W10,W11,W12,w13,NSIG,ISAT,IGLE,IVE,IUNI,NPRED,            &
-
-&	               NNP,NNQ,NALFA,NENASS,NRKASS,NPAR,PARM,PRCRIT,TEMPCRIT,TSAT,PSAT,                     &
-
-&	               NSAT,IDC,NOBS,IHEN,mez,IFL,NTEXT,TEXP,PEXP,XEXP,xexp2,YEXP,XX,                       &
-
-&	               IDSAT,IDG,ITEMP,NIDG,IDIDG,IDQ,IDALF,NIDALF,IDIDALF,IDENASS,NIDENASS,IDIDENASS,      &
-
-&	               IDRKASS,NIDRKASS,IDIDRKASS,DC,IOPT,NUMDC,IDDC,TSPLINE,numTc,idTc)
+	CALL WRITESAL1(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 !
 !	Identificacion de los valores contenidos en XX, para luego poder asignarles factores de escalado adecuados
 	CALL FORSCAL(NNP,IDG,ITEMP,NNQ,NALFA,NENASS,NRKASS,IDXX,numTc,NUMDC)
@@ -118,12 +93,6 @@ PROGRAM ASSOCPARAEST
 !	----------------------------------------------------
 	IF(NPRED.EQ.1)THEN
 !	  Prediccion (o simulacion)
-!
-!	  Chequea derivadas:
-	  IF (OPDER.EQ.'S')NOPCION = 1
-!	  No chequea deriv
-	  IF (OPDER.EQ.'N')  NOPCION = 0
-!
 	  CALL FUNC(XX,NCXP,NPAR,FCION)
 !
 	ELSE
@@ -141,10 +110,7 @@ PROGRAM ASSOCPARAEST
 	  MAXFN = 50*(NPAR + 1)
 	  PARM(3)=2.D2
 	  PARM(4)=.1D0
-!	  Comentario      IXJAC = 180
 	  IXJAC = NCXP
-!       No chequeo de deriv.
-	  NOPCION = 0
 !
 !	  Llamado a la subrutina de optimización.
 	  CALL ZXSSQ(FUNC,NCXP,NPAR,NSIG,EPS,DELTAZ,MAXFN,IOPT,PARM,XX,SSQ,FCION,XJAC,IXJAC,XJTJ,WORK,INFER,IER)
@@ -154,24 +120,12 @@ PROGRAM ASSOCPARAEST
 !
 !	  Cálculo de las temperaturas de spline para los valores FINALES de los parametros dispersivos
 	  CALL SPLINECALC(NG,TSTR,GSTR,GDOT,GDDOT,TSPLINE)
-	  IF (OPDER.EQ.'S')NOPCION = 1
-!
-!	  Simulacion con param. finales y chequeo de derivadas
-	  IF (OPDER.EQ.'S')  CALL FUNC(XX,NCXP,NPAR,FCION)
 !
 	END IF
 !
 !
 !	Escribe parametros finales, y valores experimentales y calculados.
-	CALL WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC,ENASS,RKASS,&
-
-&	               ISAT,IGLE,IVE,IUNI,TSAT,PSAT,NSAT,IDC,NOBS,IHEN,mez,IFL,NTEXT,TEXP,PEXP,XEXP,xexp2,  &
-
-&	               YEXP,yExp2,IDSAT,DC,tempCrit,XCALC,YCALC,xCalc2,yCalc2,ZLCALC,ZVCalc,FCAUX,PCALC,    &
-
-&	               IOBJSAT,FCAUX2,fcaux3,STDVA,STDVB,stDvC,stDvD,rgamcalc1, rgamcalc2,rgamcalc3,numTc,idTc,   &
-
-&	               NUMDC,IDDC,TSPLINE,rGamExp1, rGamExp2,rGamExp3,zLiCalc,prop_E_calc,prop_E_exp,DHVL)
+	CALL WRITESAL2(NTEXT,stDvD)
 !
 !
 !
@@ -190,106 +144,25 @@ ENDprogram
 !	tiempo, imprime lo que va leyendo con formato, para -ayudar a- identificar un error en la entrada, de
 !	haberlo.
 !
-SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC,ENASS,RKASS,      &
-
-&	                W1,W2,W3,W4,W5,w6,W7,W8,W9,W10,W11,W12,w13,NSIG,ISAT,IGLE,IVE,IUNI,NPRED,            &
-
-&	                NNP,NNQ,NALFA,NENASS,NRKASS,NPAR,PARM,PRCRIT,TEMPCRIT,TSAT,PSAT,dc,                  &
-
-&	                NSAT,IDC,NOBS,iHEN,mez,IFL,NTEXT,rGamExp1,rGamExp2,rGamExp3,prop_E_calc,prop_E_exp,  &
-
-&	                TEXP,PEXP,XEXP,xexp2,YEXP,yExp2,rhoExp,XX,IDSAT,IDG,ITEMP,NIDG,IDIDG,iDQ,IDALF,      &
-
-&	                NIDALF,IDIDALF,IDENASS,NIDENASS,IDIDENASS,IDRKASS,NIDRKASS,IDIDRKASS,                &
-
-&	                NCXP,IOPT,IOBJSAT,NUMDC,IDDC,numTc,idTc,wSat,wBin,wTer,wEx,wGam, &
-
-&	                DHfu, Tfu, DCpfu, Dvfu, TtrSS, DHss, Pfu)
+SUBROUTINE READ(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
 	use dimensiones
+	use datos_ajuste, only: NC, W1, W2, W3, W4, W5, w6, W7, W8, W9, W10, W11, W12, w13, ISAT, IGLE, IVE, IUNI, &
+&	                    PRCRIT, TEMPCRIT, NSAT, IDC, NOBS, iHEN, mez, IFL, rGamExp1, rGamExp2, rGamExp3, &
+&	                    prop_E_calc, prop_E_exp, TEXP, PEXP, XEXP, xexp2, YEXP, yExp2, rhoExp, IDSAT, IOBJSAT, &
+&	                    wSat, wBin, wTer, wEx, wGam, DHfu, Tfu, DCpfu, Dvfu, TtrSS, DHss, Pfu
+	use parametros_gca, only: NG, NU, QAREA, TSTR, GSTR, GDOT, GDDOT, RKIJ, RKTIJ, ALFAIJ, NGA, ONUASOC, MASSOC, &
+&	                    ENASS, RKASS, NNP, NNQ, NALFA, NENASS, NRKASS, TSAT, PSAT, dc, IDG, ITEMP, NIDG, IDIDG, &
+&	                    iDQ, IDALF, NIDALF, IDIDALF, IDENASS, NIDENASS, IDIDENASS, IDRKASS, NIDRKASS, &
+&	                    IDIDRKASS, NUMDC, IDDC, numTc, idTc
 	use escalado, only: dc_medio, error_Dc
 	use utilidades, only: i2s, rep, controla_tope
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
 !
-!
-!	DIM DISPERSION
-	DIMENSION NU(NGM,NCM), QAREA(NGM), TSTR(NGM), GSTR(NGM)
-	DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
-	DIMENSION ALFAIJ(NGM,NGM)
-!
-!	DIM ASOCIACION
-	DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
-	DIMENSION ONUASOC(12,NCM)
-!
-!	DIM AJUSTE DE PARAM
-	DIMENSION PARM(4)
-!
-	DIMENSION IDSAT(NCM)
-!
-	DIMENSION  TEMPCRIT(NCM),PRCRIT(NCM), TSAT(NCM), PSAT(NCM), DC(NCM), DVfu(NCM), Tfu(NCM), Pfu(NCM), DHfu(NCM), &
-	           DCpfu(NCM), TtrSS(NCM), DHss(NCM)
-	DIMENSION TEXP(NDM), PEXP(NDM), XEXP(NDM),xexp2(NDM),YEXP(NDM),yExp2(NDM),rhoExp(NDM)
-	dimension rgamexp1(NDM),rgamexp2(NDM),rgamexp3(NDM)
-	dimension prop_E_calc(NDM),prop_E_exp(NDM)
-!
-!	double precision  DC(NCM)
-!
-!
-!	Dimensionamiento  nro. de datos de pvap comp puros
-	DIMENSION NSAT(NCM)
-	DIMENSION IOBJSAT(NCM)
-!
-!	Dimensionamientos que tienen que ver con los datasets
-	DIMENSION IDC(NSetM,3),NOBS(NSetM),IHEN(NSetM), mez(NSetM)
-	DIMENSION NTEXT(NSetM,65)
-	DIMENSION IFL(NSetM)
-!
-!		ID 	==> identificacion o identicos
-!		IDID	==> identificacion de identicos
-!
-!	Los parametros se identifican a traves de su naturaleza y de sus inidices
-	DIMENSION ITEMP(NPTIPOM)
-!
-!	Identificacion (indices) de param gii o kij a ajustar.
-	DIMENSION IDG(NPTIPOM,2)
-!	Nro. de param. IDENTicos a c/gii o kij
-	DIMENSION NIDG(NPTIPOM)
-!
-!	Identificacion (indices) de IDENTicos a gii o kij
-	DIMENSION IDIDG(NIDM,2)
-!
-!                8 X 13 = 104
-!
-!	IDENTif param de area
-	DIMENSION IDQ(NPTIPOM)
-!
-!	Identif (indices) de parametros ALFAij
-	DIMENSION IDALF(NPTIPOM,2)
-!	Nro. de param. IDENTicos a c/alfaij
-	DIMENSION NIDALF(NPTIPOM)
-!	Identificacion (indices) de IDENTicos
-	DIMENSION IDIDALF(NIDM,2)
-!
-!	IDENTif (indices) de parametros ENASSijkl
-	DIMENSION IDENASS(NPTIPOM,4)
-!	Nro. de param. IDENTicos  a c/ENASSijkl
-	DIMENSION NIDENASS(NPTIPOM)
-!	IDENTif (indices) de IDENTicos a ENASSijkl
-	DIMENSION IDIDENASS(NIDM,4)
-!
-!	Identif (indices) de param. RKASSijkl
-	DIMENSION IDRKASS(NPTIPOM,4)
-!	Nro. de param. identicos a c/RKASSijkl
-	DIMENSION NIDRKASS(NPTIPOM)
-!	Identif (indices) de identicos a c/RKASSijkl
-	DIMENSION IDIDRKASS(NIDM,4),IDDC(NPTIPOM),idTc(NPTIPOM)
-!
-	DIMENSION XX(NPARM)
+	DIMENSION PARM(4)                ! parámetros de ZXSSQ
+	DIMENSION NTEXT(NSetM,65)        ! título de cada conjunto de datos
+	DIMENSION XX(NPARM)              ! valores iniciales de los parámetros a ajustar
 	dimension error_Dc1(NCM)
-!
-!	Dimensionamiento de los pesos individuales	
-	dimension wSat(NDM), wBin(2,NDM), wTer(2,NDM), wEx(NDM), wGam(3,NDM)
-
 !
 	OPEN(UNIT=1,STATUS='OLD',FILE='paraest.dat',FORM='FORMATTED',ACCESS='SEQUENTIAL')
 	READ (1, *) W1
@@ -839,99 +712,24 @@ ENDsubroutine !FIN READ
 !	Esta subrutina imprime en paraest.out la lectura de los disintos parámetros alimentados en la subrutina READ
 !	mas no los resultados de optimización
 !
-SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC,ENASS,RKASS,&
-
-&	               W1,W2,W3,W4,W5,w6,W7,W8,W9,W10,W11,W12,w13,NSIG,ISAT,IGLE,IVE,IUNI,NPRED,            &
-
-&	               NNP,NNQ,NALFA,NENASS,NRKASS,NPAR,PARM,PRCRIT,TEMPCRIT,TSAT,PSAT,                     &
-
-&	               NSAT,IDC,NOBS,IHEN,mez,IFL,NTEXT,TEXP,PEXP,XEXP,xexp2,YEXP,XX,                       &
-
-&	               IDSAT,IDG,ITEMP,NIDG,IDIDG,IDQ,IDALF,NIDALF,IDIDALF,IDENASS,NIDENASS,IDIDENASS,      &
-
-&	               IDRKASS,NIDRKASS,IDIDRKASS,DC,IOPT,NUMDC,IDDC,TSPLINE,numtc,idtc)
+SUBROUTINE WRITESAL1(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 	use dimensiones
+	use datos_ajuste, only: NC, W1, W2, W3, W4, W5, w6, W7, W8, W9, W10, W11, W12, w13, ISAT, IGLE, IVE, IUNI, &
+&	                    PRCRIT, TEMPCRIT, NSAT, IDC, NOBS, IHEN, mez, IFL, TEXP, PEXP, XEXP, xexp2, YEXP, IDSAT
+	use parametros_gca, only: NG, NU, QAREA, TSTR, GSTR, GDOT, GDDOT, RKIJ, RKTIJ, ALFAIJ, NGA, ONUASOC, MASSOC, &
+&	                    ENASS, RKASS, NNP, NNQ, NALFA, NENASS, NRKASS, TSAT, PSAT, IDG, ITEMP, NIDG, IDIDG, &
+&	                    IDQ, IDALF, NIDALF, IDIDALF, IDENASS, NIDENASS, IDIDENASS, IDRKASS, NIDRKASS, &
+&	                    IDIDRKASS, DC, NUMDC, IDDC, TSPLINE, numtc, idtc
 	use datos_ajuste, only: DHfu, Tfu, DCpfu, DVfu, TtrSS, DHss, Pfu
 	use utilidades, only: i2s, rep
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
-	
 !
-!	Dim. dispersion
-	DIMENSION NU(NGM,NCM), QAREA(NGM), TSTR(NGM), GSTR(NGM)
-	DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
-	DIMENSION ALFAIJ(NGM,NGM)
-	DIMENSION TSPLINE(NGM)
-!
-!	DIm. asociacion
-	DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
-	DIMENSION ONUASOC(12,NCM)
-!
-!	Dim diametro de esferas rigidas en el punto critico
-	DIMENSION DC(NCM)
-!
-!	Dim. ajuste de param
-	DIMENSION PARM(4)
-!
-	DIMENSION IDSAT(NCM)
-!
-	DIMENSION  TEMPCRIT(NCM), PRCRIT(NCM), TSAT(NCM), PSAT(NCM)
-	DIMENSION TEXP(NDM), PEXP(NDM), XEXP(NDM), YEXP(NDM), xexp2(NDM)
-!
-!	Dimensionamiento  nro. de datos de pvap comp puros
-	DIMENSION NSAT(NCM)
-!
-!	Dimensionamientos que tienen que ver con los datasets
-	DIMENSION IDC(NSetM,3),NOBS(NSetM),IHEN(NSetM), mez(NSetM)
-	DIMENSION NTEXT(NSetM,65)
-	DIMENSION IFL(NSetM)
-!
-!	ID ==> identificacion o identicos
-!	IDID ==> identificacion de identicos
-!
-!	Los parametros se identifican a traves de su naturaleza y de sus inidices
-	DIMENSION ITEMP(NPTIPOM)
-!	Identificacion (indices) de param gii o kij a ajust.
-	DIMENSION IDG(NPTIPOM,2)
-!	nro. de param. IDENTicos a c/gii o kij
-	DIMENSION NIDG(NPTIPOM)
-!	identificacion (indices) de IDENTicos a gii o kij
-	DIMENSION IDIDG(NIDM,2) !
-!
-!	           8 X 13 = 104
-!
-!	IDENTif param de area
-	DIMENSION IDQ(NPTIPOM)
-!
-!	Identif (indices) de parametros ALFAij
-	DIMENSION IDALF(NPTIPOM,2)
-!	Nro. de param. IDENTicos a c/alfaij
-	DIMENSION NIDALF(NPTIPOM)
-!	Identificacion (indices) de IDENTicos
-	DIMENSION IDIDALF(NIDM,2)
-!
-!	IDENTif (indices) de parametros ENASSijkl
-	DIMENSION IDENASS(NPTIPOM,4)
-!	Nro. de param. IDENTicos  a c/ENASSijkl
-	DIMENSION NIDENASS(NPTIPOM)
-!	IDENTif (indices) de IDENTicos a ENASSijkl
-	DIMENSION IDIDENASS(NIDM,4)
-!	Identif (indices) de param. RKASSijkl
-	DIMENSION IDRKASS(NPTIPOM,4)
-!	Nro. de param. identicos a c/RKASSijkl
-	DIMENSION NIDRKASS(NPTIPOM)
-!	Identif (indices) de identicos a c/RKASSijkl
-	DIMENSION IDIDRKASS(NIDM,4)
-!
-	DIMENSION IDDC(NPTIPOM)
-!
-	dimension idtc(NPTIPOM)
-!
-	DIMENSION XX(NPARM)
-!
+	DIMENSION PARM(4)                ! parámetros de ZXSSQ
+	DIMENSION NTEXT(NSetM,65)        ! título de cada conjunto de datos
+	DIMENSION XX(NPARM)              ! valores iniciales de los parámetros a ajustar
 	CHARACTER*9 FECHA,HORA
-	
-	
+!
 	OPEN(UNIT=1,STATUS='unknown',file='paraest.out',FORM='FORMATTED')
 !
 	WRITE(1,1) W1,W2,W3,W4,W5,w6,W7,W8,W9,W10,W11,W12,w13,PARM(1),PARM(2),IOPT
@@ -1236,81 +1034,18 @@ ENDsubroutine !FIN WRITESAL1
 !
 !	A esta altura npar es dato
 !
-SUBROUTINE MODIFPAR(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC,ENASS,RKASS,&
-&	                    W1,W2,W3,W4,W5,w6,W7,W8,NSIG,ISAT,IGLE,IVE,IUNI,NPRED,NNP,NNQ,NALFA,NENASS,NRKASS,   &
-&	                    NPAR,PARM,PRCRIT,TEMPCRIT,TSAT,PSAT,NSAT,IDC,NOBS,IHEN,mez,IFL,                      &
-&	                    NTEXT,TEXP,PEXP,XEXP,xexp2,YEXP,XXAUX,IDSAT,IDG,ITEMP,NIDG,IDIDG,                    &
-&	                    iDQ,IDALF,NIDALF,IDIDALF,IDENASS,NIDENASS,IDIDENASS,IDRKASS,NIDRKASS,IDIDRKASS,numtc,&
-&	                    idTc,NUMDC,IDDC,DC)
+SUBROUTINE MODIFPAR(XXAUX)
 	use dimensiones
+	use datos_ajuste, only: NC, W1, W2, W3, W4, W5, w6, W7, W8, ISAT, IGLE, IVE, IUNI, PRCRIT, TEMPCRIT, NSAT, &
+&	                    IDC, NOBS, IHEN, mez, IFL, TEXP, PEXP, XEXP, xexp2, YEXP, IDSAT
+	use parametros_gca, only: NG, NU, QAREA, TSTR, GSTR, GDOT, GDDOT, RKIJ, RKTIJ, ALFAIJ, NGA, ONUASOC, MASSOC, &
+&	                    ENASS, RKASS, NNP, NNQ, NALFA, NENASS, NRKASS, TSAT, PSAT, IDG, ITEMP, NIDG, IDIDG, &
+&	                    iDQ, IDALF, NIDALF, IDIDALF, IDENASS, NIDENASS, IDIDENASS, IDRKASS, NIDRKASS, &
+&	                    IDIDRKASS, numtc, idTc, NUMDC, IDDC, DC
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
 !
-!	Dim. dispersion
-	DIMENSION NU(NGM,NCM), QAREA(NGM), TSTR(NGM), GSTR(NGM)
-	DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
-	DIMENSION ALFAIJ(NGM,NGM)
-!
-!	Dim. asociacion
-      DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
-      DIMENSION ONUASOC(12,NCM)
-!
-!	Dim. ajuste de param.
-	DIMENSION PARM(4)
-	DIMENSION IDSAT(NCM)
-	DIMENSION TEMPCRIT(NCM), PRCRIT(NCM), TSAT(NCM), PSAT(NCM)
-	DIMENSION TEXP(NDM), PEXP(NDM), XEXP(NDM), YEXP(NDM),xexp2(NDM)
-!
-!	Dimensionamiento  nro. de datos de pvap comp puros
-	DIMENSION NSAT(NCM)
-!
-!	Dimensionamientos que tienen que ver con los datasets
-	DIMENSION IDC(NSetM,3),NOBS(NSetM),IHEN(NSetM), mez(NSetM)
-	DIMENSION NTEXT(NSetM,65)
-	DIMENSION IFL(NSetM)
-!
-!	ID ==> identificacion o identicos
-!	IDID ==> identificacion de identicos
-!
-!	Los parametros se identifican a traves de su naturaleza y de sus indices
-	DIMENSION ITEMP(NPTIPOM)
-!	Identificacion (indices) de param gii o kij a ajust.
-	DIMENSION IDG(NPTIPOM,2)
-!
-!	Nro. de param. IDENTicos a c/gii o kij
-	DIMENSION NIDG(NPTIPOM)
-!
-!	Identificacion (indices) de IDENTicos a gii o kij
-	DIMENSION IDIDG(NIDM,2)
-!
-!                8 X 13 = 104
-!
-!	IDENTif param de area
-	DIMENSION IDQ(NPTIPOM)
-!
-	DIMENSION IDALF(NPTIPOM,2) !identif (indices) de parametros ALFAij
-	DIMENSION NIDALF(NPTIPOM) !nro. de param. IDENTicos a c/alfaij
-	DIMENSION IDIDALF(NIDM,2) !identificacion (indices) de IDENTicos
-!
-	DIMENSION IDENASS(NPTIPOM,4) !IDENTif (indices) de parametros ENASSijkl
-	DIMENSION NIDENASS(NPTIPOM) !Nro. de param. IDENTicos  a c/ENASSijkl
-	DIMENSION IDIDENASS(NIDM,4) !IDENTif (indices) de IDENTicos a ENASSijkl
-!
-	DIMENSION IDRKASS(NPTIPOM,4) !Identif (indices) de param. RKASSijkl
-	DIMENSION NIDRKASS(NPTIPOM) !Nro. de param. identicos a c/RKASSijkl
-	DIMENSION IDIDRKASS(NIDM,4) !Identif (indices) de identicos a c/RKASSijkl
-!
-!
-!	Dimensionamiento diametro de esferas rigidas en el punto crit.
-	dimension idTc(NPTIPOM)
-	DIMENSION DC(NCM)
-	DIMENSION IDDC(NPTIPOM)
-!
-!	Parámetros siendo ajustados:
-	DIMENSION XXAUX(NPARM)
-!
-!	NPAR2 es una variable que tiene en cuenta el numero de parametros ya actualizados. Una vez que termina la ejecucion
-!	de este modulo NPAR2 debe ser igual a npar
+	DIMENSION XXAUX(NPARM)               ! valores de los parámetros que se ajustan
 !
 	NPAR2 = 0
 !
@@ -1537,7 +1272,8 @@ ENDsubroutine
 !
 SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	use dimensiones
-	use datos_ajuste, PSATu => PSAT   ! PSAT es también una subrutina que se llama acá
+	use datos_ajuste
+	use parametros_gca, PSATu => PSAT   ! PSAT es también una subrutina que se llama acá
 	use utilidades, only: i2s, rep
 	use escalado, only: XXDESSCAL
 !
@@ -1550,7 +1286,6 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !
 	DIMENSION XX(NPAR), FCION(NCXP)
 	DIMENSION XXAUX(NPARM)                 ! parámetros desescalados
-	DIMENSION PARM(4), NTEXT(NSetM,65)
 	DIMENSION stDvD(NSetM)
 	DIMENSION PM(NCM), WWPM(2)
 !	Trabajo para el cálculo de propiedades de compuestos puros
@@ -1572,17 +1307,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !
 !	Modificacion de los parametros en base a los nuevos valores de los mismos, que entraron escalados en en
 !	el vector XX, y se se encuentran libres de escalamiento en el vector XXAUX
- 	CALL MODIFPAR(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC,ENASS,RKASS,&
-
-&	              W1,W2,W3,W4,W5, w6,W7,W8,NSIG,ISAT,IGLE,IVE,IUNI,NPRED,NNP,NNQ,NALFA,NENASS,NRKASS,  &
-
-&	              NPAR,PARM,PRCRIT,TEMPCRIT,TSAT,PSATu,NSAT,IDC,NOBS,IHEN,mez,IFL,                     &
-
-&	              NTEXT,TEXP,PEXP,XEXP,xexp2,YEXP,XXAUX,IDSAT,IDG,ITEMP,NIDG,IDIDG,                    &
-
-&	              iDQ,IDALF,NIDALF,IDIDALF,IDENASS,NIDENASS,IDIDENASS,IDRKASS,NIDRKASS,IDIDRKASS,numtc,&
-
-&	              idTc,NUMDC,IDDC,DC)
+	CALL MODIFPAR(XXAUX)
 !
 !
 !	********************************Comienza evaluacion de FCION****************************************
@@ -2732,66 +2457,24 @@ END !FIN WRITESTAT
 !	modelo GCA-EoS, sea con los parámetros ingresados o el resultado final del ajuste.
 !	Escribe datos archivo de salida paraest.out
 !
-SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASOC,MASSOC,ENASS,RKASS,&
-
-&	               ISAT,IGLE,IVE,IUNI,TSAT,PSAT,NSAT,IDC,NOBS,IHEN,mez,IFL,NTEXT,                       &
-
-&	               TEXP,PEXP,XEXP,xexp2,YEXP,yExp2,IDSAT,DC,tempcrit,XCALC,YCALC,xCalc2,yCalc2,ZLCALC,ZVCalc,FCAUX,PCALC,  &
-
-&                    IOBJSAT,FCAUX2,fcaux3,STDVA,STDVB,stdvc,stDvD,rgamcalc1, rgamcalc2,rgamcalc3,numTc,idTc,   &
-&	               NUMDC,IDDC,TSPLINE,rgamexp1, rgamexp2,rgamexp3,zLicalc,prop_E_calc,prop_E_exp, DHVL)
+SUBROUTINE WRITESAL2(NTEXT,stDvD)
 	use dimensiones
+	use datos_ajuste, only: NC, ISAT, IGLE, IVE, IUNI, NSAT, IDC, NOBS, IHEN, mez, IFL, TEXP, PEXP, XEXP, xexp2, &
+&	                    YEXP, yExp2, IDSAT, tempcrit, XCALC, YCALC, xCalc2, yCalc2, ZLCALC, ZVCalc, FCAUX, &
+&	                    PCALC, IOBJSAT, FCAUX2, fcaux3, STDVA, STDVB, stdvc, rgamcalc1, rgamcalc2, rgamcalc3, &
+&	                    rgamexp1, rgamexp2, rgamexp3, zLicalc, prop_E_calc, prop_E_exp, DHVL
+	use parametros_gca, only: NG, NU, QAREA, TSTR, GSTR, GDOT, GDDOT, RKIJ, RKTIJ, ALFAIJ, NGA, ONUASOC, MASSOC, &
+&	                    ENASS, RKASS, TSAT, PSAT, DC, numTc, idTc, NUMDC, IDDC, TSPLINE
 	use utilidades, only: i2s, rep
 	use estadistica, only: AAD, ARD, ASD, RSD
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
-	
+!
 	character(1) :: tab = achar(9)
 	character(2) :: binary_number
-!    integer      :: ks = 0
-!
-!	Dim. dispersion
-	DIMENSION NU(NGM,NCM), QAREA(NGM), TSTR(NGM), GSTR(NGM)
-	DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
-	DIMENSION ALFAIJ(NGM,NGM)
-	DIMENSION TSPLINE(NGM)
-!
-!	Dim. asociacion
-	DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
-	DIMENSION ONUASOC(12,NCM)
-!
-!	Dim diametro de esferas rigidas en el punto critico
-	DIMENSION DC(NCM), IDSAT(NCM), TSAT(NCM), PSAT(NCM),tempcrit(NCM)
-	DIMENSION TEXP(NDM), PEXP(NDM), XEXP(NDM), YEXP(NDM), xexp2(NDM),yExp2(NDM)
-	dimension rgamexp1(NDM),rgamexp2(NDM),rgamexp3(NDM)
-!
-!	Dimensionamiento  nro. de datos de pvap comp puros
-	DIMENSION NSAT(NCM)
-	DIMENSION IOBJSAT(NCM)
-!
-!	Dimensionamientos que tienen que ver con los datasets
-	DIMENSION IDC(NSetM,3),NOBS(NSetM),IHEN(NSetM),mez(NSetM)
-	DIMENSION NTEXT(NSetM,65)
-	DIMENSION IFL(NSetM)
-!
-	DIMENSION PCALC(NDM), DHVL(NDM), XCALC(NDM), YCALC(NDM),xCalc2(NDM),yCalc2(NDM)
-	DIMENSION  ZLCALC(NDM), ZVCALC(NDM)
-	dimension rgamcalc1(NDM),rgamcalc2(NDM),rgamcalc3(NDM)
- 	dimension zlicalc(NDM)
-	dimension prop_E_calc(NDM),prop_E_exp(NDM)
-!
-	DIMENSION FCAUX(NDM)
-	DIMENSION FCAUX2(NDM)
-	DIMENSION FCAUX3(NDM)
-!
-!	Dimensionamiento de la desviacion standar para las comp puros
-	DIMENSION STDVSAT(NCM)
-!
-!	Dimensionamiento desviaciones standar para mezclas
-	DIMENSION STDVA(NSetM),STDVB(NSetM),STDVC(NSetM),stDvD(NSetM)
-!
-!	Dimensionamiento arreglo de identificacion de param. dc considerados como simples variables de optimizcion
-	DIMENSION IDDC(NPTIPOM),idTc(NPTIPOM)
+	DIMENSION NTEXT(NSetM,65)        ! título de cada conjunto de datos
+	DIMENSION STDVSAT(NCM)           ! desviación estándar de los componentes puros
+	DIMENSION stDvD(NSetM)           ! desviaciones estándar de las mezclas
 !
 	OPEN (UNIT = 1, STATUS='OLD', file = 'paraest.out', FORM = 'FORMATTED', POSITION='APPEND')
 	open (unit = 2, file = "tables.csv", form = "formatted")

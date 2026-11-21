@@ -27,7 +27,8 @@ PRINCIPAL    = src/principal/dimensiones.f90             \
 
 OPTIMIZACION = src/optimizacion/zxssq.f90
 
-MODELOS      = src/modelos/gca.f90                       \
+MODELOS      = src/modelos/parametros_gca.f90            \
+               src/modelos/gca.f90                       \
                src/modelos/gca_assoc.f90                 \
                src/modelos/gca_assoc_fev.f90             \
                src/modelos/gca_assoc_rutin_puros.f90     \
@@ -99,10 +100,14 @@ $(DBGDIR)/%.o: %.f90 | $(DBGDIR)
 $(OBJDIR) $(DBGDIR):
 	mkdir -p $@
 
-# El programa usa estos módulos: si cambia alguno, paraest.f90 se recompila.
-MODULOS = dimensiones datos_ajuste estadistica escalado utilidades
-$(OBJDIR)/paraest.o: $(addprefix $(OBJDIR)/,$(addsuffix .o,$(MODULOS)))
-$(DBGDIR)/paraest.o: $(addprefix $(DBGDIR)/,$(addsuffix .o,$(MODULOS)))
+# Dependencias entre módulos: si cambia uno, se recompila lo que lo usa
+# (y make lo compila antes).
+MODULOS = dimensiones datos_ajuste parametros_gca estadistica escalado utilidades
+dep = $(addprefix $(1)/,$(addsuffix .o,$(2)))
+$(OBJDIR)/paraest.o: $(call dep,$(OBJDIR),$(MODULOS))
+$(DBGDIR)/paraest.o: $(call dep,$(DBGDIR),$(MODULOS))
+$(OBJDIR)/datos_ajuste.o $(OBJDIR)/parametros_gca.o $(OBJDIR)/escalado.o: $(OBJDIR)/dimensiones.o
+$(DBGDIR)/datos_ajuste.o $(DBGDIR)/parametros_gca.o $(DBGDIR)/escalado.o: $(DBGDIR)/dimensiones.o
 
 # Prueba de regresión: corre el caso de paraest.dat en pruebas/tmp/
 # y compara la salida con pruebas/referencia/.

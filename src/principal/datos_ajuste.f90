@@ -4,30 +4,17 @@
 !  necesita en cada evaluación. ZXSSQ llama a FUNC solo con (XX, NCXP, NPAR,
 !  FCION), así que el resto le llega por acá.
 !
-!  Reemplaza a los COMMON /FORFUNC/ ... /forFunc6/ e /IDSC/.
+!  Aquí va lo que no depende del modelo; lo propio del GCA está en el módulo
+!  parametros_gca.
 !
 !--------------------------------------------------------------------------------------------------------------------------
 module datos_ajuste
-  use dimensiones, only: NCM, NGM, NDM, NSetM, NPTIPOM, NIDM, NPARM
+  use dimensiones, only: NCM, NDM, NSetM, NPARM
   implicit none
 
-  ! --- Sistema ------------------------------------------------------------
-  integer :: NC, NG, NGA                   ! componentes, grupos, grupos asociativos
-  integer :: NU(NGM,NCM)                   ! grupos de cada componente
-
-  ! --- Parámetros dispersivos (por grupo y por par de grupos) -------------
-  double precision :: QAREA(NGM), TSTR(NGM), GSTR(NGM), GDOT(NGM), GDDOT(NGM), TSPLINE(NGM)
-  double precision :: RKIJ(NGM,NGM), RKTIJ(NGM,NGM), ALFAIJ(NGM,NGM)
-
-  ! --- Parámetros asociativos ---------------------------------------------
-  integer :: MASSOC(12)
-  double precision :: ENASS(6,12,6,12), RKASS(6,12,6,12)
-  double precision :: ONUASOC(12,NCM)
-
   ! --- Componentes puros --------------------------------------------------
-  double precision :: DC(NCM), PRCRIT(NCM), TEMPCRIT(NCM)
-  double precision :: TSAT(NCM), PSAT(NCM)          ! punto de presión de vapor para ajustar dc
-  double precision :: PSTCLC(NCM)                   ! presión de vapor calculada a TSAT
+  integer :: NC                                     ! número de componentes
+  double precision :: PRCRIT(NCM), TEMPCRIT(NCM)
   integer :: NSAT(NCM), IDSAT(NCM), IOBJSAT(NCM)
   ! Datos de fusión y transición sólido-sólido (equilibrio sólido-líquido)
   double precision :: DHfu(NCM), Tfu(NCM), DCpfu(NCM), DVfu(NCM), Pfu(NCM), TtrSS(NCM), DHss(NCM)
@@ -51,16 +38,7 @@ module datos_ajuste
   double precision :: rGamCalc1(NDM), rGamCalc2(NDM), rGamCalc3(NDM), prop_E_calc(NDM)
   double precision :: FCAUX(NDM), FCAUX2(NDM), FCAUX3(NDM)
 
-  ! --- Parámetros a ajustar -----------------------------------------------
-  ! Cantidad de cada tipo
-  integer :: NNP, NNQ, NALFA, NENASS, NRKASS, numTc, numDC
-  ! g_ii / k_ij: índices, cuántos idénticos tiene cada uno y cuáles son
-  integer :: IDG(NPTIPOM,2), ITEMP(NPTIPOM), NIDG(NPTIPOM), IDIDG(NIDM,2)
-  integer :: IDQ(NPTIPOM)                                                     ! áreas
-  integer :: IDALF(NPTIPOM,2), NIDALF(NPTIPOM), IDIDALF(NIDM,2)               ! alfa
-  integer :: IDENASS(NPTIPOM,4), NIDENASS(NPTIPOM), IDIDENASS(NIDM,4)         ! energía asoc.
-  integer :: IDRKASS(NPTIPOM,4), NIDRKASS(NPTIPOM), IDIDRKASS(NIDM,4)         ! volumen asoc.
-  integer :: idTc(NPTIPOM), IDDC(NPTIPOM)                                     ! Tc y dc
-  integer :: IDXX(NPARM)                   ! tipo de cada parámetro (ver módulo escalado)
+  ! --- Tipo de cada parámetro a ajustar (ver módulo escalado) -------------
+  integer :: IDXX(NPARM)
 
 endmodule datos_ajuste
