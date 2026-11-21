@@ -1,0 +1,214 @@
+!--------------------------------------------------------------------------------------------------------------------------
+!
+!  Module scaling: transformation between the model parameters and the
+!  variables seen by the optimizer.
+!
+!    XXSCAL:   parameters -> scaled variables (before optimizing)
+!    XXUNSCAL: scaled variables -> parameters (at each evaluation)
+!
+!  The type of each parameter is in IDXX (set by set_param_types):
+!     1  g*  (g_ii)            2  k*  (k_ij)          3  g' (or k' if inIJ)
+!     4  Q (area)              5  alpha               6  association energy
+!     7  association volume    8  Tc                  9  dc
+!    10  g"
+!
+!  Bounded parameters are scaled with fScld: scl*log((x - vMin)/(vMax - x)).
+!
+!--------------------------------------------------------------------------------------------------------------------------
+module scaling
+  use dimensions, only: NPARM
+  implicit none
+  private
+  public :: XXSCAL, XXUNSCAL, fScld, fUnscld
+  public :: inIJ, dc_mean, error_Dc
+
+  ! Scaling factors (scl) of each parameter type.
+  ! Note: since the step of ZXSSQ's numerical derivatives is almost fixed in
+  ! the scaled variable, these factors set in practice that step in the
+  ! original variable (step in log(...) ~ 4e-10/scl).
+  double precision, parameter :: fGgg   = 1D-10
+  double precision, parameter :: fRkij  = 1D-7
+  double precision, parameter :: fTemp  = 1D-7
+  double precision, parameter :: fQarea = 1D0
+  double precision, parameter :: fAlfa  = 1D-7
+  double precision, parameter :: fEnAss = 1D-6
+  double precision, parameter :: fRkass = 1D-8
+  double precision, parameter :: fTc    = 1D-8
+  double precision, parameter :: fDc    = 2D-7
+
+  ! Bounds of the bounded parameters.
+  double precision, parameter :: vMinKstr = 0.2D0, vMaxKstr = 30D0   ! k*
+  double precision, parameter :: vMaxKp   = 9D0                      ! k' between -vMaxKp and vMaxKp
+  double precision, parameter :: vMinGp   = -2D0, vMaxGp = 2D0       ! g' between -vMaxGp and -vMinGp
+  double precision, parameter :: vMaxAlfa = 29D0                     ! alpha between -vMaxAlfa and vMaxAlfa
+  double precision, parameter :: vMaxRkass = 20D0                    ! assoc. volume between 0 and vMaxRkass
+
+  ! Minimum relative distance to the bounds: the logarithm never gets 0.
+  double precision, parameter :: margin = 1D-10
+
+  ! inIJ(i): parameter i of type 3 is a k' (i-j interaction), not a g'.
+  logical :: inIJ(NPARM) = .false.
+
+  ! dc: each one moves within dc_mean(i) +- error_Dc(i) (set by read_input).
+  double precision :: dc_mean(NPARM) = 0D0, error_Dc(NPARM) = 0D0
+
+contains
+
+!--------------------------------------------------------------------------------------------------------------------------
+!
+!  Transforms the values of XX with the scaling factors.
+!
+!  boundFrac: fraction of the interval of each bounded parameter left free
+!  next to the bounds (see fScld). 0 in prediction, 1e-3 in a fit.
+!
+subroutine XXSCAL(NPAR, XX, IDXX, boundFrac)
+  integer, intent(in) :: NPAR, IDXX(NPAR)
+  double precision, intent(inout) :: XX(NPAR)
+  double precision, intent(in) :: boundFrac
+  integer :: i
+
+  do i = 1, NPAR
+    select case (IDXX(i))
+    case (1)
+      XX(i) = fGgg*XX(i)
+    case (2)
+      XX(i) = fScld(XX(i), fRkij, vMinKstr, vMaxKstr, boundFrac)
+    case (3)
+      if (inIJ(i)) then
+        XX(i) = fScld(XX(i), fTemp, -vMaxKp, vMaxKp, boundFrac)
+      else
+        XX(i) = fScld(XX(i), fTemp, -vMaxGp, -vMinGp, boundFrac)
+      endif
+    case (4)
+      XX(i) = fQarea*XX(i)
+    case (5)
+      XX(i) = fScld(XX(i), fAlfa, -vMaxAlfa, vMaxAlfa, boundFrac)
+    case (6)
+      ! Logarithmic: it has only a lower bound (0). max avoids the log of 0
+      ! or of a negative number. In a fit, at least 1 K (negligible against
+      ! typical values of 1000-3000 K): from 0 it could not move.
+      if (boundFrac > 0D0) then
+        XX(i) = fEnAss*dlog(max(XX(i), 1D0))
+      else
+        XX(i) = fEnAss*dlog(max(XX(i), tiny(1D0)))
+      endif
+    case (7)
+      XX(i) = fScld(XX(i), fRkass, 0D0, vMaxRkass, boundFrac)
+    case (8)
+      XX(i) = fTc*XX(i)
+    case (9)
+      XX(i) = fScld(XX(i), fDc, dc_mean(i) - error_Dc(i), dc_mean(i) + error_Dc(i), boundFrac)
+    case (10)
+      XX(i) = fTemp*XX(i)       ! g": no bounds for now
+    endselect
+  enddo
+endsubroutine XXSCAL
+
+!--------------------------------------------------------------------------------------------------------------------------
+!
+!  Inverse transformation of XX, with the result in XXAUX. XX is not
+!  changed: FUNC must not alter the values ZXSSQ passes to it.
+!
+subroutine XXUNSCAL(NPAR, XX, IDXX, XXAUX)
+  integer, intent(in) :: NPAR, IDXX(NPAR)
+  double precision, intent(in) :: XX(NPAR)
+  double precision, intent(out) :: XXAUX(NPAR)
+  integer :: i
+
+  do i = 1, NPAR
+    select case (IDXX(i))
+    case (1)
+      XXAUX(i) = XX(i)/fGgg
+    case (2)
+      XXAUX(i) = fUnscld(XX(i), fRkij, vMinKstr, vMaxKstr)
+    case (3)
+      if (inIJ(i)) then
+        XXAUX(i) = fUnscld(XX(i), fTemp, -vMaxKp, vMaxKp)
+      else
+        XXAUX(i) = fUnscld(XX(i), fTemp, -vMaxGp, -vMinGp)
+      endif
+    case (4)
+      XXAUX(i) = XX(i)/fQarea
+    case (5)
+      XXAUX(i) = fUnscld(XX(i), fAlfa, -vMaxAlfa, vMaxAlfa)
+      ! An alpha right on the bound is moved away slightly (1e-8 relative).
+      if (vMaxAlfa - dabs(XXAUX(i)) < 1D-8) XXAUX(i) = sign((1D0 - 1D-8)*vMaxAlfa, XXAUX(i))
+    case (6)
+      XXAUX(i) = dexp(min(XX(i)/fEnAss, log(huge(1D0))))   ! min: exp does not overflow
+    case (7)
+      XXAUX(i) = fUnscld(XX(i), fRkass, 0D0, vMaxRkass)
+      ! Same as alpha: not left right on the upper bound.
+      if (dabs(vMaxRkass - XXAUX(i)) < 1D-8) XXAUX(i) = (1D0 - 1D-8)*vMaxRkass
+    case (8)
+      XXAUX(i) = XX(i)/fTc
+    case (9)
+      XXAUX(i) = fUnscld(XX(i), fDc, dc_mean(i) - error_Dc(i), dc_mean(i) + error_Dc(i))
+    case (10)
+      XXAUX(i) = XX(i)/fTemp
+    case default
+      XXAUX(i) = XX(i)
+    endselect
+  enddo
+endsubroutine XXUNSCAL
+
+!--------------------------------------------------------------------------------------------------------------------------
+!
+!  Scaling of a bounded variable.
+!
+!  vMin and vMax are the minimum and maximum values x can take.
+!  scl stretches or compresses the returned value (see the note on the
+!  factors).
+!
+!  So that it never raises an exception (log of 0 or of a negative number),
+!  x is first brought inside the interval, at a relative distance "margin"
+!  from the bounds. So it does not matter whether the initial value is right
+!  on a bound (for instance kappa = 0) or rounding leaves it on the bound or
+!  outside.
+!
+!  frac is the fraction of the interval left free next to each bound, if it
+!  is larger than that margin. A fit uses frac = 1e-3: on the bound the
+!  derivative is almost zero and the optimizer would not move the
+!  parameter. In prediction frac = 0 (the given value is kept).
+!
+double precision function fScld(x, scl, vMin, vMax, frac)
+  double precision, intent(in) :: x, scl, vMin, vMax, frac
+  double precision :: d, xin
+
+  d = max(frac, margin)*(vMax - vMin)
+  xin = min(max(x, vMin + d), vMax - d)
+  fScld = scl*dlog((xin - vMin)/(vMax - xin))
+endfunction fScld
+
+!--------------------------------------------------------------------------------------------------------------------------
+!
+!  Unscaling: inverse of fScld.
+!
+!  It is computed in two ways depending on the sign of x/scl, so that the
+!  exponential always has an argument <= 0: it never overflows (with a very
+!  small scl, exp(x/scl) gave infinity, and then infinity/infinity = NaN).
+!  The result is always between vMin and vMax.
+!
+!  fScld moves x away from the bounds by a relative margin; if the result
+!  falls within that margin (twice, for rounding), the bound itself is
+!  returned. So a value given right on the bound (for instance kappa = 0)
+!  comes back unchanged, and the user does not see the margin.
+!
+double precision function fUnscld(x, scl, vMin, vMax)
+  double precision, intent(in) :: x, scl, vMin, vMax
+  double precision :: t, ex, d
+
+  t = x/scl
+  if (t >= 0D0) then
+    ex = dexp(-t)
+    fUnscld = (vMin*ex + vMax)/(1D0 + ex)
+  else
+    ex = dexp(t)
+    fUnscld = (vMin + vMax*ex)/(1D0 + ex)
+  endif
+
+  d = 2D0*margin*(vMax - vMin)
+  if (fUnscld - vMin <= d) fUnscld = vMin
+  if (vMax - fUnscld <= d) fUnscld = vMax
+endfunction fUnscld
+
+endmodule scaling

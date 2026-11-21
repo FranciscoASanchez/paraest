@@ -1,112 +1,112 @@
 # =============================================================================
-#  Makefile de paraest
+#  paraest makefile
 #
-#  Uso:
-#     make                    compila optimizado con ifx  -> paraest.x
-#     make FC=gfortran        compila optimizado con gfortran
-#     make debug              compila con verificaciones -> debug.paraest.x
-#     make prueba             compila, corre paraest.dat y compara con la referencia
-#     make clean              borra objetos y ejecutables
+#  Usage:
+#     make                    optimized build with ifx       -> paraest.x
+#     make FC=gfortran        optimized build with gfortran
+#     make debug              build with run-time checks     -> debug.paraest.x
+#     make test               build and run the regression tests
+#     make clean              remove objects and executables
 #
-#  Los objetos se guardan en obj/<compilador>/ (o debug/<compilador>/), así
-#  ifx y gfortran no se mezclan.
+#  Objects go to obj/<compiler>/ (or debug/<compiler>/), so ifx and
+#  gfortran objects never mix.
 # =============================================================================
 
-# make trae FC=f77 predefinido; si nadie eligió compilador, usamos ifx.
+# make predefines FC=f77; if nobody chose a compiler, use ifx.
 ifeq ($(origin FC),default)
   FC = ifx
 endif
 
-# --- Archivos fuente, por capa ----------------------------------------------
-PRINCIPAL    = src/principal/dimensiones.f90             \
-               src/principal/datos_ajuste.f90            \
-               src/principal/estadistica.f90             \
-               src/principal/escalado.f90                \
-               src/principal/utilidades.f90              \
-               src/principal/paraest.f90
+# --- Source files, by layer -------------------------------------------------
+MAIN         = src/main/dimensions.f90                   \
+               src/main/fit_data.f90                     \
+               src/main/statistics.f90                   \
+               src/main/scaling.f90                      \
+               src/main/utilities.f90                    \
+               src/main/paraest.f90
 
-OPTIMIZACION = src/optimizacion/zxssq.f90
+OPTIMIZATION = src/optimization/zxssq.f90
 
-MODELOS      = src/modelos/parametros_gca.f90            \
-               src/modelos/fugacity.f90                  \
-               src/modelos/fit_dc.f90                    \
-               src/modelos/spline_temperature.f90        \
-               src/modelos/gca.f90
+MODELS       = src/models/gca_parameters.f90             \
+               src/models/fugacity.f90                   \
+               src/models/fit_dc.f90                     \
+               src/models/spline_temperature.f90         \
+               src/models/gca.f90
 
-EQUILIBRIO   = src/equilibrio/gc3_flash.f90              \
-               src/equilibrio/isofugacity.f90            \
-               src/equilibrio/gcdba.f90                  \
-               src/equilibrio/gcxs.f90                   \
-               src/equilibrio/gcsle.f90                  \
-               src/equilibrio/pcrit_semiimplicito.f90
+EQUILIBRIUM  = src/equilibrium/gc3_flash.f90             \
+               src/equilibrium/isofugacity.f90           \
+               src/equilibrium/gcdba.f90                 \
+               src/equilibrium/gcxs.f90                  \
+               src/equilibrium/gcsle.f90                 \
+               src/equilibrium/pcrit_semi_implicit.f90
 
-# Orden de compilación: primero lo que define módulos, al final el programa.
-FUENTES = $(OPTIMIZACION) $(MODELOS) $(EQUILIBRIO) $(PRINCIPAL)
+# Build order: modules first, the main program last.
+SOURCES = $(OPTIMIZATION) $(MODELS) $(EQUILIBRIUM) $(MAIN)
 
-# --- Opciones de cada compilador --------------------------------------------
+# --- Compiler options -------------------------------------------------------
 ifeq ($(FC),gfortran)
-  OPT   = -O2
-  DEBUG = -g -O0 -fbacktrace -fcheck=all -ffpe-trap=invalid,zero,overflow -Wall
-  COMUN = -std=legacy -ffree-line-length-none
-  MODS  = -J
+  OPT    = -O2
+  DEBUG  = -g -O0 -fbacktrace -fcheck=all -ffpe-trap=invalid,zero,overflow -Wall
+  COMMON = -std=legacy -ffree-line-length-none
+  MODS   = -J
 else
-  OPT   = -O3
-  DEBUG = -g -O0 -traceback -debug extended -fpe0 -check all,noarg_temp_created -warn
-  COMUN = -diag-disable=remark
-  MODS  = -module
+  OPT    = -O3
+  DEBUG  = -g -O0 -traceback -debug extended -fpe0 -check all,noarg_temp_created -warn
+  COMMON = -diag-disable=remark
+  MODS   = -module
 endif
 
-# --- Derivados (no hace falta tocar de acá para abajo) ----------------------
+# --- Derived (nothing to change below this line) ----------------------------
 COMP     = $(notdir $(FC))
 OBJDIR   = obj/$(COMP)
 DBGDIR   = debug/$(COMP)
-objs     = $(addprefix $(1)/,$(addsuffix .o,$(basename $(notdir $(FUENTES)))))
-OBJETOS  = $(call objs,$(OBJDIR))
+objs     = $(addprefix $(1)/,$(addsuffix .o,$(basename $(notdir $(SOURCES)))))
+OBJECTS  = $(call objs,$(OBJDIR))
 OBJDEBUG = $(call objs,$(DBGDIR))
 
-vpath %.f90 src/principal src/optimizacion src/modelos src/equilibrio
+vpath %.f90 src/main src/optimization src/models src/equilibrium
 
-.PHONY: all debug prueba clean
+.PHONY: all debug test clean
 all: paraest.x
 
-# El "sello" obj/.compilador-<comp> recuerda con qué compilador se armaron
-# los ejecutables: al cambiar de compilador se borra el sello viejo y se crea
-# uno nuevo, más reciente que paraest.x, y así el ejecutable se vuelve a armar.
-SELLO    = obj/.compilador-$(COMP)
+# The stamp obj/.compiler-<comp> remembers which compiler built the
+# executables: when the compiler changes, the old stamp is removed and a new
+# one, newer than paraest.x, is created, so the executable is relinked.
+STAMP    = obj/.compiler-$(COMP)
 
-paraest.x: $(OBJETOS) $(SELLO)
-	$(FC) $(OPT) -o $@ $(OBJETOS)
+paraest.x: $(OBJECTS) $(STAMP)
+	$(FC) $(OPT) -o $@ $(OBJECTS)
 
 debug: debug.paraest.x
-debug.paraest.x: $(OBJDEBUG) $(SELLO)
+debug.paraest.x: $(OBJDEBUG) $(STAMP)
 	$(FC) $(DEBUG) -o $@ $(OBJDEBUG)
 
-$(SELLO):
+$(STAMP):
 	mkdir -p obj
-	rm -f obj/.compilador-*
+	rm -f obj/.compiler-* obj/.compilador-*
 	touch $@
 
 $(OBJDIR)/%.o: %.f90 | $(OBJDIR)
-	$(FC) $(COMUN) $(OPT) $(MODS) $(OBJDIR) -c $< -o $@
+	$(FC) $(COMMON) $(OPT) $(MODS) $(OBJDIR) -c $< -o $@
 $(DBGDIR)/%.o: %.f90 | $(DBGDIR)
-	$(FC) $(COMUN) $(DEBUG) $(MODS) $(DBGDIR) -c $< -o $@
+	$(FC) $(COMMON) $(DEBUG) $(MODS) $(DBGDIR) -c $< -o $@
 
 $(OBJDIR) $(DBGDIR):
 	mkdir -p $@
 
-# Dependencias entre módulos: si cambia uno, se recompila lo que lo usa
-# (y make lo compila antes).
-MODULOS = dimensiones datos_ajuste parametros_gca estadistica escalado utilidades
+# Module dependencies: when a module changes, whatever uses it is rebuilt
+# (and make builds the module first).
+MODULES = dimensions fit_data gca_parameters statistics scaling utilities
 dep = $(addprefix $(1)/,$(addsuffix .o,$(2)))
-$(OBJDIR)/paraest.o: $(call dep,$(OBJDIR),$(MODULOS))
-$(DBGDIR)/paraest.o: $(call dep,$(DBGDIR),$(MODULOS))
-$(OBJDIR)/datos_ajuste.o $(OBJDIR)/parametros_gca.o $(OBJDIR)/escalado.o: $(OBJDIR)/dimensiones.o
-$(DBGDIR)/datos_ajuste.o $(DBGDIR)/parametros_gca.o $(DBGDIR)/escalado.o: $(DBGDIR)/dimensiones.o
+$(OBJDIR)/paraest.o: $(call dep,$(OBJDIR),$(MODULES))
+$(DBGDIR)/paraest.o: $(call dep,$(DBGDIR),$(MODULES))
+$(OBJDIR)/fit_data.o $(OBJDIR)/gca_parameters.o $(OBJDIR)/scaling.o: $(OBJDIR)/dimensions.o
+$(DBGDIR)/fit_data.o $(DBGDIR)/gca_parameters.o $(DBGDIR)/scaling.o: $(DBGDIR)/dimensions.o
 
-# Prueba de regresión: corre el caso de paraest.dat en pruebas/tmp/
-# y compara la salida con pruebas/referencia/.
-prueba: paraest.x
-	./pruebas/regresion.sh ./paraest.x
+# Regression tests: every case in tests/cases/ runs in tests/tmp/ and its
+# output is compared with the case's reference/ directory.
+test: paraest.x
+	./tests/regression.sh ./paraest.x
 
 clean:
 	rm -rf obj debug paraest.x debug.paraest.x

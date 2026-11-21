@@ -1,0 +1,216 @@
+
+  Weights in the objective function:
+ Weight of vapor pressures:                           3.0000
+ Weight of bubble pressure of binary mixtures:        1.0000
+ Weight of bubble temperature of binary mixtures:     1.0000
+ Weight of composition of comp. 1 in phase II:        1.0000
+ Weight of composition of comp. 1 in phase I:         1.0000
+ Weight of composition of comp. 2 in phase I:         1.0000 (ternary mixtures only)
+ Weight of composition of comp. 2 in phase II:        1.0000 (ternary mixtures only)
+ Weight of activity coefficient of comp. 1:           1.0000
+ Weight of activity coefficient of comp. 2:           1.0000
+ Weight of activity coefficient of comp. 3:           1.0000 (ternary mixtures only)
+ Weight of excess volume:                             0.0100
+ Weight of excess enthalpy:                           0.1000
+ Weight of solid solubility:                          1.0000
+  PARM(1) =     1.0000     PARM(2) =     2.0000
+  Optimization algorithm: IOPT =   2
+
+  Ratio between g*(i,i) and g(i,i) at which the 
+  spline is made = 4 
+
+ --------------------------------------------------
+ --------------- INITIAL PARAMETERS ---------------
+ --------------------------------------------------
+  Pure-group parameters (dispersive term)
+
+                                        COMPONENTS
+  Gr.No.:   T*        Q        TSPLINE   1  2  3  4
+
+   1       647.1300    0.8660 0.2324E+04  1  0  0  0
+   2       600.0000    0.8480 0.1085E+04  0  2  2  2
+   3       600.0000    0.5400 0.1114E+04  0  2  3  6
+
+  Interaction energies gjj 
+ (the functional form changes at high temperatures)
+
+  g( 1 1) =   699570.9 * [ 1 +    -0.5021 *(T/T* - 1) +     0.4309 *LN(T/T*)] 
+
+  g( 2 2) =   316910.0 * [ 1 +    -0.9274 *(T/T* - 1) +     0.0000 *LN(T/T*)] 
+
+  g( 3 3) =   356080.0 * [ 1 +    -0.8755 *(T/T* - 1) +     0.0000 *LN(T/T*)] 
+
+
+  Binary parameters: [k*] 
+
+     1.0000    1.0000    1.0000
+     1.0000    1.0000    1.0000
+     1.0000    1.0000    1.0000
+
+  Temperature dependence: [k`] 
+
+     0.0000    0.0000    0.0000
+     0.0000    0.0000    0.0000
+     0.0000    0.0000    0.0000
+
+  Binary non-randomness parameters: [alpha] 
+
+     0.0000    0.0000    0.0000
+     0.0000    0.0000    0.0000
+     0.0000    0.0000    0.0000
+
+  Number of groups in the association contribution =   1
+
+  Association parameters 
+                       Components
+ Group 	  # Assoc sites    1    2    3    4
+
+     1           2       2.00 0.00 0.00 0.00
+
+ Association energy parameters (K)  
+
+  ENASS( 1 1  1 1)  =     0.0000
+  ENASS( 1 1  2 1)  =  2350.0000
+  ENASS( 2 1  1 1)  =  2350.0000
+  ENASS( 2 1  2 1)  =     0.0000
+
+ Association volume parameters (cm3/mol) 
+
+  RKASS( 1 1  1 1) =     0.0000000000
+  RKASS( 1 1  2 1) =     0.3787000000
+  RKASS( 2 1  1 1) =     0.3787000000
+  RKASS( 2 1  2 1) =     0.0000000000
+
+ Pure-component data
+
+    Tc/K      Pc/atm    Tsat/K    Psat/atm    dc/(cm/mol^(1/3)) Tfus/K DHfus/(J/mol) DCpfus/(J/molK) Ttr/K DHtr/(J/mol) DVfus/(cm3/mol) Pfus/atm
+  (initial dc estimated from the exptl. critical point, or given) 
+
+  647.13     220.5600     0.00    0.000           2.5800        273.15    6000.            0.0        0.00    0.000        0.000        0.000    
+  425.12      37.4640   273.15    1.020           4.3666          0.00    0.000            0.0        0.00    0.000        0.000        0.000    
+  469.70      33.2590   309.20    1.000           4.6970          0.00    0.000            0.0        0.00    0.000        0.000        0.000    
+  568.70      24.5740   398.84   0.9999           5.5375          0.00    0.000            0.0        0.00    0.000        0.000        0.000    
+
+  Parameters to estimate 
+
+ Parameters gii or kij 
+   1  1
+  Temperature dependence 
+   2
+  Number of identical par. 
+   0
+  Identical parameters 
+
+  Initial values of the fitted parameters 
+   964720.0000      -1.0656       0.8884
+
+
+  Course of the optimization 
+
+
+  Parameter No. (SCALED). 
+               1              2              3         OBJ FUN 
+
+ 964720.0000      -1.0656       0.8884  0.19988E+00
+
+ --------------------------------------------------
+  ---------------- FINAL PARAMETERS ----------------
+ --------------------------------------------------
+  PURE-GROUP PARAMETERS (dispersive term)
+
+                                        COMPONENTS
+  Gr.No.:   T*        Q        TSPLINE   1  2  3  4
+
+   1       647.1300    0.8660 0.2324E+04  1  0  0  0
+   2       600.0000    0.8480 0.1085E+04  0  2  2  2
+   3       600.0000    0.5400 0.1114E+04  0  2  3  6
+
+  Interaction energies gjj 
+ (the functional form changes at high temperatures)
+
+  g(  1  1) =   964720.0 * [ 1 +    -1.0656 *(T/T* - 1) +     0.8884 *LN(T/T*)] 
+
+  g(  2  2) =   316910.0 * [ 1 +    -0.9274 *(T/T* - 1) +     0.0000 *LN(T/T*)] 
+
+  g(  3  3) =   356080.0 * [ 1 +    -0.8755 *(T/T* - 1) +     0.0000 *LN(T/T*)] 
+
+
+  Binary parameters: [k*] 
+
+     1.0000    1.0000    1.0000
+     1.0000    1.0000    1.0000
+     1.0000    1.0000    1.0000
+
+  Temperature dependence: [k`]
+
+     0.0000    0.0000    0.0000
+     0.0000    0.0000    0.0000
+     0.0000    0.0000    0.0000
+
+  Binary non-randomness parameters: [ALPHA]
+
+     0.0000    0.0000    0.0000
+     0.0000    0.0000    0.0000
+     0.0000    0.0000    0.0000
+
+  Number of groups in the association contribution =   1
+
+  Association parameters 
+                       Components
+ Group 	  # Assoc sites  1  2  3  4
+
+     1           2       2.00 0.00 0.00 0.00
+
+ Association energy parameters (K)  
+
+  ENASS( 1 1  1 1)  =     0.0000
+  ENASS( 1 1  2 1)  =  2350.0000
+  ENASS( 2 1  1 1)  =  2350.0000
+  ENASS( 2 1  2 1)  =     0.0000
+
+ Association volume parameters (cm3/mol) 
+
+  RKASS( 1 1  1 1) =     0.0000000000
+  RKASS( 1 1  2 1) =     0.3787000000
+  RKASS( 2 1  1 1) =     0.3787000000
+  RKASS( 2 1  2 1) =     0.0000000000
+
+  The hard-sphere diameter at the critical point of component No.  2 was fitted to 
+  reproduce the point of the vapor pressure curve 
+  [   273.1500 K ; 1.020     atm ] 
+  DC =  4.3619508
+
+  The hard-sphere diameter at the critical point of component No.  3 was fitted to 
+  reproduce the point of the vapor pressure curve 
+  [   309.2000 K ; 1.000     atm ] 
+  DC =  4.6881559
+
+  The hard-sphere diameter at the critical point of component No.  4 was fitted to 
+  reproduce the point of the vapor pressure curve 
+  [   398.8400 K ;0.9999     atm ] 
+  DC =  5.5370055
+
+ ***** Results: pure components *****
+
+
+   Comp   Texp(K)    Pexp(atm)    Pcalc(atm)     Zliq      Zvap        DP%     DH_LV(J/mol) 
+
+   1      273.1600  0.60260E-02  0.64943E-02  0.7093E-05  0.9976       7.77     0.4280E+05
+   1      298.0900  0.31180E-01  0.31563E-01  0.3190E-04  0.9947       1.23     0.4269E+05
+   1      323.0200  0.12110      0.11982      0.1132E-03  0.9897      -1.06     0.4227E+05
+   1      347.9500  0.37750      0.37277      0.3324E-03  0.9820      -1.25     0.4156E+05
+   1      372.8900  0.99000      0.98663      0.8374E-03  0.9708     -0.341     0.4058E+05
+   1      397.8200   2.2640       2.2855      0.1862E-02  0.9558      0.951     0.3936E+05
+   1      422.7500   4.6380       4.7446      0.3740E-02  0.9363       2.30     0.3791E+05
+   1      447.6800   8.6920       8.9924      0.6917E-02  0.9122       3.46     0.3625E+05
+   1      472.6100   15.140       15.797      0.1196E-01  0.8828       4.34     0.3437E+05
+   1      497.5400   24.840       26.040      0.1959E-01  0.8479       4.83     0.3224E+05
+   1      522.4700   38.750       40.685      0.3074E-01  0.8067       4.99     0.2983E+05
+   1      547.4000   58.010       60.747      0.4674E-01  0.7581       4.72     0.2705E+05
+   1      572.3400   83.860       87.287      0.6963E-01  0.7005       4.09     0.2378E+05
+   1      597.2700   117.70       121.34      0.1031      0.6304       3.09     0.1973E+05
+   1      622.2000   161.30       163.98      0.1565      0.5388       1.66     0.1423E+05
+
+ AAD(ARD%) = ,   1.11434, atm , (,    3.07% ,)
+ AbsStdDev(Rel.%) = ,   1.73948, atm , (,    3.66% ,)
+

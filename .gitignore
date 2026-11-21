@@ -1,4 +1,4 @@
-# Compilados
+# Build output
 *.o
 *.mod
 *.x
@@ -8,11 +8,11 @@ obj/
 debug/
 build/
 
-# Proyecto Visual Studio / IVF (copia de trabajo en Windows)
+# Visual Studio / IVF project (Windows working copy)
 IFV XE2011/
 
-# Salidas del programa en la raíz (se regeneran en cada corrida).
-# Con "/" adelante: solo en la raíz, no en pruebas/casos/*/referencia/.
+# Program output in the root directory (regenerated at each run).
+# With a leading "/": only in the root, not in tests/cases/*/reference/.
 /paraest.out
 /graficos.csv
 /tables.csv
@@ -23,7 +23,7 @@ IFV XE2011/
 /fort.20
 /binary_graphic*.csv
 
-# Editores / escritorio / backups
+# Editors / desktop / backups
 *.kate-swp
 .*.swp
 *~
@@ -32,4 +32,4 @@ IFV XE2011/
 .directory.lock
 .kdev4/
 *.kdev4
-pruebas/tmp/
+tests/tmp/
