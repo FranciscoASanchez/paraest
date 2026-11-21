@@ -1,5 +1,6 @@
 PROGRAM ASSOCPARAEST
 	use dimensiones
+	use escalado, only: XXSCAL
 !
 !
 !	Ajuste de parametros con modelo GCA-EoS: La estructura molecular
@@ -359,6 +360,7 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 &	                DHfu, Tfu, DCpfu, Dvfu, TtrSS, DHss, Pfu)
 	use dimensiones
+	use escalado, only: dc_medio, error_Dc
 	use utilidades, only: i2s, rep, controla_tope
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
@@ -437,7 +439,6 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	DIMENSION IDIDRKASS(NIDM,4),IDDC(NPTIPOM),idTc(NPTIPOM)
 !
 	DIMENSION XX(NPARM)
-	common/escMax/vMaxAlfa,vMaxkp,vMaxKstr,vMinGp,vMaxGp,error_Dc(NPARM),dc_medio(NPARM)
 	dimension error_Dc1(NCM)
 !
 !	Dimensionamiento de los pesos individuales	
@@ -562,11 +563,11 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	  READ(1,*) (ALFAIJ(I,J), J=1,NG)
 	  if(i.EQ.1)then
 
-	    write(*,'(/,'//rep(NG,"F6.4,2X")//'"  !alfa")')(alfaIJ(I,J), J=1,NG)
+	    write(*,'(/,'//rep(NG,"F8.4,2X")//'"  !alfa")')(alfaIJ(I,J), J=1,NG)
 
 	  else
 
-	    write(*,'(*(F6.4,2X))')(alfaIJ(I,J), J=1,NG)
+	    write(*,'(*(F8.4,2X))')(alfaIJ(I,J), J=1,NG)
 
 	  endif
 
@@ -744,13 +745,13 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 
 !	        Binario
 	        READ(1,*) TEXP(J),PEXP(J),XEXP(J),YEXP(J),wBin(:2,j)
-	        write(*,'(F7.2,3(2X,F7.4),3X,"! ",I3)')TEXP(J),PEXP(J),XEXP(J),YEXP(J),j
+	        write(*,'(F7.2,2X,F9.4,2(2X,F7.4),3X,"! ",I3)')TEXP(J),PEXP(J),XEXP(J),YEXP(J),j
 
 	      elseif(mez(i).EQ.3)then
 
 !	        Ternario
 	        READ(1,*) TEXP(J),PEXP(J),XEXP(J),YEXP(J),xExp2(j),yExp2(j),wBin(:2,j),wTer(:2,j)
-	        write(*,'(F7.2,5(2X,F7.4),3X,"! ",I3)')TEXP(J),PEXP(J),XEXP(J),YEXP(J),xExp2(j),yExp2(j),j
+	        write(*,'(F7.2,2X,F9.4,4(2X,F7.4),3X,"! ",I3)')TEXP(J),PEXP(J),XEXP(J),YEXP(J),xExp2(j),yExp2(j),j
 
 	      endif
 !
@@ -760,19 +761,19 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 !	      if(ifl(i).EQ.2)READ(1,*) TEXP(J),PEXP(J),XEXP(J),VEexp(J)
 !	      if(ifl(i).EQ.2)READ(1,*) TEXP(J),PEXP(J),XEXP(J),HEexp(J)
 	      READ(1,*) TEXP(J),PEXP(J),XEXP(J),prop_E_exp(J),wEx(j)
-	      write(*,'(F7.2,2(2X,F7.4),F12.6, "! ", I3)')TEXP(J),PEXP(J),XEXP(J),prop_E_exp(J), j
+	      write(*,'(F7.2,2X,F9.4,2X,F7.4,F12.6, "! ", I3)')TEXP(J),PEXP(J),XEXP(J),prop_E_exp(J), j
 		
 	    elseif(iHen(i).EQ.2)then
 		
 !	      ******************ESL*****************
 	      read(1,*)Texp(j), Pexp(j), xExp(j), wEx(j)
-	      write(*,'(F7.2,2(2X,F7.4), "! ", I3)')TEXP(J),PEXP(J),XEXP(J), j
+	      write(*,'(F7.2,2X,F9.4,2X,F7.4, "! ", I3)')TEXP(J),PEXP(J),XEXP(J), j
 	      
 	    elseif(iHen(i) == 3)then
 		
 !	      ******************Punto crítico*****************
 	      read(1,*)Texp(j), Pexp(j), xExp(j), wBin(:2,j)
-	      write(*,'(F7.2,2(2X,F7.4), "! ", i3)')TEXP(J), PEXP(J), XEXP(J), j     
+	      write(*,'(F7.2,2X,F9.4,2X,F7.4, "! ", i3)')TEXP(J), PEXP(J), XEXP(J), j     
 
 	    elseif(iHen(i).EQ.5)then
 !
@@ -780,12 +781,12 @@ SUBROUTINE READ(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,ONUASO
 	      if(mez(i).EQ.2)then
 
 	        read(1,*) TEXP(J),PEXP(J),XEXP(J),rgamexp1(J),rgamexp2(J),wGam(:2,j)
-	        write(*,'(F7.2,4(2X,F7.4),3X,"! ",I3)')TEXP(J),PEXP(J),XEXP(J),rgamexp1(J),rgamexp2(J),j
+	        write(*,'(F7.2,2X,F9.4,3(2X,F7.4),3X,"! ",I3)')TEXP(J),PEXP(J),XEXP(J),rgamexp1(J),rgamexp2(J),j
 
 	      elseif(mez(i).EQ.3)then
 
 	        read(1,*) TEXP(J),PEXP(J),XEXP(J),xexp2(J),rgamexp1(J),rgamexp2(J),rgamexp3(J),wGam(:3,j)
-	        write(*,'(F7.2,5(2X,F7.4),3X,"! ",I3)')TEXP(J),PEXP(J),XEXP(J),rgamexp1(J),rgamexp2(J),rgamexp3(J),j
+	        write(*,'(F7.2,2X,F9.4,4(2X,F7.4),3X,"! ",I3)')TEXP(J),PEXP(J),XEXP(J),rgamexp1(J),rgamexp2(J),rgamexp3(J),j
 
 	      endif
 !
@@ -1691,6 +1692,7 @@ ENDsubroutine
 SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	use dimensiones
 	use utilidades, only: i2s, rep
+	use escalado, only: XXDESSCAL
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
 	real(8), parameter :: Rgas_SI = 8.314D0
@@ -1808,7 +1810,6 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !
 	COMMON/IDSC/IDXX
 !
-	COMMON/ESCALADO/FGGG,FRKIJ,FTEMP,FQAREA,FALFA,FENASS,FRKASS,FTc,FDc
 !
 	PENALIZ = 0	!1e-0
 !	NaN guard agregado por el asistente (OpenCode/DeepSeek), 2026-11-06.
@@ -1818,7 +1819,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !	Desescalado de los valores de xx para poder realizar el calculo de los terminos de la funcion objetivo.
 !	El resultado del desescalado se guarda en XXAUX, dado que la rutina func no debe alterar los valores de
 !	XX (ver instrucciones de la libreria IMSL)
-	CALL XXDESSCAL(NPAR,XX,IDXX,FGGG,FRKIJ,FTEMP,FQAREA,FALFA,FENASS,FRKASS,XXAUX,ftc,FDC)
+	CALL XXDESSCAL(NPAR,XX,IDXX,XXAUX)
 !
 !	Modificacion de los parametros en base a los nuevos valores de los mismos, que entraron escalados en en
 !	el vector XX, y se se encuentran libres de escalamiento en el vector XXAUX
@@ -1844,7 +1845,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !
 
 !	Descalo los valores antes de imprimirlos:
-!	CALL XXDESSCAL(NPAR,XX,IDXX,FGGG,FRKIJ,FTEMP,FQAREA,FALFA,FENASS,FRKASS,XXAUX,fTc,FDC)
+!	CALL XXDESSCAL(NPAR,XX,IDXX,XXAUX)
 !	WRITE(2,'(<NPAR>(F12.4,X),E12.5)') (XXAUX(I),I=1,NPAR),SUMQ
 
 !	CLOSE(UNIT=2)
@@ -2798,7 +2799,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 
 !	Descalo los valores antes de imprimirlos:
 	if(nPar.GT.0)then
-	  CALL XXDESSCAL(NPAR,XX,IDXX,FGGG,FRKIJ,FTEMP,FQAREA,FALFA,FENASS,FRKASS,XXAUX,fTc,FDC)
+	  CALL XXDESSCAL(NPAR,XX,IDXX,XXAUX)
 	  WRITE(1,'('//rep(NPAR,"F12.4,X")//'E12.5)') (XXAUX(I),I=1,NPAR),SUMQ
 	endif
 
@@ -2841,10 +2842,9 @@ ENDsubroutine
 !
 SUBROUTINE FORSCAL(NNP,IDG,ITEMP,NNQ,NALFA,NENASS,NRKASS,IDXX,numTc,NUMDC)
 	use dimensiones
+	use escalado, only: inIJ
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
-	logical inIJ(NPARM)
-	common/IJ/inIJ
 !
 !	Identificacion (indices) de param gii o kij a ajustar.
 	DIMENSION IDG(NPTIPOM,2),ITEMP(NPTIPOM),IDXX(NPARM),xx(NPARM)
@@ -2948,242 +2948,6 @@ SUBROUTINE FORSCAL(NNP,IDG,ITEMP,NNQ,NALFA,NENASS,NRKASS,IDXX,numTc,NUMDC)
 	END IF
 	return
 ENDsubroutine !FIN FORSCAL
-!------------------------------------------------------------------------------------------------------------------------------------
-!
-!
-!
-!
-!	fracCota: fracción del intervalo de cada parámetro acotado que se deja
-!	libre junto a las cotas (ver fScld). 0 en predicción, 1e-3 en ajuste.
-!
-SUBROUTINE XXSCAL(NPAR,XX,IDXX,fracCota)
-	use dimensiones
-!
-	IMPLICIT REAL*8 (A-H,O-Z)
-	parameter(pi=3.141592654D0)
-	DIMENSION XX(NPARM), IDXX(NPARM)
-	logical inIJ(NPARM)
-!
-	COMMON/ESCALADO/FGGG,FRKIJ,FTEMP,FQAREA,FALFA,FENASS,FRKASS,ftc,FDC
-	common/escMax/vMaxAlfa,vMaxkp,vMaxKstr,vMinGp,vMaxGp,error_Dc(NPARM),dc_medio(NPARM)
-	common/IJ/inIJ
-!
-!	Transforma los valores de xx segun los siguientes factores de escalado
-	FGGG  = 1.D-10
-	FRKIJ = 1.D-7
-	FTEMP = 1.D-7
-	FQAREA = 1.D-0
-	FALFA = 1.D-7
-	FENASS = 1.D-6    !TENTATIVO
-	FRKASS = 1.D-8     !TENTATIVO
-	fTc = 1.D-8	       !TENTATIVO
-	FDC = 2.D-7        !TENTATIVO
-
-!	FGGG  = 1.D-10
-!	FRKIJ = 1.D-5
-!	FTEMP = 1.D-6
-!	FQAREA = 1.D-5
-!	FALFA = 1.D-6
-!	FENASS = 1.D-9     !TENTATIVO
-!	FRKASS = 1.D-4     !TENTATIVO
-!	FDC = 1.D-6        !TENTATIVO
-!
-!	Valor máximo kij* (0 y vMaxKstr):
-	vMaxKstr = 3.D1
-!	Valor máximo para los kij' (entre -vMaxKp y vMaxKp):
-	vMaxkp = 0.9D1
-!	Valor máximo para los alfas (entre -vMaxAlfa y vMaxAlfa):
-	vMaxAlfa = 29D0
-!	Valores mínimo y máximo de g'
-	vMaxGp = 2.D0
-	vMinGp = -2.D0 !1D-3
-!
-!
-	DO I=1,NPAR
-!
-!	  Escalado de g*
-	  IF(IDXX(I).EQ.1)then
-
-	    XX(I) = FGGG*XX(I)
-!
-!	  Escalado de k*
-	  elseIF(IDXX(I).EQ.2)then
-
-!	      DTan(x) es la "T"angente de "x" con "D"oble precisión.
-!	      xx(i) = dtan(pi*(xx(i)/vMaxKstr - 1D0)/2D0)*frKij
-!
-!	      Suprimí el uso de tangente por ser función cíclica, redondeos de muchos decimales pueden
-!	      invertir el signo
-!	      xx(i) = frKij*dlog(xx(i)/(vMaxKstr - xx(i)))
-!	      La función fScld se encarga de escalar la variable xx entre un valor máximo y mínimo, multiplicada por el
-!	      factor "f".
-	      xx(i) = fScld(xx(i),frKij,.2D0,vMaxKstr, fracCota)
-
-!	  Escalado de g' y k':
-	  elseIF(IDXX(I).EQ.3)then
-
-	    if(.NOT.inIJ(i))then
-
-!	      g' es siempre < -0.001
-!	      XX(I) = FTEMP*dlog(-(XX(I)+ vMinGp))
-!	      xx(i) = fTemp*dtan(pi*((xx(i) + vMinGp)/vMaxGp - 1D0)/2D0)
-	      xx(i) = fScld(xx(i),fTemp,-vMaxGp,-vMinGp, fracCota)
-
-	    else
-
-!	      Sí para los k':
-!	      xx(i) = dtan(xx(i)*pi/2D0/vMaxkp)*fTemp
-	      xx(i) = fScld(xx(i),fTemp,-vMaxkp,vMaxkp, fracCota)
-
-	    endif
-
-	  elseif(idXX(i).EQ.10)then
-
-!	    De momento, g" no tiene ninguna limitación...
-	    xx(i) = fTemp*xx(i)
-
-	  elseIF(IDXX(I).EQ.4)then
-
-	    XX(I) = FQAREA * XX(I)
-
-	  elseif(idXX(i).EQ.5)then
-
-!	    Escalado con límites para alfas:
-!	    xx(i) = dtan(xx(i)*pi/2D0/vMaxAlfa)*fAlfa
-	    xx(i) = fScld(xx(i),fAlfa,-vMaxAlfa,vMaxAlfa, fracCota)
-
-	  elseIF(IDXX(I).EQ.6)then
-
-!	    XX(I) = FENASS*XX(I)
-!	    Escalado logarítmico para energía de asociación, para evitar valores negativos
-!	    Solo tiene cota inferior (0). max: evita el log de 0 o de un negativo.
-!	    En un ajuste, al menos 1 K (despreciable frente a valores típicos de
-!	    1000-3000 K): desde 0 el optimizador no podría moverla.
-	    if(fracCota > 0D0)then
-	      xx(i) = fEnAss*dlog(max(xx(i), 1D0))
-	    else
-	      xx(i) = fEnAss*dlog(max(xx(i), tiny(1D0)))
-	    endif
-
-	  elseIF(IDXX(I).EQ.7)then
-
-!	    XX(I) = FRKASS*XX(I)
-!	    Escalado logarítmico para energía de asociación, para evitar valores negativos
-!	    xx(i) = frKAss*dlog(xx(i))
-	    xx(i) = fScld(xx(i),frKass,0D0,2D1, fracCota)
-
-	  elseIF(IDXX(I).EQ.8)then
-
-	    XX(I) = fTc*XX(I)
-
-	  elseIF(IDXX(I).EQ.9)then
-
-!	    XX(I) = FDC*XX(I)
-!
-!	    Valores máximo y mínimo para dc:
-!	    xx(i) = fDc*dtan(pi*(xx(i) - dc_medio(i))/2.D0/error_Dc(i))
-	    xx(i) = fScld(xx(i), fDc, dc_medio(i) - error_Dc(i), dc_medio(i) + error_Dc(i), fracCota)
-
-	  endif
-
-	END DO
-!
-	return
-!
-ENDsubroutine !FIN XXSCAL
-!
-!------------------------------------------------------------------------------------------------------------------------------------
-!
-!
-!
-!	Antitransforma los valores de xx segun los factores de escalado establecidos en la rutina XXSCAL
-!
-SUBROUTINE XXDESSCAL(NPAR,XX,IDXX,FGGG,FRKIJ,FTEMP,FQAREA,FALFA,FENASS,FRKASS,XXAUX,fTc,FDC)
-	use dimensiones
-!
-	IMPLICIT REAL*8 (A-H,O-Z)
-	DIMENSION XX(NPARM), IDXX(NPARM), XXAUX(NPARM)
-	parameter(pi=3.141592654D0)
-	logical inIJ(NPARM)
-!
-	common/escMax/vMaxAlfa,vMaxKp,vMaxKstr,vMinGp,vMaxGp,error_Dc(NPARM),dc_medio(NPARM)
-	common/IJ/inIJ
-!
-	DO I=1,NPAR
-
-	  XXAUX(I) = XX(I)
-	  IF(IDXX(I).EQ.1)then
-
-	    XXAUX(I) = XXAUX(I)/FGGG
-
-	  elseIF(IDXX(I).EQ.2)then
-
-!	    "DATan(x)" es el "A"rco "T"angente de "x" con "D"oble precisión.
-!	    xxAux(i) = vMaxKstr*(1D0 + daTan(xxAux(i)/frKij)*2D0/pi)
-!	    xxAux(i) = dexp(xxAux(i)/frKij)/(1 + dexp(xxAux(i)/frKij))
-	    xxAux(i) = fDscld(xxAux(i),frKij,.2D0,vMaxKstr)
-
-	  elseIF(IDXX(I).EQ.3)then
-
-	    if(.NOT.inIJ(i))then
-
-!	      XXAUX(I) = -dexp(XXAUX(I)/FTEMP) - vMinGp
-!	      xxAux(i) = vMaxGp*(2D0*daTan(xx(i)/fTemp)/pi - 1D0) - vMinGp
-	      xxAux(i) = fDscld(xxAux(i),fTemp,-vMaxGp,-vMinGp)
-
-	    else
-
-!	      xxAux(i) = datan(xxAux(i)/fTemp)*vMaxKp*2D0/pi
-	      xxAux(i) = fDscld(xxAux(i),fTemp,-vMaxKp,vMaxKp) 
-
-	    endif
-
-	  elseif(idXX(i).EQ.10)then
-
-	    xxAux(i) = xxAux(i)/fTemp
-
-	  elseIF(IDXX(I).EQ.4)then
-
-	    XXAUX(I) = XXAUX(I)/FQAREA
-
-
-	  elseif(idXX(i).EQ.5)then
-
-!	    xxAux(i) = datan(xxAux(i)/fAlfa)*vMaxAlfa*2D0/pi
-	    xxAux(i) = fDscld(xxAux(i),fAlfa,-vMaxAlfa,vMaxAlfa)
-!	    Problemas con alfas que por redondeo generan errores numéricos
-	    if(vMaxAlfa - dabs(xxAux(i)).LT.1D-8)then
-	      xxAux(i) = xxAux(i)/dabs(xxAux(i))*(1.D0-1D-8)*vMaxAlfa
-	    endif
-
-!	  endif
-	  elseIF(IDXX(I).EQ.6)then
-	  
-!	    XXAUX(I) = XXAUX(I)/FENASS
-	    xxAux(i) = dexp(min(xxAux(i)/fEnAss, log(huge(1D0))))   ! min: exp no desborda
-	
-	  elseIF(IDXX(I).EQ.7)then
-	  
-!	    XXAUX(I) = XXAUX(I)/FRKASS
-!	    xxAux(i) = dexp(xxAux(i)/frKAss)
-	    xxAux(i) = fDscld(xxAux(i),frKass,0D0,2D1)
-	    if(dabs(2d1 - xxAux(i)) .LT. 1D-8)then
-	      xxAux(i) = xxAux(i)/dabs(xxAux(i))*(1.D0-1D-8)*2D1
-	    endif
-
-	  endif
-	  IF(IDXX(I).EQ.8) XXAUX(I) = XXAUX(I)/fTc
-	  IF(IDXX(I).EQ.9)then
-
-!	    XXAUX(I) = dc_medio(i) + datan(xxAux(i)/fDc)*error_Dc(i)*2D0/pi
-	    xxAux(i) = fDscld(xxAux(i), fDc, dc_medio(i) - error_Dc(i), dc_medio(i) + error_Dc(i))
-
-	  endif
-
-	END DO
-!
-	return
-ENDsubroutine !FIN XXDESSCAL
 !
 !------------------------------------------------------------------------------------------------------------------------------------
 !
@@ -3229,6 +2993,7 @@ SUBROUTINE WRITESAL2(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 &	               NUMDC,IDDC,TSPLINE,rgamexp1, rgamexp2,rgamexp3,zLicalc,prop_E_calc,prop_E_exp, DHVL)
 	use dimensiones
 	use utilidades, only: i2s, rep
+	use estadistica, only: AAD, ARD, ASD, RSD
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
 	
@@ -4331,178 +4096,3 @@ subroutine fakePARMOL(NC,NG,NST,IOUt,WWDC,WWTEMPCRIT,wwPRCRIT)
 14	format(3X,A10,X,F9.6,3X,F9.6,10X,F9.6,12X,F9.6,13X,F9.6,13X,F9.6)
 	return
 endsubroutine
-!--------------------------------------------------------------------------------------------------------------------------
-!
-!	Función de escalado de variables: útil para variables con topes máximo y mínimo.
-!
-!	vMin y vMax son las cotas mínima y  máxima que puede tomar "x". 
-!
-!	scl es la variable de escalado, que estira o comprime el valor devuelto por fScld.
-!
-!	Para que nunca dé una excepción (log de 0 o de un negativo), x se lleva
-!	primero al interior del intervalo, a una distancia relativa de 1e-10 de
-!	las cotas. Así no importa si el valor inicial está justo en una cota
-!	(por ejemplo kappa = 0) o si el redondeo lo deja en la cota o afuera.
-!
-!	frac es la fracción del intervalo que se deja libre junto a cada cota,
-!	si es mayor que ese margen. En un ajuste se usa frac = 1e-3: en la cota
-!	la derivada es casi nula y el optimizador no movería el parámetro.
-!	En predicción, frac = 0 (se respeta el valor dado).
-!
-doubleprecision function fScld(x,scl,vMin,vMax,frac)
-  implicit real*8(A-H,O-Z)
-  real*8, parameter :: margen = 1D-10   ! declarado: con IMPLICIT, "margen" sería entero (= 0)
-
-  d = max(frac, margen)*(vMax - vMin)
-  xin = min(max(x, vMin + d), vMax - d)
-  fScld = scl*dlog((xin - vMin)/(vMax - xin))
-
-  return
-endfunction
-!--------------------------------------------------------------------------------------------------------------------------
-!
-!	Función de desescalado de variables: inversa de la función fScld
-!
-!	Se calcula de dos maneras según el signo de x/scl, para que la
-!	exponencial siempre tenga argumento <= 0: nunca desborda (con scl muy
-!	chico, exp(x/scl) daba infinito, y luego infinito/infinito = NaN).
-!	El resultado queda siempre entre vMin y vMax.
-!
-!	fScld aparta x de las cotas un margen relativo de 1e-10; si el resultado
-!	cae dentro de ese margen (el doble, por redondeo), se devuelve la cota
-!	misma. Así un valor dado justo en la cota (por ejemplo kappa = 0) vuelve
-!	igual, y el usuario no ve el margen.
-!
-doubleprecision function fDscld(x,scl,vMin,vMax)
-  implicit real*8(A-H,O-Z)
-  real*8, parameter :: margen = 1D-10   ! el mismo de fScld
-
-  t = x/scl
-  if (t >= 0D0) then
-    ex = dexp(-t)
-    fDscld = (vMin*ex + vMax)/(1.D0 + ex)
-  else
-    ex = dexp(t)
-    fDscld = (vMin + vMax*ex)/(1.D0 + ex)
-  endif
-
-  d = 2D0*margen*(vMax - vMin)
-  if (fDscld - vMin <= d) fDscld = vMin
-  if (vMax - fDscld <= d) fDscld = vMax
-
-  return
-endfunction
-!--------------------------------------------------------------------------------------------------------------------------
-!
-!	Esta función devuelve la desviación absoluta promedio de datos experimentales. La misma mantiene las unidades del 
-!	dato experimental. Los valores que no convirgieron son considerads "0", y excluidos del cálculo.
-!
-doubleprecision function AAD(Xexp,Xcalc,N)
-	implicit real*8(A-H,O-Z)
-	dimension Xexp(N), Xcalc(N)
-	
-	AAD = 0D0
-	NReal = N
-	do i = 1, N
-	  
-! 	  write(*,*)N,i, Xexp(i), Xcalc(i)
-	  if(Xcalc(i).GT.1E-20)then
-	  
-	    AAD = AAD + dabs(Xexp(i) - Xcalc(i))
-	    
-	  else
-	    
-	    NReal = NReal - 1
-	    
-	  endif
-	  
-	enddo
-	if(NReal.GT.0)AAD = AAD/NReal
-	
-	return
-endfunction
-!--------------------------------------------------------------------------------------------------------------------------
-!
-!	Esta función devuelve la desviación relativa promedio de datos experimentales. Esta desviación no tiene unidades.
-!	Los valores que no convirgieron son considerads "0", y excluidos del cálculo.
-!
-doubleprecision function ARD(Xexp,Xcalc,N)
-	implicit real*8(A-H,O-Z)
-	dimension Xexp(N), Xcalc(N)
-	
-	ARD = 0D0
-	NReal = N
-	do i = 1, N
-	  
-	  if((dabs(Xcalc(i)) > 1.E-16) .AND. (dabs(Xexp(i)) > 1.E-16))then
-	  
-! 	    write(*,*)Xexp(i), i, N
-	    ARD = ARD + dabs(1D0 - Xcalc(i)/Xexp(i))
-	    
-	  else
-	    
-	    NReal = NReal - 1
-	    
-	  endif
-	  
-	enddo
-	if(NReal.GT.0)ARD = ARD/NReal
-	
-	return
-endfunction
-!--------------------------------------------------------------------------------------------------------------------------
-!
-!	Esta función devuelve la desviación estándar absoluta de datos experimentales. La misma mantiene las unidades del 
-!	dato experimental
-!
-doubleprecision function ASD(Xexp,Xcalc,N)
-	implicit real*8(A-H,O-Z)
-	dimension Xexp(N), Xcalc(N)
-	
-	ASD = 0D0
-	NReal = N
-	do i = 1, N
-	  
-	  if(Xcalc(i).GT.1E-20)then
-	  
-	    ASD = ASD + (Xexp(i) - Xcalc(i))**2
-	    
-	  else
-	    
-	    NReal = NReal - 1
-	    
-	  endif
-	  
-	enddo
-	if(NReal.GT.0)ASD = dSqrt(ASD/NReal)
-	
-	return
-endfunction
-!--------------------------------------------------------------------------------------------------------------------------
-!
-!	Esta función devuelve la desviación estándar absoluta de datos experimentales. La misma mantiene las unidades del 
-!	dato experimental
-!
-doubleprecision function RSD(Xexp,Xcalc,N)
-	implicit real*8(A-H,O-Z)
-	dimension Xexp(N), Xcalc(N)
-	
-	RSD = 0D0
-	NReal = N
-	do i = 1, N
-	  
-	  if(Xexp(i) > 1E-20)then
-	  
-	    RSD = RSD + (1D0 - Xcalc(i)/Xexp(i))**2
-	    
-	  else
-	    
-	    NReal = NReal - 1
-	    
-	  endif
-	  
-	enddo
-	if(NReal > 0)RSD = dSqrt(RSD/NReal)
-	
-	return
-endfunction

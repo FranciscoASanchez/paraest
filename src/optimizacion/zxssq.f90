@@ -182,7 +182,7 @@
 !                                  SPECIFICATIONS FOR ARGUMENTS
       INTEGER M , N , Nsig , Maxfn , Iopt , Ixjac , Infer , Ier
       DOUBLE PRECISION Eps , Delta , Parm(4) , X(N) , Ssq , F(M) ,      &
-                     & Xjac(1) , Xjtj(1) , Work(500)
+                     & Xjac(*) , Xjtj(*) , Work(*)
 !                                  XJAC USED INTERNALLY IN PACKED FORM
 !                                  SPECIFICATIONS FOR LOCAL VARIABLES
       INTEGER imjc , igrad1 , igradl , igradu , idelx1 , idelxl ,       &
@@ -626,7 +626,7 @@
       INTEGER i , Ib , Idgt , Ier , M , N
 !*** End of declarations inserted by SPAG
 !
-      DIMENSION A(1) , B(Ib,1)
+      DIMENSION A(*) , B(Ib,*)
       DOUBLE PRECISION A , B , D1 , D2
 !                                  FIRST EXECUTABLE STATEMENT
 !                                  INITIALIZE IER
@@ -699,7 +699,7 @@
       INTEGER i , Ier , ip , ip1 , iq , ir , j , k , N
 !*** End of declarations inserted by SPAG
 !
-      DIMENSION A(1) , Ul(1)
+      DIMENSION A(*) , Ul(*)
       DOUBLE PRECISION A , Ul , D1 , D2 , zero , one , four , sixtn ,   &
                      & sixth , x , rn
       DATA zero , one , four , sixtn , sixth/0.0D0 , 1.D0 , 4.D0 ,      &
@@ -803,7 +803,7 @@
       INTEGER i , ii , im1 , ip , iq , is , iw , k , kk , N , n1
 !*** End of declarations inserted by SPAG
 !
-      DIMENSION A(1) , B(1) , X(1)
+      DIMENSION A(*) , B(*) , X(*)
       DOUBLE PRECISION A , B , X , t , zero
       DATA zero/0.0D0/
 !                                  FIRST EXECUTABLE STATEMENT
