@@ -19,6 +19,7 @@ endif
 
 # --- Archivos fuente, por capa ----------------------------------------------
 PRINCIPAL    = src/principal/dimensiones.f90             \
+               src/principal/datos_ajuste.f90            \
                src/principal/estadistica.f90             \
                src/principal/escalado.f90                \
                src/principal/utilidades.f90              \
@@ -99,7 +100,7 @@ $(OBJDIR) $(DBGDIR):
 	mkdir -p $@
 
 # El programa usa estos módulos: si cambia alguno, paraest.f90 se recompila.
-MODULOS = dimensiones estadistica escalado utilidades
+MODULOS = dimensiones datos_ajuste estadistica escalado utilidades
 $(OBJDIR)/paraest.o: $(addprefix $(OBJDIR)/,$(addsuffix .o,$(MODULOS)))
 $(DBGDIR)/paraest.o: $(addprefix $(DBGDIR)/,$(addsuffix .o,$(MODULOS)))
 

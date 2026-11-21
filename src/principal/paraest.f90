@@ -1,5 +1,6 @@
 PROGRAM ASSOCPARAEST
 	use dimensiones
+	use datos_ajuste
 	use escalado, only: XXSCAL
 !
 !
@@ -32,184 +33,29 @@ PROGRAM ASSOCPARAEST
 !
 !	Contiene modulo de escalado de los parametros a ajustar
 !
-	IMPLICIT REAL*8 (A-H,O-Z)
-!	Implicit none
+	implicit none
 !
 !	La declaracion que viene la exige la rutina ZXSSQ de la IMSL
 	EXTERNAL FUNC
 !
-!	Dim dispersion
-	INTEGER NU(NGM,NCM)
-	DOUBLE PRECISION QAREA(NGM), TSTR(NGM), GSTR(NGM)
-	DOUBLE PRECISION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
-	DOUBLE PRECISION ALFAIJ(NGM,NGM)
-	DOUBLE PRECISION TSPLINE(NGM)
+!	Los datos que comparte con FUNC (sistema, parámetros del modelo, datos
+!	experimentales, pesos, identificación de los parámetros a ajustar)
+!	están en el módulo datos_ajuste. El significado de IDXX está en el
+!	módulo escalado.
 !
-!	Dim asociacion
-	INTEGER MASSOC(12)
-	DOUBLE PRECISION ENASS(6,12,6,12), RKASS(6,12,6,12)
-	DOUBLE PRECISION ONUASOC(12,NCM)
-!
-!	Doble precisionamiento diametro de esferas rigidas en el pto critico.
-	DOUBLE PRECISION DC(NCM)
-!
-!	DIM ajuste de parametros?
-	DOUBLE PRECISION PARM(4)
-!
-	INTEGER IDSAT(NCM)
-!
-	DOUBLE PRECISION TEMPCRIT(NCM), PRCRIT(NCM), TSAT(NCM), PSAT(NCM)
-	dimension DHfu(NCM), DVfu(NCM), Tfu(NCM), Pfu(NCM), DCpfu(NCM), TtrSS(NCM), DHss(NCM)
-	DIMENSION TEXP(NDM), PEXP(NDM), XEXP(NDM), YEXP(NDM),xExp2(NDM),yExp2(NDM),rhoExp(NDM)
-	dimension rgamexp1(NDM),rgamexp2(NDM),rgamexp3(NDM)
-!
-!
-!
-!	Double precisionamiento  nro. de datos de pvap comp puros ¿por qué es entero el número de datos?
-	INTEGER NSAT(NCM)
-!
-!	Funcion objetivo para el comp. puro
-	INTEGER IOBJSAT(NCM)
-!
-!	Doble precision que tiene que ver con los sets de datos:
-	INTEGER IDC(NSetM,3), NOBS(NSetM), IHEN(NSetM), mez(NSetM)
-	INTEGER NTEXT(NSetM,65)
-	INTEGER IFL(NSetM)
-!
-!		ID 	==> identificacion o identicos
-!		IDID	==> identificacion de identicos
-!
-!	Los parametros se identifican a traves de su naturaleza y de sus indices
-	INTEGER ITEMP(NPTIPOM)
-!
-!	Identificacion (indices) de param gii o kij a ajustar.
-	INTEGER IDG(NPTIPOM,2)
-!
-!	Nro. de param. identicos a c/gii o kij
-	INTEGER NIDG(NPTIPOM)
-!	Identificacion (indices) de IDENTicos a gii ó kij
-	INTEGER IDIDG(NIDM,2)
-!
-!
-!	           8 X 13 = 104
-!
-!	Identificación parámetros de área
-	INTEGER IDQ(NPTIPOM)
-!
-!	Identif (indices) de parametros ALFAij
-	INTEGER IDALF(NPTIPOM,2)
-!	Nro. de param. identicos a c/alfaij
-	INTEGER NIDALF(NPTIPOM)
-!	Identificacion (indices) de IDENTicos
-	INTEGER IDIDALF(NIDM,2)
-!
-!	IDENTif (indices) de parametros ENASSijkl
-	INTEGER IDENASS(NPTIPOM,4)
-!	Nro. de param. IDENTicos  a c/ENASSijkl
-	INTEGER NIDENASS(NPTIPOM)
-!	IDENTif (indices) de IDENTicos a ENASSijkl
-	INTEGER IDIDENASS(NIDM,4)
-!
-!	Identif (indices) de param. RKASSijkl
-	INTEGER IDRKASS(NPTIPOM,4)
-!	Nro. de param. identicos a c/RKASSijkl
-	INTEGER NIDRKASS(NPTIPOM)
-!	Identif (indices) de identicos a c/RKASSijkl
-	INTEGER IDIDRKASS(NIDM,4)
-!
-!	Índices para dc
-	INTEGER IDDC(NPTIPOM)
-!	Indice de los parametros temperatura critica
-      INTEGER idtc(NPTIPOM)
-!
-	DOUBLE PRECISION XX(NPARM)
-	INTEGER IDXX(NPARM)
-!
-!	IDXX(i) =	identificación del tipo de parámetro a ser ajustado.
-!	            IDXX se utiliza para saber que factor de escalado
-!	            debe aplicarse al parámetro que se esta ajustando.
-!
-!	IDXX(i) = 1   g*
-!	          2   k*ij
-!	          3   g'ij / g''ij / k'ij   coeficientes var. Con temp
-!	          4   q (param. de área)
-!	          5   alfa  (param. de no azar)
-!	          6   épsilon (energ. asoc.)
-!	          7   kappa (vol. asoc.)
-!	          8   dc (diámetro critico)
-!	          9   Tc (temperatura crítica)
-!
+!	Locales:
+	INTEGER NSIG, NPRED, NPAR, NCXP, IOPT, NOPCION, MAXFN, IXJAC, INFER, IER
+	INTEGER NTEXT(NSetM,65)              ! título de cada conjunto de datos
+	DOUBLE PRECISION XX(NPARM)           ! parámetros a ajustar (escalados durante el ajuste)
+	DOUBLE PRECISION PARM(4)             ! parámetros de ZXSSQ
+	DOUBLE PRECISION EPS, DELTAZ, SSQ, fracCota
 	DOUBLE PRECISION XJAC(NDM,NPARM), XJTJ(NPARM*(NPARM+1)/2), WORK(LWORK)
-	DOUBLE PRECISION FCION(NDM)
-	DOUBLE PRECISION FCAUX(NDM)
-	DOUBLE PRECISION FCAUX2(NDM)
-	DOUBLE PRECISION FCAUX3(NDM)
-!
-!	Presion de vapor(atm) calculada a la temperatura Tsat(i)
-	DOUBLE PRECISION PsTclc(NCM)
-!
-!	Doble precisionamiento de variables calculadas con el modelo
-	DIMENSION PCALC(NDM), DHVL(NDM), XCALC(NDM), YCALC(NDM),xCalc2(NDM),yCalc2(NDM)
-	DIMENSION ZLCALC(NDM), ZVCALC(NDM)
-	dimension rgamcalc1(NDM),rgamcalc2(NDM),rgamcalc3(NDM)
-	DOUBLE PRECISION ZLicalc(NDM)
-!
-!	Doble precisionamiento desviaciones stándar para mezclas
-	dimension STDVA(NSetM),STDVB(NSetM),STDVC(NSetM),stDvD(NSetM)
-!
-!	A partir de esta versión, A-Paraest está en Fortran 90, lo que me permite + de 73 columnas.
-!	Aún así separo en renglones cerca de la col. 100 para no restar legibilidad.
-!	La separación como se ve, es con un "&" al final, y otro "&" al principio.
-	INTEGER NC,NG,NGA,NGA2,NSIG,ISAT,IGLE,IVE,IUNI,NPRED,NNP,NNQ,NALFA,NENASS,NRKASS,NPAR,NCXP,IOPT,&
-
-&	        NUMDC,NUMTC,NOPCION,MAXFN,IXJAC,INFER,IER
-
+	DOUBLE PRECISION FCION(NDM)          ! residuos
+	DOUBLE PRECISION stDvD(NSetM)
 	character(1) OPDER
 !
-	double precision W1,W2,W3,W4,W5,W6,W7,W8,EPS,DELTAZ,SSQ
-!
-!	Dimensioamiento de los pesos individuales:
-	dimension wSat(NDM), wBin(2,NDM), wTer(2,NDM), wEx(NDM), wGam(3,NDM)
-!
-!	COMMON Para subrutina FUNC requerida por IMSL
-	COMMON/FORFUNC/NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,Tspline,RKIJ,RKTIJ,ALFAIJ,MASSOC,ENASS,RKASS,&
-
-&	               W1,W2,W3,W4,W5,w6,W7,W8,W9,W10,W11,W12,ISAT,IGLE,IVE,IUNI,NNP,NNQ,NALFA,NENASS,NRKASS,NSAT,     &
-
-&	               IDC,NOBS,IHEN,mez,IFL,Texp,Pexp,xExp,xExp2,YExp,yExp2,IDSAT,IDG,ITEMP,NIDG,IDIDG,&
-
-&	               IDQ,IDALF,NIDALF,IDIDALF,IDENASS,NIDENASS,IDIDENASS,IDRKASS,NIDRKASS,IDIDRKASS,  &
-
-&	               DC,PSTCLC,XCALC,YCALC,xCalc2,yCalc2,ZLCALC,ZVCALC,FCAUX,PCALC,DHVL,IOBJSAT,FCAUX2,fcaux3,&
-
-&	               STDVA,STDVB,stdvc,NumTc,idTc,numDC,IDDC,NGA
-!
-	COMMON/FORFUNC2/rgamcalc1,rgamcalc2,rgamcalc3,rgamexp1, rgamexp2, rgamexp3,rhoExp
-	COMMON/FORFUNC3/ONUASOC,zLiCalc,PRCRIT,TEMPCRIT,TSAT,PSAT
-	common/forFunc4/prop_E_calc(NDM),prop_E_exp(NDM)
-	common/FORFUNC5/wSat, wBin, wTer, wEx, wGam
-	common/forFunc6/DHfu, Tfu, w13, DCpfu, Dvfu, TtrSS, DHss, Pfu
-!
-	COMMON/IDSC/IDXX
-!
-!	Límites:
-!
-!		NGM Grupos diferentes en la contribucion dispersiva
-!		12 Grupos diferentes en la contribucion de asociacion
-!		NCM Componentes
-!		NDM Datos experimentales de cualquier tipo, sea  de presion de vapor de comp puros o cualquier
-!		otro tipo de dato de equilibrio
-!		NSetM Data sets de ELV
-!		8  (Ajuste de a lo sumo 8 paráetros diferentes)
-!		13  (A lo sumo 13 parametros IDENTicos a alguno de los ajustados)
-!
-!
-!	IDC(J,1)  = Contiene el numero que identifica al componente para el que se dan las fracciones molares ex-
-!	            perimentales, en el dataset numero j.
-!
-!	IDC(J,2) = Contiene el numero que identifica al componente para el que NO se dan las fracciones molares
-!	           experimentales, en el dataset numero j.
-!
+!	IDC(J,1): componente para el que se dan las fracciones molares experimentales en el conjunto j.
+!	IDC(J,2): componente para el que NO se dan.
 !
 	opder = "N"
 
@@ -1005,6 +851,7 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 
 &	               IDRKASS,NIDRKASS,IDIDRKASS,DC,IOPT,NUMDC,IDDC,TSPLINE,numtc,idtc)
 	use dimensiones
+	use datos_ajuste, only: DHfu, Tfu, DCpfu, DVfu, TtrSS, DHss, Pfu
 	use utilidades, only: i2s, rep
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
@@ -1028,7 +875,7 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 !
 	DIMENSION IDSAT(NCM)
 !
-	DIMENSION  TEMPCRIT(NCM), PRCRIT(NCM), TSAT(NCM), PSAT(NCM), DHfu(NCM), DVfu(NCM), Tfu(NCM), Pfu(NCM), DCpfu(NCM), TtrSS(NCM), DHss(NCM)	
+	DIMENSION  TEMPCRIT(NCM), PRCRIT(NCM), TSAT(NCM), PSAT(NCM)
 	DIMENSION TEXP(NDM), PEXP(NDM), XEXP(NDM), YEXP(NDM), xexp2(NDM)
 !
 !	Dimensionamiento  nro. de datos de pvap comp puros
@@ -1084,7 +931,6 @@ SUBROUTINE WRITESAL1(NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,NGA,O
 !
 	CHARACTER*9 FECHA,HORA
 	
-	common/forFunc6/DHfu, Tfu, w13_common, DCpfu, Dvfu, TtrSS, DHss, Pfu
 	
 	OPEN(UNIT=1,STATUS='unknown',file='paraest.out',FORM='FORMATTED')
 !
@@ -1691,125 +1537,28 @@ ENDsubroutine
 !
 SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	use dimensiones
+	use datos_ajuste, PSATu => PSAT   ! PSAT es también una subrutina que se llama acá
 	use utilidades, only: i2s, rep
 	use escalado, only: XXDESSCAL
 !
 	IMPLICIT REAL*8 (A-H,O-Z)
 	real(8), parameter :: Rgas_SI = 8.314D0
 !
-!	Dim dispersion
-	DIMENSION NU(NGM,NCM), QAREA(NGM), TSTR(NGM), GSTR(NGM),Tspline(NGM)
-	DIMENSION GDOT(NGM), GDDOT(NGM), RKIJ(NGM,NGM), RKTIJ(NGM,NGM)
-	DIMENSION ALFAIJ(NGM,NGM)
+!	Los datos del sistema, los experimentales y la identificación de los
+!	parámetros llegan por el módulo datos_ajuste (ZXSSQ solo pasa XX, NCXP,
+!	NPAR y FCION).
 !
-!	Dim. asociacion
-	DIMENSION MASSOC(12),ENASS(6,12,6,12), RKASS(6,12,6,12)
-	DIMENSION ONUASOC(12,NCM)
-!
-!	Dimensionamiento diametro de esferas rigidas en el punto crit.
-	DIMENSION DC(NCM)
-!
-!	Dim. ajuste de param
-	DIMENSION IDSAT(NCM)
-!
-	DIMENSION TEMPCRIT(NCM), PRCRIT(NCM), TSAT(NCM), PSATu(NCM)
-	DIMENSION TEXP(NDM), PEXP(NDM), XEXP(NDM), YEXP(NDM),xexp2(NDM),yExp2(NDM),rhoExp(NDM)
-	dimension rgamexp1(NDM),rgamexp2(NDM),rgamexp3(NDM)
-	DIMENSION PCALC(NDM), DHVL(NDM), XCALC(NDM), YCALC(NDM),xCalc2(NDM), yCalc2(NDM)
-	dimension rgamcalc1(NDM),rgamcalc2(NDM),rgamcalc3(NDM)
-	dimension zlicalc(NDM)
-	DIMENSION ZLCALC(NDM), ZVCALC(NDM)
-!
-!
-	dimension feed(15),zFrac(15,4), help(15,15), zVal(4),iVap(1),indF(4)
-
-!
-!	***********************Viene importante dimension variable**************************
-	DIMENSION FCION(NCXP),FCAUX(NDM),FCAUX2(NDM),FCAUX3(NDM)
-!
-!
-!	Dimensionamiento  nro. de datos de pvap comp puros
-	DIMENSION NSAT(NCM),IOBJSAT(NCM)
-!
-!	Dimensionamientos que tienen que ver con los datasets
-!	Dim. ajuste de param.
-	DIMENSION PARM(4),NTEXT(NSetM,65)
-	DIMENSION IDC(NSetM,3),NOBS(NSetM),IHEN(NSetM), mez(NSetM),IFL(NSetM)
-	dimension DHfu(NCM), DVfu(NCM), Tfu(NCM), Pfu(NCM), DCpfu(NCM), TtrSS(NCM), DHss(NCM)
-!
-!	ID ==> identificacion o identicos
-!	IDID ==> identificacion de identicos
-!
-!	Los parametros se identifican a traves de su naturaleza y de sus indices
-	DIMENSION ITEMP(NPTIPOM)
-	DIMENSION IDG(NPTIPOM,2) ! identificacion (indices) de param gii o kij a ajust.
-	DIMENSION NIDG(NPTIPOM)   !nro. de param. IDENTicos a c/gii o kij
-	DIMENSION IDIDG(NIDM,2) !identificacion (indices) de IDENTicos a gii o kij
-!
-!                8 X 13 = 104
-!
-	DIMENSION IDQ(NPTIPOM)  !IDENTif param de area
-!
-	DIMENSION IDALF(NPTIPOM,2) !identif (indices) de parametros ALFAij
-	DIMENSION NIDALF(NPTIPOM) !nro. de param. IDENTicos a c/alfaij
-	DIMENSION IDIDALF(NIDM,2) !identificacion (indices) de IDENTicos
-!
-	DIMENSION IDENASS(NPTIPOM,4) !IDENTif (indices) de parametros ENASSijkl
-	DIMENSION NIDENASS(NPTIPOM) !Nro. de param. IDENTicos  a c/ENASSijkl
-	DIMENSION IDIDENASS(NIDM,4) !IDENTif (indices) de IDENTicos a ENASSijkl
-!
-	DIMENSION IDRKASS(NPTIPOM,4) !Identif (indices) de param. RKASSijkl
-	DIMENSION NIDRKASS(NPTIPOM) !Nro. de param. identicos a c/RKASSijkl
-	DIMENSION IDIDRKASS(NIDM,4) !Identif (indices) de identicos a c/RKASSijkl
-!
-	DIMENSION idTc(NPTIPOM), IDDC(NPTIPOM)
-!
-!
-!	*************La dimension variable que viene es muy importante que sea variable************
-!
-	DIMENSION XX(NPAR), IDXX(NPARM) , XXAUX(NPARM)
-!
-!	Dimensionamiento de arreglos de trabajo necesarios en el calculo de propiedades de compuestos puros.
-	DIMENSION WDC(1), WTEMPCRIT(1), WPRCRIT(1),NUW(NGM,1),ONUASOCW(12,1),wZ(2)
-!
-	DIMENSION PSTCLC(NCM)    !Presion de vapor(atm) calculada a la temperatura TSAT(I)
-!
-!	Dimensionamiento de arreglos de trabajo necesarios en el calculo de propiedades de mezclas binarias.
-	DIMENSION WWDC(3),WWTEMPCRIT(3), WWPRCRIT(3),NUWW(NGM,3),ONUASOCWW(12,3)
-!
-!	Dimensionamiento desviaciones standar para mezclas
-	DIMENSION STDVA(NSetM),STDVB(NSetM),STDVc(NSetM),stDvD(NSetM)
-
-	DIMENSION  :: PM(NCM),WWPM(2)
-!
-!	Dimensionamiento de los pesos individuales para cada set de datos
-	dimension wSat(NDM), wBin(2,NDM), wTer(2,NDM), wEx(NDM), wGam(3,NDM)
-!
-!	COMMON Para subrutina func requerida por IMSL
-	COMMON/FORFUNC/NC,NG,NU,QAREA,TSTR,GSTR,GDOT,GDDOT,Tspline,RKIJ,RKTIJ,ALFAIJ,MASSOC,ENASS,RKASS,      &
-
-&	               W1,W2,W3,W4,W5,w6,W7,W8,W9,W10,W11,W12,ISAT,IGLE,IVE,IUNI,NNP,NNQ,NALFA,NENASS,NRKASS, &
-
-&	               NSAT,IDC,NOBS,IHEN,mez,IFL,Texp,Pexp,xExp,xExp2,YExp,yExp2,IDSAT,IDG,ITEMP,NIDG,IDIDG, &
-
-&	               IDQ,IDALF,NIDALF,IDIDALF,IDENASS,NIDENASS,IDIDENASS,IDRKASS,NIDRKASS,IDIDRKASS,        &
-
-&	               DC,PSTCLC,XCALC,YCALC,xCalc2,yCalc2,ZLCALC,ZVCALC,FCAUX,PCALC,DHVL,IOBJSAT,FCAUX2,fcaux3,   &
-
-&	               STDVA,STDVB,stdvc,NumTc,idTc,numDC,IDDC,NGA
-!
-	COMMON/FORFUNC2/rGamCalc1, rGamCalc2,rGamCalc3,rGamExp1, rGamExp2, rGamExp3, rhoExp
-!
-	COMMON/FORFUNC3/ONUASOC,zLicalc,PRCRIT,TEMPCRIT,TSAT,PSATu
-!
-	common/forfunc4/prop_E_calc(NDM),prop_E_exp(NDM)
-!
-	common/FORFUNC5/wSat, wBin, wTer, wEx, wGam
-!	
-	common/forFunc6/DHfu, Tfu, w13, DCpfu, Dvfu, TtrSS, DHss, Pfu
-!
-	COMMON/IDSC/IDXX
-!
+	DIMENSION XX(NPAR), FCION(NCXP)
+	DIMENSION XXAUX(NPARM)                 ! parámetros desescalados
+	DIMENSION PARM(4), NTEXT(NSetM,65)
+	DIMENSION stDvD(NSetM)
+	DIMENSION PM(NCM), WWPM(2)
+!	Trabajo para el cálculo de propiedades de compuestos puros
+	DIMENSION WDC(1), WTEMPCRIT(1), WPRCRIT(1), NUW(NGM,1), ONUASOCW(12,1), wZ(2)
+!	Trabajo para el cálculo de propiedades de mezclas binarias
+	DIMENSION WWDC(3), WWTEMPCRIT(3), WWPRCRIT(3), NUWW(NGM,3), ONUASOCWW(12,3)
+!	Flash
+	DIMENSION feed(15), zFrac(15,4), help(15,15), zVal(4), iVap(1), indF(4)
 !
 	PENALIZ = 0	!1e-0
 !	NaN guard agregado por el asistente (OpenCode/DeepSeek), 2026-11-06.
