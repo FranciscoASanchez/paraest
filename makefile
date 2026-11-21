@@ -23,6 +23,7 @@ MAIN         = src/main/dimensions.f90                   \
                src/main/statistics.f90                   \
                src/main/scaling.f90                      \
                src/main/utilities.f90                    \
+               src/main/residuals.f90                    \
                src/main/paraest.f90
 
 OPTIMIZATION = src/optimization/zxssq.f90
@@ -96,12 +97,15 @@ $(OBJDIR) $(DBGDIR):
 
 # Module dependencies: when a module changes, whatever uses it is rebuilt
 # (and make builds the module first).
-MODULES = dimensions fit_data gca_parameters statistics scaling utilities
+MODULES = dimensions fit_data gca_parameters statistics scaling utilities residuals
 dep = $(addprefix $(1)/,$(addsuffix .o,$(2)))
 $(OBJDIR)/paraest.o: $(call dep,$(OBJDIR),$(MODULES))
 $(DBGDIR)/paraest.o: $(call dep,$(DBGDIR),$(MODULES))
 $(OBJDIR)/fit_data.o $(OBJDIR)/gca_parameters.o $(OBJDIR)/scaling.o: $(OBJDIR)/dimensions.o
 $(DBGDIR)/fit_data.o $(DBGDIR)/gca_parameters.o $(DBGDIR)/scaling.o: $(DBGDIR)/dimensions.o
+RESDEPS = dimensions fit_data gca_parameters scaling utilities
+$(OBJDIR)/residuals.o: $(call dep,$(OBJDIR),$(RESDEPS))
+$(DBGDIR)/residuals.o: $(call dep,$(DBGDIR),$(RESDEPS))
 
 # Regression tests: every case in tests/cases/ runs in tests/tmp/ and its
 # output is compared with the case's reference/ directory.
