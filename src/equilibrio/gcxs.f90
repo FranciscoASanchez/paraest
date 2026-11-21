@@ -11,7 +11,7 @@ subroutine GCXS(ifl,NG,NST,T,P,feed,propEx,CZ,iErrEx)
 !	Declaraciones:
 	implicit real*8 (A-H,o-Z)
 	parameter(R = 82.05,MaxD=500,MaxNS=50)
-	dimension xn(15),xn1(15),xn2(15),NP(MaxNS),Z(2),feed(15)
+	dimension xn(30),xn1(30),xn2(30),NP(MaxNS),Z(2),feed(30)
 	character*10::version='0.4.0',AName
 	character*20 versGCA
 !	real*8 MatrizDatos(MaxD,4)
@@ -19,8 +19,8 @@ subroutine GCXS(ifl,NG,NST,T,P,feed,propEx,CZ,iErrEx)
 !
 !	COMMONs:
 	common/versSUB/versGCA
-	common/NAME/AName(15)
-	common/GCPROM/PMM(15),Pen(15),HHA(15),HHB(15),HHC(15),HHD(15),HHE(15),HHF(15)
+	common/NAME/AName(30)
+	common/GCPROM/PMM(30),Pen(30),HHA(30),HHB(30),HHC(30),HHD(30),HHE(30),HHF(30)
 !
 !
 !

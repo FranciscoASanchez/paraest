@@ -22,7 +22,7 @@ subroutine GCSLE (NC, NG, NST, T, P, XN0, DHfu, DVfu, Tfu, Pfu, DCpfu, TtrSS, DH
 
 	IMPLICIT REAL*8(A-H,O-Z)
 
-	integer, parameter :: NCM = 15, maxIt = 50
+	integer, parameter :: NCM = 30, maxIt = 50
 	real(8), parameter :: Rgas_SI = 8.314D0, Rgas_GCA = 82.05D0
 
 	DIMENSION XN(NCM),XN0(NCM),PHI(NCM),PHIV(NCM),PHILH(NCM),PHIL(NCM),DLPHI(NCM,NCM),DLPHIT(NCM),DLPHIP(NCM)

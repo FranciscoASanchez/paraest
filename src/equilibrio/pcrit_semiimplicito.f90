@@ -13,7 +13,7 @@
 subroutine implicitPCrit(NC, NG, NST, T, P, zn, dlnF_dz1, d2lnF_dz12, Z)
 
 	implicit none
-	integer, parameter ::          NCM=15, NGM=15, NGAM=24
+	integer, parameter ::          NCM=30, NGM=15, NGAM=24
 	real(8), parameter ::          delta = 1.D-5
 	
 	integer ::                     NC, NG, NST, iErrPC
@@ -41,7 +41,7 @@ endsubroutine implicitPCrit
 subroutine dFug_z1(NC, NG, NST, T, P, zn, dlnF_dz1, Z)
 
 	implicit none
-	integer, parameter ::          NCM=15, NGM=15, NGAM=24
+	integer, parameter ::          NCM=30, NGM=15, NGAM=24
 
 	integer ::                     NC, NG, NST, iErrPC, iC, Igz
 

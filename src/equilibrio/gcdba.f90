@@ -19,10 +19,10 @@
       subroutine GCADB(MODEL,NC,NG,NST,iTy,T,P,xx,yy,iErrBurb,ZLiq,ZVap)
 !
       IMPLICIT REAL*8(A-H,O-Z)
-      REAL*8 K(15),X(15),Y(15),GG(15,16),Z(15)
+      REAL*8 K(30),X(30),Y(30),GG(30,31),Z(30)
       DIMENSION NAME(36)
 !
-      COMMON/CRIT/TC(15),PC(15)
+      COMMON/CRIT/TC(30),PC(30)
       COMMON/CONTL/ERROR,IPRINT,IEXPON,INIT,ITYPE,MAXIT,ITHERM,IT
       COMMON/COUT/IOUT
 
@@ -265,9 +265,9 @@
 !                                                                       00000150
 !     ******************************************************************00000160
       IMPLICIT REAL*8(A-H,O-Z)
-      DIMENSION X(15),Y(15),Z(15),G(15),DG(NC,NC1),DEL(15),PHIL(15)
-      DIMENSION PHIV(15),FX(15,15),FY(15,15),FPX(15),FPY(15),FTX(15)
-      DIMENSION FTY(15)
+      DIMENSION X(30),Y(30),Z(30),G(30),DG(NC,NC1),DEL(30),PHIL(30)
+      DIMENSION PHIV(30),FX(30,30),FY(30,30),FPX(30),FPY(30),FTX(30)
+      DIMENSION FTY(30)
       COMMON/CONTL/ERROR,IPRINT,NDIG,INIT,ITYPE,MAXIT,ITHERM,NIT
       COMMON/COUT/IOUT
 
@@ -388,7 +388,7 @@
       SUBROUTINE SUMA(N,Z,SZ,IC)
 
       IMPLICIT REAL*8(A-H,O-Z)
-      DIMENSION Z(15)
+      DIMENSION Z(30)
 
       Sz = sum(z(:N))
       IF (IC.EQ.0 .OR. SZ.EQ.0.) RETURN
@@ -405,7 +405,7 @@
 !                                                                       00001360
       SUBROUTINE SRK1(INDIC,MTYP,IC,T,P,Z,X,FUG,FUGT,FUGP,FUGX)
       IMPLICIT REAL*8 (A-H,O-Z)
-      DIMENSION X(15),FUGT(15),FUG(15),FUGP(15),FUGX(15,15)
+      DIMENSION X(30),FUGT(30),FUG(30),FUGP(30),FUGX(30,30)
       COMMON/STYR/ N,NH,NDER,NTEMP
       NTEMP=0
       NDER=1
@@ -420,10 +420,10 @@
 !                                                                       00001510
       SUBROUTINE ANEW(X,A0,AT,ATT,B0,AD1,AD2,ADT,BD1)
       IMPLICIT REAL*8(A-H,O-Z)
-      DIMENSION AD1(15),AD2(120),ADT(15),BD1(15),&
-     &X(15),AX0(15),AX1(15),AS1(15),AST1(15)
+      DIMENSION AD1(30),AD2(465),ADT(30),BD1(30),&
+     &X(30),AX0(30),AX1(30),AS1(30),AST1(30)
       COMMON/STYR/N,NH,NDER,NTEMP
-      COMMON/PAR/CK(120),BC(15),AC0(15),AC1(15)
+      COMMON/PAR/CK(465),BC(30),AC0(30),AC1(30)
       S0=0.
       S1=0.
       DO 10 I=1,N
@@ -553,15 +553,15 @@
       SUBROUTINE INDAT_cubica(NC,NONHY)
 
       IMPLICIT REAL*8(A-H,O-Z)
-      REAL*4 T(15),P(15),OMEGA(15),CKV(15,4),O(15)
-      REAL*4 ACEN(15)
-      CHARACTER*4 NAME(15),NEW(15)
-      DIMENSION IV(15)
+      REAL*4 T(15),P(15),OMEGA(15),CKV(15,4),O(30)
+      REAL*4 ACEN(30)
+      CHARACTER*4 NAME(15),NEW(30)
+      DIMENSION IV(30)
       COMMON/CUB/C,C1,C2
-      COMMON/CRIT/TCR(15),PCR(15)
+      COMMON/CRIT/TCR(30),PCR(30)
       COMMON/STYR/N,NH,NDER,NTEMP
-      COMMON/OVER/AC(15),Q(15),TSQR(15)
-      COMMON/PAR/CK(120),BC(15),AC0(15),AC1(15)
+      COMMON/OVER/AC(30),Q(30),TSQR(30)
+      COMMON/PAR/CK(465),BC(30),AC0(30),AC1(30)
       COMMON/COUT/IOUT
 !
 !     COMPONENTS LIST                                                   00002910
@@ -652,7 +652,7 @@
       WRITE(6,30) (NEW(K),K=1,N)
       IF(IOUT.EQ.1) WRITE(3,30) (NEW(K),K=1,N)
 30    FORMAT(/,'  NONZERO BINARY INTERACTION COEFFICIENTS ',//,&
-     &5X,15(A4,1X))
+     &5X,*(A4,1X))
       DO 120 J=NH,N
       L1=IV(J)-11
       DO 125 I=1,N
@@ -662,7 +662,7 @@
 125   CONTINUE
       IF(IOUT.EQ.1) WRITE(3,40) NEW(J),(O(I),I=1,N)
 120   WRITE(6,40) NEW(J),(O(I),I=1,N)
-40    FORMAT(1X,A4,15F5.2)
+40    FORMAT(1X,A4,*(F5.2))
       RETURN
       END
 !------------------------------------------------------------------------------------------
@@ -696,10 +696,10 @@
 !                                                                       00004150
       SUBROUTINE TEMSET(T)
       IMPLICIT REAL*8(A-H,O-Z)
-      COMMON/CRIT/TCR(15),PCR(15)
+      COMMON/CRIT/TCR(30),PCR(30)
       COMMON/STYR/N,NH,NDER,NTEMP
-      COMMON/OVER/AC(15),Q(15),TSQR(15)
-      COMMON/PAR/CK(120),BC(15),AC0(15),AC1(15)
+      COMMON/OVER/AC(30),Q(30),TSQR(30)
+      COMMON/PAR/CK(465),BC(30),AC0(30),AC1(30)
       DATA TOLD/0.D0/
       IF (T.EQ.TOLD) RETURN
       TOLD=T
@@ -720,8 +720,8 @@
 !                                                                       00004390
       SUBROUTINE CUBGEN(MT,IC,T,P,Z,XX,FG,FT,FP,FX)
       IMPLICIT REAL*8(A-H,O-Z)
-      DIMENSION XX(15),X(15),FG(15),FT(15),FP(15),FX(15,15)
-      DIMENSION PD(15),AD1(15),BD1(15),ADT(15),AD2(120)
+      DIMENSION XX(30),X(30),FG(30),FT(30),FP(30),FX(30,30)
+      DIMENSION PD(30),AD1(30),BD1(30),ADT(30),AD2(465)
       COMMON/STYR/N,NH,NDER,NTEMP
       COMMON/CUB/C,C1,C2
       CALL TEMSET(T)
@@ -802,8 +802,8 @@
 
       IMPLICIT REAL*8(A-H,O-Z)
       REAL*8 K
-      DIMENSION X(15),Y(15),Z(15)
-      COMMON/CRIT/TC(15),PC(15)
+      DIMENSION X(30),Y(30),Z(30)
+      COMMON/CRIT/TC(30),PC(30)
 !
       DO 60 I=1,NC
 

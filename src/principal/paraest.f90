@@ -1293,7 +1293,9 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !	Trabajo para el cálculo de propiedades de mezclas binarias
 	DIMENSION WWDC(3), WWTEMPCRIT(3), WWPRCRIT(3), NUWW(NGM,3), ONUASOCWW(12,3)
 !	Flash
-	DIMENSION feed(15), zFrac(15,4), help(15,15), zVal(4), iVap(1), indF(4)
+!	Arrays passed to the GCA package: dimensioned with its maximum number of components
+	integer, parameter :: NCMgca = 30
+	DIMENSION feed(NCMgca), zFrac(NCMgca,4), help(NCMgca,NCMgca), zVal(4), iVap(1), indF(4)
 !
 	PENALIZ = 0	!1e-0
 !	NaN guard agregado por el asistente (OpenCode/DeepSeek), 2026-11-06.
@@ -1323,61 +1325,25 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 !	WRITE(2,'(<NPAR>(F12.4,X),E12.5)') (XXAUX(I),I=1,NPAR),SUMQ
 
 !	CLOSE(UNIT=2)
-	DO I=1,NC
-
-	  iErrorDc = 0
- 	  IF(TSAT(I).NE.0) THEN
-!
-!	    Verifico si el DC(I) no ha sido ya considerado como una variable de optimizacion:
-	    DO JAM=1,NUMDC
-
-	      IF(IDDC(JAM).EQ.I)iErrorDc=1	!GO TO 1325
-
-	    END DO
-	    if(iErrorDc.EQ.0)then
-!
-!	      Carga de las variables de trabajo
-	      WDC(1)= DC(I)
-	      WTEMPCRIT(1)= TEMPCRIT(I)
- 	      WPRCRIT(1)  = PRCRIT(I)
-	      DO J=1,NG
-
-	        NUW(J,1) = NU(J,I)
-
-	      END DO
-	      DO K=1,NGA
-
-	        ONUASOCW(K,1) = ONUASOC(K,I)
-
-	      END DO
-	      WTEMP = TSAT(I)
-	      WPSAT = PSATu(I)
-!
-!	      Ajuste de DC
-	      CALL ASSOCDCADJUSTFASTSUB(1,WDC(1),WTEMPCRIT,NG,NUW,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,      &
-&	                                NGA,ONUASOCW,MASSOC,ENASS,RKASS,WTEMP,WPSAT,NCM,IERRDC2)
-!
-!	      NCM es el numero máximo de iteraciones en ASSOCDCADJUSTFASTSUB
-!
-!	      Si hubo un error en el ajuste:
-	      IF(IERRDC2 /= 0) THEN
-
-	        WDC(1)= DC(I)
-
-!	        Ajuste de DC por un metodo un poco mas robusto pero unas 5 veces mas lento
-	        CALL AssocDcAdjustSUB(1,WDC,WTEMPCRIT,NG,NUW,QAREA,TSTR,GSTR,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,         &
-&	                              NGA,ONUASOCW,MASSOC,ENASS,RKASS,WTEMP,WPSAT,2,PSATCALC)
-!	        2  es el numero máximo de iteraciones ASSOCDCADJUSTSUB
-	        PSTCLC(I) = PSATCALC
-
-	      END IF
-	      DC(I) = WDC(1)
-	      WRITE(6,'(" Fin ajuste de dc comp nro. = ",I2)')I
-
-	    endif
-
-	  END IF
-	END DO
+!	Critical diameters: each dc that is not a fitted parameter is adjusted to
+!	reproduce exactly the vapor pressure point (TSAT, PSAT) of its component.
+	if (any(TSAT(:NC) /= 0)) then
+	  call fakePARGR(NC,NG,NGA,NST,IOUt,NU(:NG,:NC),QAREA(:NG),TStr(:NG),gStr(:NG),GDOT(:NG),GDDOT(:NG),   &
+&	                 RKIJ(:NG,:NG),RKTIJ(:NG,:NG),ALFAIJ(:NG,:NG),ONUASOC(:NGA,:NC),MASSOC(:NGA),           &
+&	                 ENASS(:2,:NGA,:2,:NGA),RKASS(:2,:NGA,:2,:NGA),Tspline(:NG))
+	  call fakePARMOL(NC,NG,NST,IOUt,DC(:NC),TEMPCRIT(:NC),PRCRIT(:NC))
+	  DO I=1,NC
+	    IF (TSAT(I) == 0) CYCLE
+	    IF (any(IDDC(:NUMDC) == I)) CYCLE
+	    call fit_dc(I,NC,NG,NST,TSAT(I),PSATu(I),dcFit,iErrDc)
+	    IF (iErrDc == 0) THEN
+	      DC(I) = dcFit
+	    ELSE
+	      WRITE(6,'(" dc fit failed for component ",I2,", ier = ",I2)') I, iErrDc
+	    ENDIF
+	    WRITE(6,'(" Fin ajuste de dc comp nro. = ",I2)')I
+	  END DO
+	endif
 !
 !
 !	Cálculo de presiones de vapor o de isofugacidad de puros
@@ -1458,9 +1424,9 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	          
 ! 	            Eval psat(T) = phiL(T)*(1 atm)
 	            feed(1) = 1
-	            feed(2:15) = 0
+	            feed(2:NCMgca) = 0
 	            wPsat = 1
-	            call GCEOS(1, NG, NST, 1, 0, wTemp, wPsat, feed, zFrac(:15,1), help(:15,:15), zfrac(:15,2), zfrac(:15,3), wZ(2), 0, 1, iErr)
+	            call GCEOS(1, NG, NST, 1, 0, wTemp, wPsat, feed, zFrac(:NCMgca,1), help(:NCMgca,:NCMgca), zfrac(:NCMgca,2), zfrac(:NCMgca,3), wZ(2), 0, 1, iErr)
 	            wPsat = dexp(zFrac(1,1))	            
 	            wZ(1) = 1
 	            wZ(2) = wZ(2)*wPsat
@@ -1469,7 +1435,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	          if (iErrPSat >= 0) then
 ! 	            Vaporization enthalpy calculation
 	            feed(1) = 1
-	            feed(2:15) = 0
+	            feed(2:NCMgca) = 0
 	            call NTLPY (1, NG, NST, wTemp, wPSat, feed, HRV, wZ(1), -1, -1, iErr)
 	            call NTLPY (1, NG, NST, wTemp, wPSat, feed, HRL, wZ(2), 1, 1, iErr)
 			
@@ -1687,7 +1653,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	              iOrden = 2
 
 	            endif
-	            call GC3Flash(NCw,NG,NST,TEMP,PRESS,feed(:15),zFrac,zVal,indF,IERRTP)
+	            call GC3Flash(NCw,NG,NST,TEMP,PRESS,feed(:NCMgca),zFrac,zVal,indF,IERRTP)
 !
 !	            if(minval(indF(:4)).GT.-1)then
 
@@ -1822,7 +1788,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	              iOrden = 2
 
 	            endif
-	            call GC3Flash(NCw,NG,NST,TEMP,PRESS,feed(:15),zFrac,zVal,indF,IERRTP)
+	            call GC3Flash(NCw,NG,NST,TEMP,PRESS,feed(:NCMgca),zFrac,zVal,indF,IERRTP)
 !
 	            if(minval(indF(:4)).GT.-1)then
 
@@ -2020,7 +1986,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	        feed(2) = 1D0 - feed(1)
 	        if(feed(2).LT.0.D0)feed(2) = 1D-20
 	        write(*,'("  Pto. nro. ",I2)')i
-	        call GCXS(ifl(ks),NG,NST,Temp,Press,feed(:15),prop_E_calc(numExp+1),zLiCalc(numexp+1),iErrEx)
+	        call GCXS(ifl(ks),NG,NST,Temp,Press,feed(:NCMgca),prop_E_calc(numExp+1),zLiCalc(numexp+1),iErrEx)
 	        if(iErrEx.EQ.0)then
 
 	          if(prop_E_exp(numExp+1).NE.0D0)then
@@ -2081,8 +2047,8 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	        iErrSol = 0
 !	        zFrac(1:15,1) almacena la composición del líquido.
 !	        zFrac(1:15,2) almacena la fugacidad. La conservo sólo porque en el programa original de Susana se imprimía.
-	        call GCSLE (NCw, NG, NST, Temp, Press, feed(:15), wwDHfu, wwDVfu, wwTfu, wwPfu, wwDCpfu, wwTtrSS, wwDHss, &
-	                    CZ, zFrac(:15,1), zFrac(:15,2),iErrSol)	  
+	        call GCSLE (NCw, NG, NST, Temp, Press, feed(:NCMgca), wwDHfu, wwDVfu, wwTfu, wwPfu, wwDCpfu, wwTtrSS, wwDHss, &
+	                    CZ, zFrac(:NCMgca,1), zFrac(:NCMgca,2),iErrSol)	  
 	        if(iErrSol.EQ.0)then
 	  
 	          zLiCalc(numExp+1) = cZ
@@ -2128,7 +2094,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	        feed(2) = 1D0 - feed(1)
 	        iErrPC = 0
 	        
-	        call implicitPCrit(NCw, NG, NST, Temp, Press, feed(:15), dlnF_dz1, d2lnF_dz12, zLiCalc(numExp+1))
+	        call implicitPCrit(NCw, NG, NST, Temp, Press, feed(:NCMgca), dlnF_dz1, d2lnF_dz12, zLiCalc(numExp+1))
 	        fcion(numExp+1) = wBin(1,numExp+1)**2*dlnF_dz1**2 + wBin(2,numExp+1)**2*d2lnF_dz12**2
 	        fcAux(numExp+1) = dlnF_dz1
 	        fcAux2(numExp+1) = d2lnF_dz12	      
@@ -2176,7 +2142,7 @@ SUBROUTINE FUNC(XX,NCXP,NPAR,FCION)
 	        iTyp = 1; iGz = 0; jTemp = 0
 ! 	        zFrac almacena los valores de ln(gamma)
 	        call paragc(Temp, NCw, NG, NST, jTemp)
-	        call GAMMA(NCw, NG, NST, iTyp, iGz, jTemp, feed(:15), Temp, Press, zFrac(:15,1), zFrac(:15,2), zLiCalc(numExp+1))
+	        call GAMMA(NCw, NG, NST, iTyp, iGz, jTemp, feed(:NCMgca), Temp, Press, zFrac(:NCMgca,1), zFrac(:NCMgca,2), zLiCalc(numExp+1))
 	        IF(iErrGam==0)THEN
 
 ! 	          zlicalc(numexp+1) = 0
@@ -3222,7 +3188,7 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 	use utilidades, only: i2s, rep
 
 	IMPLICIT REAL*8(A-H,O-Z)
-	parameter(NCM=15,NGM=20,NGAM=12,NSM=24)
+	parameter(NCM=30,NGM=20,NGAM=12,NSM=24)
 
 	DIMENSION qArea(NG),Ts(NG),nuWW(NG,NC),Gs(NG),GDOT(NG),GDDOT(NG),rKij(NG,NG),rKTij(NG,NG), &
 &	          alfaij(NG,NG),Tspline(NG)
@@ -3272,6 +3238,7 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 !
 !	Variables equivalentes dispersivas
 12	WRITE(iOut,105) (J,J=1,NC)
+	WRITE(iOut,'()')
 	WRITE(iOut,120)
 	do j = 1,NG
 !
@@ -3421,8 +3388,8 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 117	FORMAT(/,1X,'Dependencia con la temperatura, [k`]',/)
 118	FORMAT(/,1X,'Parámetros de composición local, [alfa]',/)
 119	FORMAT(2I3,4F10.2)
-105	FORMAT(///,2X,'Grupos atractivos:',33X,'Compuesto Nro.',/,3X,'GN',4X,'T*',6X,'q',5X,'g*',10X,'g`',8X,'g"',3X,15I4,/)
-106	FORMAT(1X,I4,F7.1,F8.4,F10.1,2F10.5,15I4)
+105	FORMAT(///,2X,'Grupos atractivos:',33X,'Compuesto Nro.',/,3X,'GN',4X,'T*',6X,'q',5X,'g*',10X,'g`',8X,'g"',3X,*(I4))
+106	FORMAT(1X,I4,F7.1,F8.4,F10.1,2F10.5,*(I4))
 120	FORMAT(1X,90("-"))
 130	FORMAT(/,1X,'Los parámetros de interacción binaria entre los ','grupos',I2,' y ',I2,' no están disponibles.',/,1X,'Se usarán', &
 &	        'valores estándar a menos que estos sean ingresador por el usuario')
@@ -3438,7 +3405,7 @@ endsubroutine
 subroutine fakePARMOL(NC,NG,NST,IOUt,WWDC,WWTEMPCRIT,wwPRCRIT)
 !
 	implicit real*8(A-H,O-Z)
-	parameter(NCM=15,NGM=20,NGAM=12,NSM=24)
+	parameter(NCM=30,NGM=20,NGAM=12,NSM=24)
 	character*10 AName
 	character*20 :: versGCA
 !

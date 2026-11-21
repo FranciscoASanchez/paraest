@@ -26,8 +26,8 @@ module parametros_gca
 
   ! --- Diámetro crítico ---------------------------------------------------
   double precision :: DC(NCM)
-  ! Punto de presión de vapor al que se ajusta dc, y presión calculada allí
-  double precision :: TSAT(NCM), PSAT(NCM), PSTCLC(NCM)
+  ! Punto de presión de vapor al que se ajusta dc
+  double precision :: TSAT(NCM), PSAT(NCM)
 
   ! --- Parámetros a ajustar -----------------------------------------------
   ! Cantidad de cada tipo

@@ -28,13 +28,12 @@ PRINCIPAL    = src/principal/dimensiones.f90             \
 OPTIMIZACION = src/optimizacion/zxssq.f90
 
 MODELOS      = src/modelos/parametros_gca.f90            \
+               src/modelos/fit_dc.f90                    \
                src/modelos/gca.f90                       \
                src/modelos/gca_assoc.f90                 \
                src/modelos/gca_assoc_fev.f90             \
                src/modelos/gca_assoc_rutin_puros.f90     \
                src/modelos/gca_assoc_rutin_mezclas.f90   \
-               src/modelos/gca_assoc_dcadjust.f90        \
-               src/modelos/gca_assoc_dcadjust_fast.f90   \
                src/modelos/gca_assoc_gamma.f90
 
 EQUILIBRIO   = src/equilibrio/gc3_flash.f90              \

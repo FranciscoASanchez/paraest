@@ -29,7 +29,7 @@ SUBROUTINE GCEOS(NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP,
 !-----------------------------------------------------------------------
       IMPLICIT REAL*8(A-H,O-Z)
 !
-	parameter(ncm = 15, NGM = 20, ngam = 12, NSM = 24)
+	parameter(ncm = 30, NGM = 20, ngam = 12, NSM = 24)
 	character*20 :: versGCA = '1.9.28.0 (2.0b28)'
 	integer sigma
 	common/versSUB/versGCA
@@ -702,7 +702,7 @@ ENDSUBROUTINE
 SUBROUTINE NTLPY(NC,NG,NST,T,P,XN,HRES,CZ,IGZ,MTYP,IC)
 !
 	IMPLICIT REAL*8(A-H,O-Z)
-	parameter(NCM = 15, NGM = 20, NSM = 24)
+	parameter(NCM = 30, NGM = 20, NSM = 24)
 	integer sigma
 !
 	DIMENSION XN(NCM),Z(2)
@@ -902,7 +902,7 @@ subroutine NTLPY_GI(NC,T,Hgi)
 !	           14/07/11. Limpieza, v-1.3.4
 !
 	implicit real*8 (a-h,o-z)
-	parameter(NCM = 15)
+	parameter(NCM = 30)
 !	character*10 aname(ncm)
 	character*10 aname
 	dimension Hgi(NC)
@@ -938,7 +938,7 @@ subroutine NTRPY_GI(NC,T,Sgi)
 !	Francisco, 10/03/14. Durante la versión 1.9.26
 !
 	implicit real(8) (a-h,o-z)
-	parameter(NCM = 15)
+	parameter(NCM = 30)
 	character(10) aname
 	real(8) Sgi(NC)
 	common/NAME/AName(NCM)
@@ -976,7 +976,7 @@ endsubroutine
 SUBROUTINE PARAGC(T,NC,NG,NST,NTEMP)
 !
 	IMPLICIT REAL*8(A-H,O-Z)
-	parameter(NCM=15,NGM = 20,NGAM=12,NSM=24)
+	parameter(NCM=30,NGM = 20,NGAM=12,NSM=24)
 	real*8 kappa
 	integer sigma
 !
@@ -1105,7 +1105,7 @@ SUBROUTINE PARGR(NC, NG, NGA, NST, IOUT)
 !
 	IMPLICIT REAL*8(A-H,O-Z)
 	character(40) :: fmt116, fmt2210, fmt2220   ! formatos de largo variable (dependen de NG y NST)
-	parameter(NCM = 15, NGM = 20, NGAM = 12, NSM = 24)
+	parameter(NCM = 30, NGM = 20, NGAM = 12, NSM = 24)
 
 	DIMENSION X(35),X1(35),X2(35),NNY(NCM,NGM+1),IGROUP(NGM),INT(2*(NGM+1)), &
      &          IDG(NCM,NGM+1),ID(NGM)
@@ -1677,7 +1677,7 @@ ENDsubroutine
 SUBROUTINE PARMOL(NC, NG, NST, IOUT)
 !
 	IMPLICIT REAL*8(A-H, O-Z)
-	parameter(NCM = 15, NGM = 20, NGAM = 12, NSM = 24)
+	parameter(NCM = 30, NGM = 20, NGAM = 12, NSM = 24)
 	character*10 AName
 !
 	DIMENSION TSAT(NCM), PS(NCM), Z(2), OMEGA(NCM), NYOLD(NGM), EXPOL(NGM)
@@ -2006,7 +2006,7 @@ SUBROUTINE PSAT(T,PS,Z,NC,NG,NST,IC,IGP,IGZ,IER)
 !     -1    : solución trivial (vL = vV)
 !
 	IMPLICIT REAL*8(A-H,O-Z)
-	parameter(NCM = 15, NGM = 20, NSM = 24)
+	parameter(NCM = 30, NGM = 20, NSM = 24)
 	integer sigma
 	real*8 LAMBDA
 	DIMENSION X(NCM),Z(2)
@@ -2182,7 +2182,7 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 !-----------------------------------------------------------------------
 	IMPLICIT REAL*8 (A-H, O-Z)
 
-	parameter(NCM = 15, NGM = 20, NSM = 24)
+	parameter(NCM = 30, NGM = 20, NSM = 24)
 	parameter(maxit=200)
 !
 	DIMENSION Z(2), XN(NCM), X(NCM)
@@ -2708,7 +2708,7 @@ subroutine GAMMA(NC, NG, NST, iTyp, iGz, iTemp, n, T, P, lnGamma, dlnGammadT, Z)
 !
 	implicit real*8 (A-H, O-Z)
 !
-	parameter(NCM=15,NGM = 20,NSM=24)
+	parameter(NCM=30,NGM = 20,NSM=24)
 	real*8 lnGamma(NCM), n(NCM), Nt
 	dimension phi(NCM),dLPhi(NCM,NCM),dLPhiT(NCM),dLPhiP(NCM),dlnGammadT(NCM),x(NCM),aux(NCM)
 !
@@ -2752,7 +2752,7 @@ endsubroutine GAMMA
 subroutine GCAvirial(NC, NG, NST, T, n, x, B, Bvl, Bat, Bas, calc)
 
 	implicit real*8 (a-h,o-z)
-	parameter(NCM = 15, NGM = 20, NSM = 24, PI = 3.1415926536D0)
+	parameter(NCM = 30, NGM = 20, NSM = 24, PI = 3.1415926536D0)
 	real*8 n(NC),nt,lambda1,lambda2,lambda3
 	dimension x(NC),aux(NSM)
 	logical calc
