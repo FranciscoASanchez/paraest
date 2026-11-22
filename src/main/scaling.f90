@@ -24,15 +24,21 @@ module scaling
 
   ! Scaling factors (scl) of each parameter type.
   ! Note: since the step of ZXSSQ's numerical derivatives is almost fixed in
-  ! the scaled variable, these factors set in practice that step in the
-  ! original variable (step in log(...) ~ 4e-10/scl).
+  ! the scaled variable (~4e-10), these factors set in practice that step in
+  ! the transformed variable u (u = x for linear types, u = log(...) for
+  ! bounded ones): du ~ 4e-10/scl.
+  ! Study of 2026-11-22 (co2-phenols-fit): derivatives of k*, alpha, eps and
+  ! kappa are exact for du between ~3e-5 and 1e-8; larger steps cross kinks
+  ! of the residuals (with the old factors, du = 4e-3 to 4e-2, the gradient
+  ! had the wrong sign near the end and the fit stopped with IER = 39).
+  ! Those four use 4e-5 (du ~ 1e-5). The others have not been studied yet.
   double precision, parameter :: fGgg   = 1D-10
-  double precision, parameter :: fRkij  = 1D-7
+  double precision, parameter :: fRkij  = 4D-5
   double precision, parameter :: fTemp  = 1D-7
   double precision, parameter :: fQarea = 1D0
-  double precision, parameter :: fAlfa  = 1D-7
-  double precision, parameter :: fEnAss = 1D-6
-  double precision, parameter :: fRkass = 1D-8
+  double precision, parameter :: fAlfa  = 4D-5
+  double precision, parameter :: fEnAss = 4D-5
+  double precision, parameter :: fRkass = 4D-5
   double precision, parameter :: fTc    = 1D-8
   double precision, parameter :: fDc    = 2D-7
 
