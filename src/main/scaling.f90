@@ -31,16 +31,21 @@ module scaling
   ! kappa are exact for du between ~3e-5 and 1e-8; larger steps cross kinks
   ! of the residuals (with the old factors, du = 4e-3 to 4e-2, the gradient
   ! had the wrong sign near the end and the fit stopped with IER = 39).
-  ! Those four use 4e-5 (du ~ 1e-5). The others have not been studied yet.
+  ! Those four use 4e-5 (du ~ 1e-5).
+  ! Study of 2026-11-22 (n-alkanes): with fTemp = 1e-7 the derivatives of g'
+  ! and g" had errors of 2e-3 to 1.5e-2 (du = 4e-3); with 4e-5, 1e-5. dc
+  ! (fDc = 2e-7, du = 2e-3) reached the same minimum but its gradient was
+  ! 25-75 % off near the end. Both use 4e-5. g* (du = 4 on ~4e5) is fine.
+  ! Not studied yet: Q and Tc.
   double precision, parameter :: fGgg   = 1D-10
   double precision, parameter :: fRkij  = 4D-5
-  double precision, parameter :: fTemp  = 1D-7
+  double precision, parameter :: fTemp  = 4D-5
   double precision, parameter :: fQarea = 1D0
   double precision, parameter :: fAlfa  = 4D-5
   double precision, parameter :: fEnAss = 4D-5
   double precision, parameter :: fRkass = 4D-5
   double precision, parameter :: fTc    = 1D-8
-  double precision, parameter :: fDc    = 2D-7
+  double precision, parameter :: fDc    = 4D-5
 
   ! Bounds of the bounded parameters.
   double precision, parameter :: vMinKstr = 0.2D0, vMaxKstr = 30D0   ! k*
