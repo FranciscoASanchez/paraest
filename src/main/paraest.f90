@@ -1718,7 +1718,6 @@ SUBROUTINE write_results(NTEXT)
 !
             ! x in graficos.csv
             write(10,3490)XEXP(NCXP+1),XCALC(NCXP+1),TEXP(NCXP+1),PEXP(NCXP+1)
-            write(11,'(F7.2,3(",",G10.4),A,F7.2,3(",",G10.4))')Texp(NCXP+1),Pexp(NCXP+1),xExp(NCXP+1),yExp(NCXP+1),",|,",Texp(NCXP+1),Pexp(NCXP+1),xCalc(NCXP+1),yCalc(NCXP+1)
             NCXP = NCXP + 1
 
           END DO
@@ -2047,13 +2046,11 @@ ENDsubroutine write_results
   ! package's COMMON blocks (a dummy argument cannot be in a COMMON, so they
   ! are copied).
 !
-subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,ONUASOCWW, &
+subroutine fakePARGR(NC,NG,NGA,NST,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,ONUASOCWW, &
 &                 MASSOC,ENASS,RKASS)
-  use utilities, only: i2s, rep
-
   implicit none
   integer, parameter :: NCM=30, NGM=20, NGAM=12, NSM=24     ! must match the GCA package
-  integer :: i, IOUt, J, k, l, m1, m2, NC, NG, NGA, NGROUP, NownII, NownIJ, NST
+  integer :: i, J, k, l, m1, m2, NC, NG, NGA, NGROUP, NownII, NownIJ, NST
   integer :: NY
   double precision :: A, AKIJ, ALFA, DADT, dDeldT, Delta, eps_R, EPX, G1, G2, GSTR
   double precision :: Q, R, TSPL, TSTR, XKIJ, ZZ
@@ -2094,7 +2091,6 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
     stop
 
   endif
-  iOut = 20
 !
   ! Coordination number
   ZZ=10.D0
@@ -2106,9 +2102,6 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
   NownIJ = ((NG + 1)**2 - NG -1)/2 - NG
 !
   ! Dispersive parameters
-12  WRITE(iOut,105) (J,J=1,NC)
-  WRITE(iOut,'()')
-  WRITE(iOut,120)
   do j = 1,NG
 !
     q(j) = qArea(j)
@@ -2118,7 +2111,6 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
     g1(j) = GDOT(j)
     g2(j) = GDDOT(j)
     call spline_temperature(Tstr(j), g1(j), g2(j), Tspl(j), epx(j))
-15    WRITE(IOUT,106)j,TSTR(j),Q(j),GSTR(j),G1(j),G2(j),(NY(i,j),i=1,NC)
     do k = 1,NG
 
       xKij(j,k) = rKij(j,k)
@@ -2129,27 +2121,6 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 
   enddo
 
-!-----------------------------------------------------------------------
-!
-  ! Binary parameters
-33  WRITE(iOut,115)
-  do i = 1,NG
-
-    WRITE(IOUT,"(3X,'|',"//rep(NG,'F8.3')//"'|')") (XKIJ(I,J),J=1,NG)
-
-  enddo
-      WRITE(iOut,117)
-  do i = 1,NG
-
-    WRITE(IOUT,"(3X,'|',"//rep(NG,'F8.3')//"'|')") (AKIJ(I,J),J=1,NG)
-
-  enddo
-  WRITE(IOUT,118)
-  DO 23 I=1,NG
-
-    WRITE(IOUT,"(3X,'|',"//rep(NG,'F8.3')//"'|')") (ALFA(I,J),J=1,NG)
-
-23  enddo
 !-----------------------------------------------------------------------
   ! Association parameters
 !-------Conversion to the notation by site "m" (instead of by site "k" of
@@ -2207,63 +2178,19 @@ subroutine fakePARGR(NC,NG,NGA,NST,IOUt,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,A
 
     enddo
 !
-!-------Print the association parameters
-    WRITE(IOUT,217) NGA
-217    FORMAT(//,X,"Number of groups in the association term =",I3)
-!
-    WRITE(IOUT,218)
-218    FORMAT(/,X,' Associating group composition ',/,30X,'Component No.')
-
-    write(iOut,'(" Group    No. of sites    ",*(I5,X))')((I), I=1,NC)
-!
-    write(iOut,120)
-    DO I=1,NGA
-
-      WRITE(IOUT,219) I,MAssoc(I), (onuAsocWW(I,J), J=1,NC)
-219      FORMAT(2X,I3,16X,I3,2X,*(F5.0,X))
-
-    END DO
-!
-    WRITE(iout,220)
- 220    FORMAT(/,X,'Association energy [epsilon/R] (K)',/)
-
-    ! Association energies, as a matrix
-    do i = 1,NGA
-      do k = 1,Massoc(i)
-
-        write(IOUT,"(3X,'|',"//rep(NST,'X,F7.1')//"'|')")((enAss(k,i,l,j),l = 1,MAssoc(j)),j=1,NGA)
-
-      enddo
-    enddo
-    ! Association volumes
-    write(IOUT,'(/," Association volume [kappa] (cm3/mol)",/)')
-    do i = 1,NGA
-      do k = 1,Massoc(i)
-
-        write(IOUT,"(3X,'|',"//rep(NST,'X,F7.5')//"'|')")((rKAss(k,i,l,j),l = 1,Massoc(j)),j=1,NGA)
-
-      enddo
-    enddo
-
   endif
 
-115  FORMAT(/,1X,'Binary interaction parameters, [k*]',/)
-117  FORMAT(/,1X,'Temperature dependence, [k`]',/)
-118  FORMAT(/,1X,'Local composition parameters, [alpha]',/)
-105  FORMAT(///,2X,'Attractive groups:',33X,'Component No.',/,3X,'GN',4X,'T*',6X,'q',5X,'g*',10X,'g`',8X,'g"',3X,*(I4))
-106  FORMAT(1X,I4,F7.1,F8.4,F10.1,2F10.5,*(I4))
-120  FORMAT(1X,90("-"))
   return
 endsubroutine fakePARGR
 !---------------------------------------------------------------------------------------------------------
 !
   ! Same as fakePARGR, for the component parameters of PARMOL (Tc, Pc, dc).
 !
-subroutine fakePARMOL(NC,NG,NST,IOUt,WWDC,WWTEMPCRIT,wwPRCRIT)
+subroutine fakePARMOL(NC,NG,NST,WWDC,WWTEMPCRIT,wwPRCRIT)
 !
   implicit none
   integer, parameter :: NCM=30, NGM=20, NSM=24     ! must match the GCA package
-  integer :: i, iEntalp, IOUt, NC, NG, NST, NY
+  integer :: i, iEntalp, NC, NG, NST, NY
   double precision :: A, AKIJ, ALFA, D, DADT, DC, dDeldT, Delta, DT, eps_R, EPX, G1
   double precision :: G2, GSTR, HA, HB, HHA, HHB, hhc, HHD, HHE, HHF, PC, Pen
   double precision :: pmm, Q, R, TC, TSPL, TSTR, XKIJ, ZZ
@@ -2294,7 +2221,6 @@ subroutine fakePARMOL(NC,NG,NST,IOUt,WWDC,WWTEMPCRIT,wwPRCRIT)
   double precision :: kappa
   integer :: sigma
 
-  write(iOut,'(//,"Critical diameters",/)')
   iEntalp = 0
   do i = 1,NC
 

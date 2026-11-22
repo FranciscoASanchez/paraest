@@ -31,8 +31,8 @@ module residuals
   double precision, parameter :: PENALIZ = 0D0          ! residual of a point whose calculation failed
   double precision, parameter :: PENALIZNAN = 1D0       ! replaces NaN/Inf residuals
 
-  ! Set by fakePARGR: number of association sites and output unit of the package.
-  integer :: NST, IOUt
+  ! Set by fakePARGR: number of association sites.
+  integer :: NST
 
 contains
 
@@ -110,10 +110,10 @@ subroutine fit_critical_diameters()
 
   if (.not. any(TSAT(:NC) /= 0)) return
 
-  call fakePARGR(NC, NG, NGA, NST, IOUt, NU(:NG,:NC), QAREA(:NG), TSTR(:NG), GSTR(:NG), GDOT(:NG), GDDOT(:NG), &
+  call fakePARGR(NC, NG, NGA, NST, NU(:NG,:NC), QAREA(:NG), TSTR(:NG), GSTR(:NG), GDOT(:NG), GDDOT(:NG), &
                  RKIJ(:NG,:NG), RKTIJ(:NG,:NG), ALFAIJ(:NG,:NG), ONUASOC(:NGA,:NC), MASSOC(:NGA),             &
                  ENASS(:2,:NGA,:2,:NGA), RKASS(:2,:NGA,:2,:NGA))
-  call fakePARMOL(NC, NG, NST, IOUt, DC(:NC), TEMPCRIT(:NC), PRCRIT(:NC))
+  call fakePARMOL(NC, NG, NST, DC(:NC), TEMPCRIT(:NC), PRCRIT(:NC))
   do i = 1, NC
     if (TSAT(i) == 0) cycle
     if (any(IDDC(:numDC) == i)) cycle
@@ -261,10 +261,10 @@ subroutine load_component(i, WDC, WTEMPCRIT, WPRCRIT, NUW, ONUASOCW)
   double precision, intent(in) :: WDC(1), WTEMPCRIT(1), WPRCRIT(1), ONUASOCW(12,1)
   integer, intent(in) :: NUW(NGM,1)
 
-  call fakePARGR(1, NG, NGA, NST, IOUt, NUW(:NG,1), QAREA(:NG), TSTR(:NG), GSTR(:NG), GDOT(:NG), GDDOT(:NG), &
+  call fakePARGR(1, NG, NGA, NST, NUW(:NG,1), QAREA(:NG), TSTR(:NG), GSTR(:NG), GDOT(:NG), GDDOT(:NG), &
                  RKIJ(:NG,:NG), RKTIJ(:NG,:NG), ALFAIJ(:NG,:NG), ONUASOCW(:NGA,1), MASSOC(:NGA),           &
                  ENASS(:2,:NGA,:2,:NGA), RKASS(:2,:NGA,:2,:NGA))
-  call fakePARMOL(1, NG, NST, IOUt, WDC, WTEMPCRIT, WPRCRIT)
+  call fakePARMOL(1, NG, NST, WDC, WTEMPCRIT, WPRCRIT)
 endsubroutine load_component
 
 !--------------------------------------------------------------------------------------------------------------------------
@@ -291,10 +291,10 @@ subroutine load_set_components(ks, NCw)
     ONUASOCWW(:NGA,k) = ONUASOC(:NGA,ic)
   enddo
 
-  call fakePARGR(NCw, NG, NGA, NST, IOUt, NUWW(:NG,:NCw), QAREA(:NG), TSTR(:NG), GSTR(:NG), GDOT(:NG), GDDOT(:NG), &
+  call fakePARGR(NCw, NG, NGA, NST, NUWW(:NG,:NCw), QAREA(:NG), TSTR(:NG), GSTR(:NG), GDOT(:NG), GDDOT(:NG), &
                  RKIJ(:NG,:NG), RKTIJ(:NG,:NG), ALFAIJ(:NG,:NG), ONUASOCWW(:NGA,:NCw), MASSOC(:NGA),             &
                  ENASS(:2,:NGA,:2,:NGA), RKASS(:2,:NGA,:2,:NGA))
-  call fakePARMOL(NCw, NG, NST, IOUt, WWDC(:NCw), WWTEMPCRIT(:NCw), WWPRCRIT(:NCw))
+  call fakePARMOL(NCw, NG, NST, WWDC(:NCw), WWTEMPCRIT(:NCw), WWPRCRIT(:NCw))
 endsubroutine load_set_components
 
 !--------------------------------------------------------------------------------------------------------------------------
@@ -316,7 +316,7 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
 
   double precision :: feed(NCMgca), zFrac(NCMgca,4), zVal(4)
   double precision :: xIsof(2), yIsof(2), apartIsof(2)
-  double precision :: TEMP, PRESS, X1, Y1, X2, Y2, ZLL, ZVV, zLiquido, zVapor, ZLiq, ZVap
+  double precision :: TEMP, PRESS, X1, Y1, X2, Y2, ZLL, ZVV, zLiquido, zVapor, ZLiq, ZVap, sq
   integer :: indF(4), iVap(1)
   integer :: i, n, nFailure, iErr, iOrder, iType
 
@@ -496,39 +496,42 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
         endif
       endselect
 
-      ! Residual. NOTE: when the experimental y (or x, for IFL = 0) is 0 the
-      ! residual is not assigned and keeps its previous value.
+      ! Residual. An experimental composition equal to 0 means it was not
+      ! measured: its term is left out.
       if (iErr == 0) then
+        sq = 0D0
+        FCAUX2(n) = 0D0
         select case (IFL(ks))
         case (0)
-          if (YEXP(n) > 0D0 .and. XEXP(n) > 0D0) then
-            FCION(n) = sqrt(W4**2*(YCALC(n) - YEXP(n))**2*wBin(2,n)**2 + &
-                            W5**2*(XCALC(n) - XEXP(n))**2*wBin(1,n)**2)
+          if (YEXP(n) > 0D0) then
+            sq = W4**2*(YCALC(n) - YEXP(n))**2*wBin(2,n)**2
             FCAUX2(n) = abs(YCALC(n) - YEXP(n))
           endif
+          if (XEXP(n) > 0D0) sq = sq + W5**2*(XCALC(n) - XEXP(n))**2*wBin(1,n)**2
         case (1)
           ! Bubble pressure and y
           if (YEXP(n) > 0D0) then
-            FCION(n) = sqrt((W4**2)*(YCALC(n) - YEXP(n))**2*wBin(2,n)**2 + &
-                            W2**2*FCAUX(n)**2*wBin(1,n)**2)
+            sq = (W4**2)*(YCALC(n) - YEXP(n))**2*wBin(2,n)**2
             FCAUX2(n) = abs(YCALC(n) - YEXP(n))
           endif
+          sq = sq + W2**2*FCAUX(n)**2*wBin(1,n)**2
         case (2)
           ! Bubble temperature and y
           if (YEXP(n) > 0D0) then
-            FCION(n) = sqrt((W4**2)*(YCALC(n) - YEXP(n))**2*wBin(2,n)**2 + &
-                            W3**2*FCAUX(n)**2*wBin(1,n)**2)
+            sq = (W4**2)*(YCALC(n) - YEXP(n))**2*wBin(2,n)**2
             FCAUX2(n) = abs(YCALC(n) - YEXP(n))
           endif
+          sq = sq + W3**2*FCAUX(n)**2*wBin(1,n)**2
         case (3)
+          sq = W5**2*(FCAUX(n))**2*wBin(1,n)**2 &
+               + W6**2*(xCalc2(n) - xExp2(n))**2*wTer(1,n)**2
           if (YEXP(n) > 0D0) then
             FCAUX2(n) = abs(YCALC(n) - YEXP(n))
-            FCION(n) = sqrt(W5**2*(FCAUX(n))**2*wBin(1,n)**2 &
-                            + W6**2*(xCalc2(n) - xExp2(n))**2*wTer(1,n)**2 &
-                            + W4**2*(FCAUX2(n))**2*wBin(2,n)**2 &
-                            + W7**2*(yCalc2(n) - yExp2(n))**2*wTer(2,n)**2)
+            sq = sq + W4**2*(FCAUX2(n))**2*wBin(2,n)**2 &
+                    + W7**2*(yCalc2(n) - yExp2(n))**2*wTer(2,n)**2
           endif
         endselect
+        FCION(n) = sqrt(sq)
       else
         FCION(n) = PENALIZ*wBin(1,n)**2
         FCAUX2(n) = 0.D0
@@ -588,11 +591,9 @@ subroutine excess_property_residuals(ks, FCION, numExp)
         FCION(n) = W12*FCAUX(n)*wEx(n)
       endif
     else
-      ! NOTE: these two lines look wrong (the whole zLiCalc is zeroed, and
-      ! prop_E_calc of the previous point); kept as they were.
       nFailure = nFailure + 1
-      zLiCalc = 0.
-      prop_E_calc(numExp) = 0.
+      zLiCalc(n) = 0.
+      prop_E_calc(n) = 0.
       FCAUX(n) = 0.
       FCION(n) = PENALIZ*wEx(n)
     endif
