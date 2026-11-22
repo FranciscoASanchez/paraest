@@ -20,6 +20,7 @@ module residuals
   use dimensions
   use fit_data
   use gca_parameters, PSATu => PSAT   ! PSAT is also a subroutine of the GCA package
+  use gca_bridge, only: fakePARGR, fakePARMOL
   implicit none
   private
   public :: FUNC, read_options, write_failed_points
@@ -93,7 +94,7 @@ subroutine FUNC(XX, NCXP, NPAR, FCION)
   nFailed = 0
   ! Model parameters from the unscaled optimizer variables
   call XXUNSCAL(NPAR, XX, IDXX, XXAUX)
-  call set_model_params(XXAUX)
+  call set_model_params(XXAUX, TEMPCRIT)
 
   call fit_critical_diameters()
 

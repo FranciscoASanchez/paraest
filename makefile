@@ -29,10 +29,11 @@ MAIN         = src/main/dimensions.f90                   \
 OPTIMIZATION = src/optimization/zxssq.f90
 
 MODELS       = src/models/gca_parameters.f90             \
-               src/models/fugacity.f90                   \
-               src/models/fit_dc.f90                     \
+               src/models/gca.f90                        \
                src/models/spline_temperature.f90         \
-               src/models/gca.f90
+               src/models/gca_bridge.f90                 \
+               src/models/fugacity.f90                   \
+               src/models/fit_dc.f90
 
 EQUILIBRIUM  = src/equilibrium/gc3_flash.f90             \
                src/equilibrium/isofugacity.f90           \
@@ -41,7 +42,8 @@ EQUILIBRIUM  = src/equilibrium/gc3_flash.f90             \
                src/equilibrium/gcsle.f90                 \
                src/equilibrium/pcrit_semi_implicit.f90
 
-# Build order: modules first, the main program last.
+# Build order: modules first, the main program last. Within each layer, the
+# routines called by others go first (see the note on *__genmod* below).
 SOURCES = $(OPTIMIZATION) $(MODELS) $(EQUILIBRIUM) $(MAIN)
 
 # --- Compiler options -------------------------------------------------------
@@ -103,7 +105,7 @@ $(OBJDIR)/paraest.o: $(call dep,$(OBJDIR),$(MODULES))
 $(DBGDIR)/paraest.o: $(call dep,$(DBGDIR),$(MODULES))
 $(OBJDIR)/fit_data.o $(OBJDIR)/gca_parameters.o $(OBJDIR)/scaling.o: $(OBJDIR)/dimensions.o
 $(DBGDIR)/fit_data.o $(DBGDIR)/gca_parameters.o $(DBGDIR)/scaling.o: $(DBGDIR)/dimensions.o
-RESDEPS = dimensions fit_data gca_parameters scaling utilities
+RESDEPS = dimensions fit_data gca_parameters gca_bridge scaling utilities
 $(OBJDIR)/residuals.o: $(call dep,$(OBJDIR),$(RESDEPS))
 $(DBGDIR)/residuals.o: $(call dep,$(DBGDIR),$(RESDEPS))
 

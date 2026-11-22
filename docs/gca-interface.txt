@@ -1,0 +1,93 @@
+What paraest needs from the GCA package
+=======================================
+
+Inventory of 2026-11-22, for the change to GCA 2.0 (parameters in modules,
+no COMMON blocks). It lists everything paraest uses today from the old
+package (src/models/gca.f90 and the GC3 equilibrium routines in
+src/equilibrium/), so the new package can be checked against it.
+
+
+1. Loading the parameters (today: src/models/gca_bridge.f90)
+------------------------------------------------------------
+
+paraest keeps its own copy of the model parameters (module gca_parameters)
+and changes them at every evaluation of the objective function. The package
+must accept them from memory, not only from its input files.
+
+  fakePARGR   replaces PARGR. Copies into the package's COMMON blocks:
+              structure      NC, NG, NGA, NST, NU(group,component),
+                             ONUASOC(assoc. group,component), MASSOC
+              dispersive     QAREA, T*, g*, g', g", kij, k'ij, alpha_ij
+                             (and the spline temperature, computed with
+                             spline_temperature, the PARGR algorithm)
+              association    energy and volume, 4 indices (site, group,
+                             site, group)
+  fakePARMOL  replaces PARMOL: Tc, Pc and dc of each component.
+
+  COMMON blocks used: GROUP1 GROUP2 GrupAs1 GrupAs2 GrupAs4 MOL CRIT COORD
+  ENTALP GCPROM NAME versSUB
+
+  Needed from GCA 2.0: a way to set all of the above from paraest's arrays
+  (module variables or a "set parameters" routine) and to recompute what
+  PARGR derives from them (spline temperature, internal tables). Cost
+  matters: this runs once per evaluation, hundreds of times per fit.
+
+
+2. Thermodynamic routines called by paraest
+--------------------------------------------
+
+  Routine        Called from                     Use
+  -------------  ------------------------------  --------------------------------
+  PARAGC(T,...)  residuals, fugacity, fit_dc,    temperature-dependent parameters;
+                 gcsle, gcxs, pcrit              must precede GCEOS/PSAT/GAMMA
+  GCEOS          residuals, fugacity, pcrit,     ln phi and derivatives, Z
+                 gc3_flash
+  PSAT           residuals, fit_dc               vapor pressure of a pure component
+                                                 (must return IER /= 0 on failure,
+                                                 never loop: see commit 17d4f11)
+  ZMAX           gcxs (and PSAT internally)      Z of a phase at T, P
+  NTLPY          residuals                       residual enthalpy (heat of
+                                                 vaporization, IOBJSAT = 81)
+  GAMMA          residuals                       activity coefficients (IHEN = 5)
+
+  paraest's own link: src/models/fugacity.f90, ln_phi(nc,ng,nst,T,P,x,phase,
+  lnPhi,Z,ier), the only routine of paraest that calls PARAGC+GCEOS directly
+  for fugacities (used by isofug_pure / isofug_mix).
+
+  fit_dc (src/models/fit_dc.f90): fits dc of component ic to a vapor-pressure
+  point with Newton on PSAT; it is the dc loop of PARMOL, extracted. GCA 2.0
+  should provide it (or PSAT plus a way to set one dc).
+
+
+3. Equilibrium routines (GC3 family, src/equilibrium/)
+------------------------------------------------------
+
+  GC3Flash       phase equilibrium (IHEN = 0, flash)    uses GCEOS, and
+                 still calls PARGR/PARMOL (in INDAT; not reached from paraest)
+  GCADB          bubble/dew points (IHEN = 0)            own cubic tables
+  GCXS           excess properties (IHEN = 1)            PARAGC, ZMAX, NTLPY
+  GCSLE          solid solubility (IHEN = 2)             PARAGC
+  implicitPCrit  critical points (IHEN = 3)              PARAGC, GCEOS
+
+  These live in paraest today but depend on the package's COMMON blocks. With
+  GCA 2.0 either they come with the package or they are rewritten on top of
+  ln_phi (as isofugacity.f90 already is).
+
+
+4. Dimensions
+-------------
+
+  Old package: NCM = 30 components, NGM = 20 groups, NGAM = 12 associating
+  groups, NSM = 24 sites (repeated in gca_bridge and in residuals: NCMgca).
+  paraest (src/main/dimensions.f90): NCM = 50. They must be the same; with
+  GCA 2.0 paraest should take them from the package.
+
+
+5. Conventions paraest relies on
+--------------------------------
+
+  - Every routine returns an error flag instead of stopping: a failed point
+    is reported and counted (write_failed_points), the fit goes on.
+  - Results must not depend on the history of calls beyond ~1e-8 (today the
+    association solver warm-starts from previous site fractions).
+  - No output to files or units other than the screen during a fit.
