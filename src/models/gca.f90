@@ -2053,8 +2053,16 @@ SUBROUTINE PSAT(T,PS,Z,NC,NG,NST,IC,IGP,IGZ,IER)
 !  Utiliza el criterio de igualdad de energia libre (Gvap = Glíq)
 	Pcrt = 1.
 !	do while(PCRT.GT.EPSP)
+	nPass = 0
 
-3	  CALL ZMAX(Z,1,T,PS,X,IGZ,NC,NG,NST,IF)
+3	  nPass = nPass + 1
+!	  The iteration can fall into a cycle (seen: period 3, near Tc) or keep
+!	  bouncing between the corrections below: give up after 300 passes.
+	  IF(nPass.GT.300)then
+	    IER = -1
+	    GOTO 99
+	  endif
+	  CALL ZMAX(Z,1,T,PS,X,IGZ,NC,NG,NST,IF)
 	  IF(IEXT(1).NE.0)then	!EQ.0) GOTO 20
 
 	    PS=PS*.75D0
@@ -2119,6 +2127,8 @@ SUBROUTINE PSAT(T,PS,Z,NC,NG,NST,IC,IGP,IGZ,IER)
 	    dxi = F/Zcr !Newton step in xi = ln(P)
 	    test = dabs(dxi + dxi_old)/EPSP
 	    if (test < 10) dxi = dxi/2
+!	    After 50 passes, half steps: breaks cycles of any period.
+	    if (nPass > 50) dxi = dxi/2
 	    xi_new = xi - min(max(dxi,-1D0),1d0)
 	    Pny = dexp(xi_new)
 	    PCRT=dABS(PNY-PS)
