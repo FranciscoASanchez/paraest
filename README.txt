@@ -15,6 +15,15 @@ Run
 ---
     ./paraest.x           reads paraest.dat (and FOR010-013.DAT) from the current directory
 
+Options (optional file paraest.cfg in the current directory, a namelist):
+    &options  penaliz = 1.0  /
+  penaliz      residual of a point whose calculation failed (default 0: the
+               point adds nothing to the objective function, so a fit can
+               lower it by driving points into failure)
+  penaliznan   residual that replaces a NaN/Inf residual (default 1)
+Without the file the defaults are used; with it, the values used are
+written to paraest.out.
+
 Regression tests
 ----------------
     make test

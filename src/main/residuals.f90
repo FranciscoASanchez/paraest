@@ -22,19 +22,53 @@ module residuals
   use gca_parameters, PSATu => PSAT   ! PSAT is also a subroutine of the GCA package
   implicit none
   private
-  public :: FUNC
+  public :: FUNC, read_options
 
   ! Arrays passed to the GCA package: dimensioned with its maximum number of components.
   integer, parameter :: NCMgca = 30
 
   double precision, parameter :: Rgas_SI = 8.314D0      ! J/(mol K)
-  double precision, parameter :: PENALIZ = 0D0          ! residual of a point whose calculation failed
-  double precision, parameter :: PENALIZNAN = 1D0       ! replaces NaN/Inf residuals
+
+  ! Options that can be changed in paraest.cfg (see read_options).
+  double precision :: PENALIZ = 0D0      ! residual of a point whose calculation failed
+  double precision :: PENALIZNAN = 1D0   ! replaces NaN/Inf residuals
+  namelist /options/ PENALIZ, PENALIZNAN
 
   ! Set by fakePARGR: number of association sites.
   integer :: NST
 
 contains
+
+!--------------------------------------------------------------------------------------------------------------------------
+!
+!  Reads the optional file paraest.cfg, a namelist such as
+!
+!     &options  penaliz = 1.0  /
+!
+!  Variables left out keep their default values. With PENALIZ = 0 a point
+!  whose calculation fails adds nothing to the objective function, so a fit
+!  can lower it by driving points into failure; a positive value avoids that.
+!  When the file exists, the values used are written to paraest.out.
+!
+subroutine read_options()
+  logical :: exists
+  integer :: ios
+
+  inquire(file='paraest.cfg', exist=exists)
+  if (.not. exists) return
+  open(unit=1, status='OLD', file='paraest.cfg', form='FORMATTED')
+  read(1, nml=options, iostat=ios)
+  close(unit=1)
+  if (ios /= 0) then
+    write(*,*) 'Error reading the namelist &options of paraest.cfg'
+    stop 1
+  endif
+  open(unit=1, status='OLD', file='paraest.out', form='FORMATTED', position='APPEND')
+  write(1,'(/,X,A,/,X,A,ES12.4,/,X,A,ES12.4)') 'Options read from paraest.cfg:', &
+    'Residual of a failed point (PENALIZ):    ', PENALIZ, &
+    'Residual replacing NaN/Inf (PENALIZNAN): ', PENALIZNAN
+  close(unit=1)
+endsubroutine read_options
 
 !--------------------------------------------------------------------------------------------------------------------------
 !

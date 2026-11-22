@@ -20,7 +20,7 @@ program paraest
   use fit_data
   use gca_parameters
   use scaling, only: XXSCAL
-  use residuals, only: FUNC     ! residuals of the objective function, for ZXSSQ
+  use residuals, only: FUNC, read_options   ! residuals of the objective function, for ZXSSQ
   implicit none
 !
   ! The data shared with FUNC (system, model parameters, experimental data,
@@ -56,6 +56,9 @@ program paraest
 !
   ! Write the input data and initial parameters to paraest.out
   CALL write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
+!
+  ! Options of the optional file paraest.cfg (e.g. the residual of failed points)
+  CALL read_options()
 !
   ! Type of each value in XX, to assign it the right scaling factor
   CALL set_param_types(NNP,IDG,ITEMP,NNQ,NALFA,NENASS,NRKASS,IDXX,numTc,NUMDC)
