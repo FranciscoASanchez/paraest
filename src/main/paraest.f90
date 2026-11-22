@@ -20,7 +20,7 @@ program paraest
   use fit_data
   use gca_parameters
   use scaling, only: XXSCAL
-  use residuals, only: FUNC, read_options   ! residuals of the objective function, for ZXSSQ
+  use residuals, only: FUNC, read_options, write_failed_points   ! residuals of the objective function, for ZXSSQ
   implicit none
 !
   ! The data shared with FUNC (system, model parameters, experimental data,
@@ -77,6 +77,7 @@ program paraest
   IF(NPRED.EQ.1)THEN
     ! Prediction
     CALL FUNC(XX,NCXP,NPAR,FCION)
+    CALL write_failed_points(.FALSE.)
 !
   ELSE
     ! Parameter fit. ZXSSQ parameters:
@@ -93,8 +94,14 @@ program paraest
 !
     CALL ZXSSQ(FUNC,NCXP,NPAR,NSIG,EPS,DELTAZ,MAXFN,IOPT,PARM,XX,SSQ,FCION,XJAC,IXJAC,XJTJ,WORK,INFER,IER)
 !
+    ! One more evaluation at the final parameters: ZXSSQ's last one may be a
+    ! rejected trial step or a Jacobian increment, and the calculated values
+    ! written by write_results come from the last evaluation.
+    CALL FUNC(XX,NCXP,NPAR,FCION)
+!
     ! Statistics of the fit
     CALL write_fit_stats(SSQ,XJAC,WORK,INFER,IER)
+    CALL write_failed_points(.TRUE.)
 !
     ! Spline temperatures of the final parameters (for the output)
     do iGr = 1, NG

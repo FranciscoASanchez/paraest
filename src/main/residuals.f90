@@ -22,7 +22,7 @@ module residuals
   use gca_parameters, PSATu => PSAT   ! PSAT is also a subroutine of the GCA package
   implicit none
   private
-  public :: FUNC, read_options
+  public :: FUNC, read_options, write_failed_points
 
   ! Arrays passed to the GCA package: dimensioned with its maximum number of components.
   integer, parameter :: NCMgca = 30
@@ -36,6 +36,10 @@ module residuals
 
   ! Set by fakePARGR: number of association sites.
   integer :: NST
+
+  ! Points that could not be calculated (failed, or NaN/Inf residual), in the
+  ! last evaluation and in the first one (the initial parameters).
+  integer :: nFailed = 0, nNaN = 0, nFailedFirst = 0, nNaNFirst = 0, nEval = 0
 
 contains
 
@@ -84,8 +88,9 @@ subroutine FUNC(XX, NCXP, NPAR, FCION)
 
   double precision :: XXAUX(NPARM)      ! unscaled parameters
   double precision :: SUMQ
-  integer :: numExp, ks, NCw, i, nCountNaN
+  integer :: numExp, ks, NCw, i
 
+  nFailed = 0
   ! Model parameters from the unscaled optimizer variables
   call XXUNSCAL(NPAR, XX, IDXX, XXAUX)
   call set_model_params(XXAUX)
@@ -114,14 +119,20 @@ subroutine FUNC(XX, NCXP, NPAR, FCION)
 
   ! NaN guard (added 2026-11-06): a NaN or Inf residual is replaced by
   ! PENALIZNAN, so it does not spoil the objective function.
-  nCountNaN = 0
+  nNaN = 0
   do i = 1, NCXP
     if (FCION(i) /= FCION(i) .or. dabs(FCION(i)) > 1.D30) then
       FCION(i) = PENALIZNAN
-      nCountNaN = nCountNaN + 1
+      nNaN = nNaN + 1
     endif
   enddo
-  if (nCountNaN > 0) write(*,'(A,I6)') ' WARNING: non-finite FCION at points: ', nCountNaN
+  if (nNaN > 0) write(*,'(A,I6)') ' WARNING: non-finite FCION at points: ', nNaN
+
+  nEval = nEval + 1
+  if (nEval == 1) then
+    nFailedFirst = nFailed
+    nNaNFirst = nNaN
+  endif
 
   ! Course of the optimization: unscaled parameters and objective function
   SUMQ = sum(FCION(:NCXP)**2)
@@ -132,6 +143,43 @@ subroutine FUNC(XX, NCXP, NPAR, FCION)
   endif
   close(unit=1)
 endsubroutine FUNC
+
+!--------------------------------------------------------------------------------------------------------------------------
+!
+!  Writes to paraest.out (and to the screen) how many points could not be
+!  calculated: in the tables their calculated values are zeros. In a fit,
+!  at the initial and at the final parameters; with PENALIZ = 0 a failed
+!  point adds nothing to SSQ, so a fit that ends with more failures than it
+!  started with may have lowered SSQ just by losing points.
+!
+subroutine write_failed_points(fit)
+  logical, intent(in) :: fit
+  character(*), parameter :: fmt = '(X,A,I6)'
+  integer :: u, k
+
+  open(unit=1, status='OLD', file='paraest.out', form='FORMATTED', position='APPEND')
+  do k = 1, 2
+    u = merge(1, 6, k == 1)
+    write(u,*)
+    if (fit) then
+      write(u,fmt) 'Points not calculated (zeros in the tables) at the initial parameters:', nFailedFirst
+      write(u,fmt) 'Points not calculated (zeros in the tables) at the final parameters:  ', nFailed
+      if (nNaNFirst + nNaN > 0) then
+        write(u,fmt) 'Residuals NaN/Inf (replaced by PENALIZNAN) at the initial parameters: ', nNaNFirst
+        write(u,fmt) 'Residuals NaN/Inf (replaced by PENALIZNAN) at the final parameters:   ', nNaN
+      endif
+      if (nFailed > nFailedFirst .and. PENALIZ == 0D0) then
+        write(u,'(X,A,I0,A)') 'WARNING: the fit ended with ', nFailed - nFailedFirst, &
+          ' more points not calculated than it started with; with PENALIZ = 0 they'
+        write(u,'(X,A)') 'add nothing to SSQ, so part of its decrease may come from losing points.'
+      endif
+    else
+      write(u,fmt) 'Points not calculated (zeros in the tables):', nFailed
+      if (nNaN > 0) write(u,fmt) 'Residuals NaN/Inf (replaced by PENALIZNAN):', nNaN
+    endif
+  enddo
+  close(unit=1)
+endsubroutine write_failed_points
 
 !--------------------------------------------------------------------------------------------------------------------------
 !
@@ -208,6 +256,7 @@ subroutine pure_component_residuals(FCION, numExp)
           ZVCALC(n) = 0.
           FCAUX(n) = 0.
           FCION(n) = PENALIZ
+          nFailed = nFailed + 1
         endif
       endif
 
@@ -276,6 +325,7 @@ subroutine pure_component_residuals(FCION, numExp)
           ZVCALC(n) = 0.
           FCAUX(n) = 0.
           FCION(n) = PENALIZ
+          nFailed = nFailed + 1
           DHVL(n) = 0
         endif
       endif
@@ -385,6 +435,7 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
         ZLCALC(n) = 0.
         ZVCALC(n) = 0.
         FCION(n) = PENALIZ
+        nFailed = nFailed + 1
         FCAUX(n) = 0.
         FCAUX2(n) = 0.
       endif
@@ -568,6 +619,7 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
         FCION(n) = sqrt(sq)
       else
         FCION(n) = PENALIZ*wBin(1,n)**2
+        nFailed = nFailed + 1
         FCAUX2(n) = 0.D0
       endif
       STDVA(ks) = STDVA(ks) + FCAUX(n)
@@ -630,6 +682,7 @@ subroutine excess_property_residuals(ks, FCION, numExp)
       prop_E_calc(n) = 0.
       FCAUX(n) = 0.
       FCION(n) = PENALIZ*wEx(n)
+      nFailed = nFailed + 1
     endif
     numExp = numExp + 1
     if (i == 1) numExp1 = numExp
@@ -686,6 +739,7 @@ subroutine sle_residuals(ks, NCw, FCION, numExp)
       YCALC(n) = 0
       nFailure = nFailure + 1
       FCION(n) = PENALIZ*wEx(n)
+      nFailed = nFailed + 1
       FCAUX(n) = 0
     endif
     numExp = numExp + 1
