@@ -35,15 +35,11 @@
 193  0.866  647.13  699570.9093  -0.5021  0.4309  H2O
 193  1  1.0  0.0  0.0  0.0
 193  2  1.0  0.0  0.0  0.0
-1  3    ! NownII, NownIJ (associating groups)
+0  0    ! NownII, NownIJ (associating groups)
 1 2    ! component 1
   2*0    ! component 2
   2*0    ! component 3
   2*0    ! component 4
-1  2  A1
-1  1  1  1  0.0  0.0
-1  1  2  1  2350.0  0.3787
-2  1  2  1  0.0  0.0
 
 
 

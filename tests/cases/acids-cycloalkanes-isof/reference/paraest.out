@@ -97,21 +97,21 @@
                                 Groups per component
    No   Name       Sites        1    2    3    4    5    6    7    8
  ----------------------------------------------------------------------
-    6  A1           1          1    1    1    0    0    1    1    1
+    6  -COOH        1          1    1    1    0    0    1    1    1
 
  Association energy matrix, [epsilon/R] (K)
 
                                 6
-                               A1
+                            -COOH
                                 1
-    6  A1         1 |   6517.1000
+    6  -COOH      1 |   6517.1000
 
  Association volume matrix, [kappa] (cm3/mol)
 
                                 6
-                               A1
+                            -COOH
                                 1
-    6  A1         1 | 2.38000E-02
+    6  -COOH      1 | 2.38000E-02
 
  Pure-component data
 
@@ -212,21 +212,21 @@
                                 Groups per component
    No   Name       Sites        1    2    3    4    5    6    7    8
  ----------------------------------------------------------------------
-    6  A1           1          1    1    1    0    0    1    1    1
+    6  -COOH        1          1    1    1    0    0    1    1    1
 
  Association energy matrix, [epsilon/R] (K)
 
                                 6
-                               A1
+                            -COOH
                                 1
-    6  A1         1 |   6517.1000
+    6  -COOH      1 |   6517.1000
 
  Association volume matrix, [kappa] (cm3/mol)
 
                                 6
-                               A1
+                            -COOH
                                 1
-    6  A1         1 | 2.38000E-02
+    6  -COOH      1 | 2.38000E-02
 
   The hard-sphere diameter at the critical point of component No.  3 was fitted to 
   reproduce the point of the vapor pressure curve 

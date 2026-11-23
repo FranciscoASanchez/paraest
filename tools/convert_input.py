@@ -15,8 +15,8 @@ taken, it gets a database number that the file does not use, and all its
 values are written as the user's ("own") values, as one does by hand with a
 group that is not in the database. Pure-group values that differ from the
 database are written as own values; binary values that differ from what
-PARGR would take from the database, too. All the association values are
-written as own values (exact, whatever the database has).
+PARGR would take from the database, too; and the association energies and
+volumes that differ from FOR015 (a pair missing from the database is 0).
 
 The fitted parameters are written with database numbers.
 
@@ -108,12 +108,31 @@ def read_database(d):
             t = line.split()
             if len(t) >= 2:
                 assoc[i] = (int(t[0]), t[1])
-    return groups, kij, kp, alf, assoc
+    # FOR015, in the order PARGR reads it: for each group a and site k, the
+    # groups b >= a and their sites l (l >= k when b = a). 88.888 = missing,
+    # taken as 0 (as PARGR does).
+    assocPair = {}
+    f15 = os.path.join(d, 'FOR015.DAT')
+    if os.path.exists(f15):
+        recs = [l.split() for l in open(f15, encoding='latin-1') if l.split()]
+        p = 0
+        n = len(assoc)
+        for a in range(1, n + 1):
+            for k in range(1, assoc[a][0] + 1):
+                for b in range(a, n + 1):
+                    for l in range(k if b == a else 1, assoc[b][0] + 1):
+                        e, v = float(recs[p][0]), float(recs[p][1])
+                        p += 1
+                        if abs(e - MISSING) < 1e-3:
+                            e, v = 0.0, 0.0
+                        assocPair[k, a, l, b] = (e, v)
+                        assocPair[l, b, k, a] = (e, v)
+    return groups, kij, kp, alf, assoc, assocPair
 
 
 def pargr_binary(db, a, b):
     """k*, k', alpha(a,b), alpha(b,a) that PARGR takes from the database."""
-    _, kij, kp, alf, _ = db
+    _, kij, kp, alf, _, _ = db
     if a == b:
         k, k1 = kij[a, a], 0.0
     else:
@@ -136,7 +155,7 @@ def fmt(x):
 # --------------------------------------------------------------------------
 def convert(old, new, dbdir):
     db = read_database(dbdir)
-    groups, _, _, _, dbAssoc = db
+    groups, _, _, _, dbAssoc, dbPair = db
     raw = open(old, 'rb').read()
     try:
         text, enc = raw.decode('utf-8'), 'utf-8'
@@ -306,7 +325,7 @@ def convert(old, new, dbdir):
         usedA.add(aid[i])
     if NGA:
         warnings.append('associating groups: database numbers %s chosen only by their number of '
-                        'sites; all their values are own values' % aid)
+                        'sites (their names are the database ones)' % aid)
 
     # ---------------------------------------------------------------------
     # New block
@@ -339,7 +358,9 @@ def convert(old, new, dbdir):
     out.extend(pure)
     out.extend(binary)
     if NGA > 0:
-        sites = ['%d  %d  A%d' % (aid[i], M[i], i + 1) for i in range(NGA)]
+        # own sites only when the database has another number of sites
+        sites = ['%d  %d  A%d' % (aid[i], M[i], i + 1) for i in range(NGA)
+                 if dbAssoc.get(aid[i], (None,))[0] != M[i]]
         pairs = []
         for i in range(NGA):
             for j in range(i, NGA):
@@ -351,9 +372,12 @@ def convert(old, new, dbdir):
                         # for site k of group i and site l of group j (i <= j).
                         # PARGR wants the group with the lower number first.
                         kk, ii, ll, jj = (k, i, l, j) if aid[i] <= aid[j] else (l, j, k, i)
-                        pairs.append('%d  %d  %d  %d  %s  %s' % (kk + 1, aid[ii], ll + 1, aid[jj],
-                                                              fmt(E.get((l, j, k, i), 0.0)),
-                                                              fmt(V.get((l, j, k, i), 0.0))))
+                        e, v = E.get((l, j, k, i), 0.0), V.get((l, j, k, i), 0.0)
+                        # only what differs from the database (missing = 0)
+                        de, dv = dbPair.get((kk + 1, aid[ii], ll + 1, aid[jj]), (0.0, 0.0))
+                        if differ(e, de) or differ(v, dv):
+                            pairs.append('%d  %d  %d  %d  %s  %s' % (kk + 1, aid[ii], ll + 1, aid[jj],
+                                                                  fmt(e), fmt(v)))
         out.append('%d  %d    ! NownII, NownIJ (associating groups)' % (len(sites), len(pairs)))
         for c in range(NC):
             pr = sorted((aid[i], ONU[i][c]) for i in range(NGA) if ONU[i][c] != 0 or (c == 0 and i in unusedA))
