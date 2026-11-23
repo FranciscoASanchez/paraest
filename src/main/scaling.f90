@@ -228,14 +228,14 @@ endfunction fUnscld
 !
 !  Parameters with physical bounds are searched between them, leaving free
 !  the fraction boundFrac next to each bound (as XXSCAL does). The others,
-!  between multiples of the initial value x0. g' and g" between absolute
-!  values (g', also within its physical bounds), widened to include x0: with
-!  their physical bounds (+-2) g(T) < 0 at many temperatures. The ranges are
-!  options of paraest.cfg. The association energy keeps XXSCAL's lower
+!  between multiples of the initial value x0. k*, alpha, g' and g" between
+!  absolute values (within the physical bounds), widened to include x0:
+!  narrower than the bounds used by LM. The ranges are options of
+!  paraest.cfg. The association energy keeps XXSCAL's lower
 !  limit of 1 K.
 !
 subroutine search_box(NPAR, IDXX, x0, boundFrac, lo, hi)
-  use config, only: range_gstr, range_gp, range_gdd, range_q, range_eps, range_tc
+  use config, only: range_gstr, range_kstr, range_alpha, range_gp, range_gdd, range_q, range_eps, range_tc
   integer, intent(in) :: NPAR, IDXX(NPAR)
   double precision, intent(in) :: x0(NPAR), boundFrac
   double precision, intent(out) :: lo(NPAR), hi(NPAR)
@@ -247,18 +247,19 @@ subroutine search_box(NPAR, IDXX, x0, boundFrac, lo, hi)
       call times(range_gstr)
     case (2)
       call between(vMinKstr, vMaxKstr)
+      call absolute(range_kstr)
     case (3)
       if (inIJ(i)) then
         call between(-vMaxKp, vMaxKp)
       else
         call between(-vMaxGp, -vMinGp)
-        lo(i) = max(lo(i), min(range_gp(1), x0(i)))
-        hi(i) = min(hi(i), max(range_gp(2), x0(i)))
+        call absolute(range_gp)
       endif
     case (4)
       call times(range_q)
     case (5)
       call between(-vMaxAlfa, vMaxAlfa)
+      call absolute(range_alpha)
     case (6)
       call times(range_eps)
       lo(i) = max(lo(i), 1D0)
@@ -287,6 +288,14 @@ contains
     lo(i) = vMin + d
     hi(i) = vMax - d
   endsubroutine between
+
+  ! Narrows the physical bounds (already in lo, hi) to the absolute range
+  ! r, widened to include x0.
+  subroutine absolute(r)
+    double precision, intent(in) :: r(2)
+    lo(i) = max(lo(i), min(r(1), x0(i)))
+    hi(i) = min(hi(i), max(r(2), x0(i)))
+  endsubroutine absolute
 
   subroutine times(r)
     double precision, intent(in) :: r(2)

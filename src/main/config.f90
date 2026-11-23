@@ -18,7 +18,7 @@ module config
   public :: read_options
   public :: PENALIZ, PENALIZNAN
   public :: optimizer, pso_particles, pso_iterations, pso_seed
-  public :: range_gstr, range_gp, range_gdd, range_q, range_eps, range_tc
+  public :: range_gstr, range_kstr, range_alpha, range_gp, range_gdd, range_q, range_eps, range_tc
 
   ! --- Objective function ---------------------------------------------------
   ! With PENALIZ = 0 a point whose calculation fails adds nothing to the
@@ -38,21 +38,23 @@ module config
   integer :: pso_seed = 12345            ! same seed, same run
 
   ! --- PSO search box ---------------------------------------------------------
-  ! Parameters with physical bounds (k*, k', alpha, association volume, dc)
-  ! are searched between those bounds. g* , Q, eps and Tc between these
-  ! multiples of the initial value given by the user. g' and g" between
-  ! absolute values: their physical bounds (+-2) give g(T) < 0 (impossible,
-  ! the calculation fails) at many temperatures; the box is widened to
-  ! include the initial value if needed.
+  ! g*, Q, eps and Tc: between these multiples of the initial value given
+  ! by the user. k*, alpha, g' and g": between absolute values, within their
+  ! physical bounds and widened to include the initial value if needed (the
+  ! bounds used by LM are wider: k* 0.2-30, alpha +-29, g' +-2; k* should
+  ! statistically be near 1, and g' or g" near +-2 give g(T) < 0 at many
+  ! temperatures). k', association volume and dc: their physical bounds.
   double precision :: range_gstr(2) = [0.5D0, 1.5D0]   ! g*
   double precision :: range_q(2)    = [0.5D0, 2.0D0]   ! Q (area)
   double precision :: range_eps(2)  = [0.5D0, 2.0D0]   ! association energy
   double precision :: range_tc(2)   = [0.9D0, 1.1D0]   ! Tc
+  double precision :: range_kstr(2) = [0.8D0, 1.2D0]   ! k* (absolute)
+  double precision :: range_alpha(2) = [-10D0, 10D0]   ! alpha (absolute)
   double precision :: range_gp(2)   = [-1D0, 1D0]      ! g' (absolute)
   double precision :: range_gdd(2)  = [-1D0, 1D0]      ! g" (absolute)
 
   namelist /options/ PENALIZ, PENALIZNAN, optimizer, pso_particles, pso_iterations, pso_seed, &
-                     range_gstr, range_q, range_eps, range_tc, range_gp, range_gdd
+                     range_gstr, range_q, range_eps, range_tc, range_kstr, range_alpha, range_gp, range_gdd
 
 contains
 
@@ -91,11 +93,13 @@ subroutine read_options()
     write(1,'(X,2A)') 'Optimizer: ', trim(optimizer)
     write(1,'(X,A,I0,A,I0,A,I0)') 'PSO: particles = ', pso_particles, ', iterations = ', pso_iterations, &
       ', seed = ', pso_seed
-    write(1,'(X,A,6(/,X,A,2F10.4))') 'PSO search box of the parameters without physical bounds:', &
+    write(1,'(X,A,8(/,X,A,2F10.4))') "PSO search box (k', association volume and dc: physical bounds):", &
       '  g*  (times the initial value): ', range_gstr, &
       '  Q   (times the initial value): ', range_q, &
       '  eps (times the initial value): ', range_eps, &
       '  Tc  (times the initial value): ', range_tc, &
+      '  k*  (absolute):                ', range_kstr, &
+      '  alpha (absolute):              ', range_alpha, &
       "  g'  (absolute):                ", range_gp, &
       '  g"  (absolute):                ', range_gdd
   endif
