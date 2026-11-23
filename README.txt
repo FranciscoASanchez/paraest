@@ -16,13 +16,38 @@ Run
     ./paraest.x           reads paraest.dat (and FOR010-013.DAT) from the current directory
 
 Options (optional file paraest.cfg in the current directory, a namelist):
-    &options  penaliz = 1.0  /
-  penaliz      residual of a point whose calculation failed (default 0: the
-               point adds nothing to the objective function, so a fit can
-               lower it by driving points into failure)
-  penaliznan   residual that replaces a NaN/Inf residual (default 1)
-Without the file the defaults are used; with it, the values used are
-written to paraest.out.
+    &options
+      optimizer = 'pso+lm'
+      penaliz   = 1.0
+    /
+  penaliz         residual of a point whose calculation failed (default 0:
+                  the point adds nothing to the objective function, so a fit
+                  can lower it by driving points into failure)
+  penaliznan      residual that replaces a NaN/Inf residual (default 1)
+  optimizer       'lm'     Levenberg-Marquardt (ZXSSQ), default
+                  'pso'    particle swarm only (no parameter statistics)
+                  'pso+lm' particle swarm, then Levenberg-Marquardt from the
+                           best point found
+  pso_particles   default 35     } pso_particles*(pso_iterations+1)
+  pso_iterations  default 50     } evaluations
+  pso_seed        default 12345  (same seed, same run, with any compiler)
+  PSO search box: parameters with physical bounds (k*, k', alpha,
+  association volume, dc) between those bounds; g*, Q, eps and Tc between
+  multiples of the initial value; g' and g" between absolute values (wider
+  ones give g(T) < 0 at many temperatures), widened to include the initial
+  value:
+  range_gstr      g*                    default 0.5, 1.5
+  range_q         Q                     default 0.5, 2.0
+  range_eps       association energy    default 0.5, 2.0
+  range_tc        Tc                    default 0.9, 1.1
+  range_gp        g' (absolute values)  default -1.0, 1.0
+  range_gdd       g" (absolute values)  default -1.0, 1.0
+  PSO compares two parameter sets first by the number of points that could
+  not be calculated (beyond those that already fail at the initial values),
+  then by SSQ: otherwise it finds sets where most points fail and SSQ is
+  small. Levenberg-Marquardt afterwards uses penaliz as usual.
+Source: src/main/config.f90. Without the file the defaults are used; with
+it, the values used are written to paraest.out.
 
 Regression tests
 ----------------

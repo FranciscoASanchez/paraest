@@ -19,6 +19,7 @@ endif
 
 # --- Source files, by layer -------------------------------------------------
 MAIN         = src/main/dimensions.f90                   \
+               src/main/config.f90                       \
                src/main/fit_data.f90                     \
                src/main/statistics.f90                   \
                src/main/scaling.f90                      \
@@ -26,7 +27,8 @@ MAIN         = src/main/dimensions.f90                   \
                src/main/residuals.f90                    \
                src/main/paraest.f90
 
-OPTIMIZATION = src/optimization/zxssq.f90
+OPTIMIZATION = src/optimization/zxssq.f90                 \
+               src/optimization/pso.f90
 
 MODELS       = src/models/gca_parameters.f90             \
                src/models/gca.f90                        \
@@ -99,13 +101,15 @@ $(OBJDIR) $(DBGDIR):
 
 # Module dependencies: when a module changes, whatever uses it is rebuilt
 # (and make builds the module first).
-MODULES = dimensions fit_data gca_parameters statistics scaling utilities residuals
+MODULES = dimensions config fit_data gca_parameters statistics scaling utilities residuals pso
 dep = $(addprefix $(1)/,$(addsuffix .o,$(2)))
 $(OBJDIR)/paraest.o: $(call dep,$(OBJDIR),$(MODULES))
 $(DBGDIR)/paraest.o: $(call dep,$(DBGDIR),$(MODULES))
 $(OBJDIR)/fit_data.o $(OBJDIR)/gca_parameters.o $(OBJDIR)/scaling.o: $(OBJDIR)/dimensions.o
+$(OBJDIR)/scaling.o: $(OBJDIR)/config.o
 $(DBGDIR)/fit_data.o $(DBGDIR)/gca_parameters.o $(DBGDIR)/scaling.o: $(DBGDIR)/dimensions.o
-RESDEPS = dimensions fit_data gca_parameters gca_bridge scaling utilities
+$(DBGDIR)/scaling.o: $(DBGDIR)/config.o
+RESDEPS = dimensions config fit_data gca_parameters gca_bridge scaling utilities
 $(OBJDIR)/residuals.o: $(call dep,$(OBJDIR),$(RESDEPS))
 $(DBGDIR)/residuals.o: $(call dep,$(DBGDIR),$(RESDEPS))
 

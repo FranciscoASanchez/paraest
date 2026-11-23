@@ -19,7 +19,7 @@ module scaling
   use dimensions, only: NPARM
   implicit none
   private
-  public :: XXSCAL, XXUNSCAL, fScld, fUnscld
+  public :: XXSCAL, XXUNSCAL, fScld, fUnscld, search_box
   public :: inIJ, dc_mean, error_Dc
 
   ! Scaling factors (scl) of each parameter type.
@@ -221,5 +221,79 @@ double precision function fUnscld(x, scl, vMin, vMax)
   if (fUnscld - vMin <= d) fUnscld = vMin
   if (vMax - fUnscld <= d) fUnscld = vMax
 endfunction fUnscld
+
+!--------------------------------------------------------------------------------------------------------------------------
+!
+!  Search box of each parameter for PSO, in model (unscaled) units.
+!
+!  Parameters with physical bounds are searched between them, leaving free
+!  the fraction boundFrac next to each bound (as XXSCAL does). The others,
+!  between multiples of the initial value x0. g' and g" between absolute
+!  values (g', also within its physical bounds), widened to include x0: with
+!  their physical bounds (+-2) g(T) < 0 at many temperatures. The ranges are
+!  options of paraest.cfg. The association energy keeps XXSCAL's lower
+!  limit of 1 K.
+!
+subroutine search_box(NPAR, IDXX, x0, boundFrac, lo, hi)
+  use config, only: range_gstr, range_gp, range_gdd, range_q, range_eps, range_tc
+  integer, intent(in) :: NPAR, IDXX(NPAR)
+  double precision, intent(in) :: x0(NPAR), boundFrac
+  double precision, intent(out) :: lo(NPAR), hi(NPAR)
+  integer :: i
+
+  do i = 1, NPAR
+    select case (IDXX(i))
+    case (1)
+      call times(range_gstr)
+    case (2)
+      call between(vMinKstr, vMaxKstr)
+    case (3)
+      if (inIJ(i)) then
+        call between(-vMaxKp, vMaxKp)
+      else
+        call between(-vMaxGp, -vMinGp)
+        lo(i) = max(lo(i), min(range_gp(1), x0(i)))
+        hi(i) = min(hi(i), max(range_gp(2), x0(i)))
+      endif
+    case (4)
+      call times(range_q)
+    case (5)
+      call between(-vMaxAlfa, vMaxAlfa)
+    case (6)
+      call times(range_eps)
+      lo(i) = max(lo(i), 1D0)
+      hi(i) = max(hi(i), 1D0)
+    case (7)
+      call between(0D0, vMaxRkass)
+    case (8)
+      call times(range_tc)
+    case (9)
+      call between(dc_mean(i) - error_Dc(i), dc_mean(i) + error_Dc(i))
+    case (10)
+      lo(i) = min(range_gdd(1), x0(i))
+      hi(i) = max(range_gdd(2), x0(i))
+    case default
+      lo(i) = x0(i)
+      hi(i) = x0(i)
+    endselect
+  enddo
+
+contains
+
+  subroutine between(vMin, vMax)
+    double precision, intent(in) :: vMin, vMax
+    double precision :: d
+    d = max(boundFrac, margin)*(vMax - vMin)
+    lo(i) = vMin + d
+    hi(i) = vMax - d
+  endsubroutine between
+
+  subroutine times(r)
+    double precision, intent(in) :: r(2)
+    lo(i) = min(r(1)*x0(i), r(2)*x0(i))
+    hi(i) = max(r(1)*x0(i), r(2)*x0(i))
+  endsubroutine times
+
+endsubroutine search_box
 
 endmodule scaling

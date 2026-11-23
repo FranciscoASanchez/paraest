@@ -19,8 +19,10 @@ program paraest
   use dimensions
   use fit_data
   use gca_parameters
-  use scaling, only: XXSCAL
-  use residuals, only: FUNC, read_options, write_failed_points   ! residuals of the objective function, for ZXSSQ
+  use scaling, only: XXSCAL, XXUNSCAL, search_box
+  use config, only: read_options, optimizer, pso_particles, pso_iterations, pso_seed
+  use pso_optimizer, only: PSO
+  use residuals, only: FUNC, write_failed_points, nFailed, nNaN, nFailedFirst, nNaNFirst   ! residuals of the objective function, for ZXSSQ
   implicit none
 !
   ! The data shared with FUNC (system, model parameters, experimental data,
@@ -92,15 +94,21 @@ program paraest
     PARM(4)=.1D0
     IXJAC = NCXP
 !
-    CALL ZXSSQ(FUNC,NCXP,NPAR,NSIG,EPS,DELTAZ,MAXFN,IOPT,PARM,XX,SSQ,FCION,XJAC,IXJAC,XJTJ,WORK,INFER,IER)
+    ! Optimizer (option of paraest.cfg): PSO explores the search box; then
+    ! Levenberg-Marquardt starts from the best point found (or from the
+    ! initial values, with 'lm').
+    IF(optimizer.NE.'lm') CALL run_pso()
+    IF(optimizer.NE.'pso') THEN
+      CALL ZXSSQ(FUNC,NCXP,NPAR,NSIG,EPS,DELTAZ,MAXFN,IOPT,PARM,XX,SSQ,FCION,XJAC,IXJAC,XJTJ,WORK,INFER,IER)
+    ENDIF
 !
     ! One more evaluation at the final parameters: ZXSSQ's last one may be a
     ! rejected trial step or a Jacobian increment, and the calculated values
     ! written by write_results come from the last evaluation.
     CALL FUNC(XX,NCXP,NPAR,FCION)
 !
-    ! Statistics of the fit
-    CALL write_fit_stats(SSQ,XJAC,WORK,INFER,IER)
+    ! Statistics of the fit (PSO alone has no Jacobian: only SSQ)
+    IF(optimizer.NE.'pso') CALL write_fit_stats(SSQ,XJAC,WORK,INFER,IER)
     CALL write_failed_points(.TRUE.)
 !
     ! Spline temperatures of the final parameters (for the output)
@@ -113,6 +121,62 @@ program paraest
   ! Final parameters, and experimental and calculated values
   CALL write_results(NTEXT)
 !
+contains
+
+!------------------------------------------------------------------------------------------------------------------------------------
+!
+  ! Particle swarm (PSO) over the search box of the parameters, in model
+  ! units; XX ends with the best point found (scaled) and SSQ with its value.
+!
+subroutine run_pso()
+  double precision :: x0(NPARM), lo(NPARM), hi(NPARM), xBest(NPARM)
+  integer :: i, nEval, nLost
+
+  CALL XXUNSCAL(NPAR, XX, IDXX, x0)
+  CALL search_box(NPAR, IDXX, x0, boundFrac, lo, hi)
+
+  OPEN(UNIT=1,STATUS='OLD',file='paraest.out',FORM='FORMATTED',POSITION='APPEND')
+  WRITE(1,'(/,X,A,/,X,A)') 'PSO search box:', '  Param. Type      Minimum      Initial      Maximum'
+  DO i = 1, NPAR
+    WRITE(1,'(X,I6,I6,3ES13.5)') i, IDXX(i), lo(i), x0(i), hi(i)
+  ENDDO
+  WRITE(1,'(/,X,A)') 'Course of the PSO (one line per evaluation):'
+  CLOSE(UNIT=1)
+
+  CALL PSO(pso_objective, NPAR, x0(:NPAR), lo(:NPAR), hi(:NPAR), pso_particles, pso_iterations, pso_seed, &
+           xBest(:NPAR), SSQ, nLost, nEval)
+
+  XX(:NPAR) = xBest(:NPAR)
+  CALL XXSCAL(NPAR, XX, IDXX, boundFrac)
+
+  OPEN(UNIT=1,STATUS='OLD',file='paraest.out',FORM='FORMATTED',POSITION='APPEND')
+  WRITE(1,'(/,X,A,ES20.12,/,X,A,I0,/,X,A,I0)') 'Best SSQ found by PSO: ', SSQ, &
+    'Points not calculated beyond those at the initial parameters: ', nLost, 'Number of PSO evaluations: ', nEval
+  WRITE(1,'(X,A,/,(X,5ES16.8))') 'Best parameters found by PSO:', xBest(:NPAR)
+  CLOSE(UNIT=1)
+endsubroutine run_pso
+
+!------------------------------------------------------------------------------------------------------------------------------------
+!
+!  Objective function for PSO at the parameters x (model units): SSQ, and the
+!  number of points not calculated (failed or NaN) beyond those at the
+!  initial parameters (the first evaluation, particle 1). Points that already
+!  fail at the initial values do not count: the model may not reach them.
+!
+subroutine pso_objective(n, x, ssqX, nLostX)
+  integer, intent(in) :: n
+  double precision, intent(in) :: x(n)
+  double precision, intent(out) :: ssqX
+  integer, intent(out) :: nLostX
+  double precision :: xs(NPARM), f(NDM)
+
+  xs(:n) = x
+  CALL XXSCAL(n, xs, IDXX, boundFrac)
+  CALL FUNC(xs, NCXP, n, f)
+  ssqX = sum(f(:NCXP)**2)
+  nLostX = max(0, nFailed + nNaN - nFailedFirst - nNaNFirst)
+endsubroutine pso_objective
+
 endprogram paraest
 !
 !-------------------------------------------------------------------------------------------------------------------------

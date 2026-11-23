@@ -2381,6 +2381,12 @@ SUBROUTINE ZMAX(Z,iTyp,T,P,XN,iGues,NC,NG,NST,iC)
 24	CONTINUE
 !  Contador de iteraciones para líquido y vapor:
 	nroIter(iCyc) = nroIter(iCyc) + 1
+!  Failsafe: some paths go back to 24 without counting NIT; with NaN (for
+!  instance a negative attractive energy) or in a cycle they never ended.
+	IF(nroIter(iCyc).GT.maxit .OR. RO.NE.RO) THEN
+	  IER=100*ICYC
+	  GOTO 10
+	ENDIF
 	DNOM=RO*QT/RT
 	DFVDV=0.D0
 	DFV=0.D0
@@ -3075,6 +3081,7 @@ ENDsubroutine
 !	con sus elementos diagonales unitarios".
 !
 SUBROUTINE LUDcmp(a, n, np, indx, d)
+	use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
 	INTEGER n, np, indx(n), NMAX
 	REAL*8 d,a(np,np),TINY
 	PARAMETER (NMAX=500,TINY=1.0e-20)
@@ -3092,8 +3099,13 @@ SUBROUTINE LUDcmp(a, n, np, indx, d)
 	  enddo
 	  if(aamax.EQ.0.)then
 
-	    write(*,'(/, "Matriz singular en LUDcmp", /)')
-	    stop
+!	    Singular matrix (a zero row; also a row of NaN, since abs(NaN) >
+!	    aamax is false). It used to stop the program: now it returns NaN,
+!	    so the calculation fails and the caller reports it.
+	    a(:n,:n) = ieee_value(1.D0, ieee_quiet_nan)
+	    indx = [(k, k = 1, n)]
+	    d = ieee_value(1.D0, ieee_quiet_nan)
+	    return
 
 	  endif
         vv(i) = 1.D0/aamax
