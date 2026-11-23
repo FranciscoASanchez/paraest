@@ -110,6 +110,11 @@ $(OBJDIR)/fit_data.o $(OBJDIR)/gca_parameters.o $(OBJDIR)/scaling.o: $(OBJDIR)/d
 $(OBJDIR)/scaling.o: $(OBJDIR)/config.o
 $(DBGDIR)/fit_data.o $(DBGDIR)/gca_parameters.o $(DBGDIR)/scaling.o: $(DBGDIR)/dimensions.o
 $(DBGDIR)/scaling.o: $(DBGDIR)/config.o
+$(OBJDIR)/gca_bridge.o $(OBJDIR)/model_output.o: $(OBJDIR)/gca_parameters.o
+$(DBGDIR)/gca_bridge.o $(DBGDIR)/model_output.o: $(DBGDIR)/gca_parameters.o
+# gca.f90 holds module pargr_export
+$(OBJDIR)/gca_bridge.o: $(OBJDIR)/gca.o
+$(DBGDIR)/gca_bridge.o: $(DBGDIR)/gca.o
 RESDEPS = dimensions config fit_data gca_parameters gca_bridge scaling utilities
 $(OBJDIR)/residuals.o: $(call dep,$(OBJDIR),$(RESDEPS))
 $(DBGDIR)/residuals.o: $(call dep,$(DBGDIR),$(RESDEPS))
