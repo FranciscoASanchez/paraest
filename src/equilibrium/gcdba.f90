@@ -197,8 +197,8 @@
 !
 300   WRITE(6,3200) IT,P,T,ERROR
       IF(IOUT.EQ.1) WRITE(3,3200) IT,P,T,ERROR
-3200  FORMAT(/,' ITER=',I3,2X,' Pressure(ATM)=',F10.4,2X,' Temperature='&
-     &,F10.4,' Error=',D12.4,/)
+3200  FORMAT(/,' ITER=',I3,2X,' Pressure(ATM)=',G12.5,2X,' Temperature='&
+     &,G12.5,' Error=',D12.4,/)
 !
       WRITE(6,3300)
 !

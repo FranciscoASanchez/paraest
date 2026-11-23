@@ -143,6 +143,11 @@ SUBROUTINE GCEOS (NC, NG, NST, iDer, iTemp, T, P, XN, phi, dLPhi, dLPhiT, DLPHIP
 	IPHAS=1+(MTYP+1)/2
 	if (IGZ /= 0 .AND. MTYP /= 0)Z(IPHAS) = CZ
 	CALL ZMAX (Z, MTYP, T, P, XN, IGZ, NC, NG ,NST, IC)
+!	paraest: when the requested phase fails from a given guess (IGZ > 1),
+!	ZMAX returns IC = -1 without calculating the other phase, whose Z and
+!	DPDV are left over from an earlier call (DPDV = 0 the first time:
+!	division by zero below). The caller only looks at IC: return.
+	if (MTYP /= 0 .AND. IC /= 1 .AND. IGZ > 1) return
 	IPHAS = 1 + (MTYP*IC + 1)/2
 	if (MTYP == 0) IPHAS=1+(IC+1)/2
 	CZ=Z(IPHAS)
@@ -1422,7 +1427,7 @@ SUBROUTINE PARGR (NC, NG, NGA, NST, inputFile, outputFile)
 105	FORMAT(///, X, 'Pure group atractive parameters:', /, 91X, 'Group configuration per component', /, 3X, &
 &	       'No', 3X, "Name", 9X, 'T*(K)', 5X, 'q', 3X, 'g*(atm cm6/mol2)', 5X, 'g`', 8X, 'g"', 6X, "Ts(K)", 4X,        &
 &	       "exp", X, *(I5))
-106	FORMAT(2X, I3, 3X, A10, X, F7.2, F8.4, 4X, F10.1, 2X, 2F10.5, 3X, F7.2, 2X, F5.2, *(I5))
+106	FORMAT(2X, I3, 3X, A10, X, F7.2, F8.4, 4X, F10.1, 2X, 2F10.5, 3X, G10.4, 2X, F6.2, *(I5))	! paraest: Ts can be huge
 
 !	Lectura parametros de interaccion binaria grupales atractivos del banco de datos
 	if (NG > 1) then
