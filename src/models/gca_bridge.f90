@@ -29,9 +29,9 @@ contains
 subroutine fakePARGR(NC,NG,NGA,NST,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ,ONUASOCWW, &
 &                 MASSOC,ENASS,RKASS)
   implicit none
-  integer, parameter :: NCM=30, NGM=20, NGAM=12, NSM=24     ! must match the GCA package
+  integer, parameter :: NCM=30, NGM=30, NGAM=14, NSM=24     ! must match the GCA package (v1.14)
   integer :: i, J, k, l, m1, m2, NC, NG, NGA, NGROUP, NownII, NownIJ, NST
-  integer :: NY
+  integer :: NY, major
   double precision :: A, AKIJ, ALFA, DADT, dDeldT, Delta, eps_R, EPX, G1, G2, GSTR
   double precision :: Q, R, TSPL, TSTR, XKIJ, ZZ
   character*10 AName
@@ -50,7 +50,7 @@ subroutine fakePARGR(NC,NG,NGA,NST,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ
   COMMON/GROUP2/Q(NGM),A(NGM,NGM),DADT(NGM,NGM),ALFA(NGM,NGM),R,NY(NCM,NGM)
 
   common/GrupAs1/kappa(NSM,NSM),eps_R(NSM,NSM)
-  common/GrupAs2/sigma(NSM,NCM)
+  common/GrupAs2/sigma(NSM,NCM), major
   common/GrupAs4/Delta(NSM,NSM),dDeldT(NSM,NSM)
   common/NAME/AName(NCM)
   COMMON/COORD/ZZ
@@ -169,8 +169,9 @@ endsubroutine fakePARGR
 subroutine fakePARMOL(NC,NG,NST,WWDC,WWTEMPCRIT,wwPRCRIT)
 !
   implicit none
-  integer, parameter :: NCM=30, NGM=20, NSM=24     ! must match the GCA package
-  integer :: i, iEntalp, NC, NG, NST, NY
+  integer, parameter :: NCM=30, NGM=30, NSM=24     ! must match the GCA package (v1.14)
+  integer :: i, iEntalp, NC, NG, NST, NY, major
+  double precision :: HHG, omega
   double precision :: A, AKIJ, ALFA, D, DADT, DC, dDeldT, Delta, DT, eps_R, EPX, G1
   double precision :: G2, GSTR, HA, HB, HHA, HHB, hhc, HHD, HHE, HHF, PC, Pen
   double precision :: pmm, Q, R, TC, TSPL, TSTR, XKIJ, ZZ
@@ -187,14 +188,14 @@ subroutine fakePARMOL(NC,NG,NST,WWDC,WWTEMPCRIT,wwPRCRIT)
      &              NY(NCM,NGM)
 !
   common/GrupAs1/kappa(NSM,NSM),eps_R(NSM,NSM)
-  common/GrupAs2/sigma(NSM,NCM)
+  common/GrupAs2/sigma(NSM,NCM), major
   common/GrupAs4/Delta(NSM,NSM),dDeldT(NSM,NSM)
 !
   COMMON/MOL/DC(NCM),D(NCM),DT(NCM),HA(NCM),HB(NCM)
-  COMMON/CRIT/TC(NCM),PC(NCM)
+  COMMON/CRIT/TC(NCM),PC(NCM),omega(NCM)
 !
   common/NAME/AName(NCM)
-  common/GCPROM/pmm(ncm),Pen(NCM),HHA(ncm),HHB(ncm),hhc(ncm),HHD(ncm),HHE(NCM),HHF(NCM)
+  common/GCPROM/pmm(ncm),Pen(NCM),HHA(ncm),HHB(ncm),hhc(ncm),HHD(ncm),HHE(NCM),HHF(NCM),HHG(NCM)
   common/ENTALP/iEntalp
   COMMON/COORD/ZZ
 
@@ -216,6 +217,8 @@ subroutine fakePARMOL(NC,NG,NST,WWDC,WWTEMPCRIT,wwPRCRIT)
     HHD(i) = 0.
     HHE(i) = 0.
     HHF(i) = 0.
+    HHG(i) = 0.
+    omega(i) = 0.
 
   enddo
 !
@@ -241,7 +244,7 @@ endsubroutine fakePARMOL
 !
 logical function negative_cohesion(T, NC, NG)
   implicit none
-  integer, parameter :: NCM=30, NGM=20     ! must match the GCA package
+  integer, parameter :: NCM=30, NGM=30     ! must match the GCA package (v1.14)
   double precision, intent(in) :: T
   integer, intent(in) :: NC, NG
   integer :: j, NY

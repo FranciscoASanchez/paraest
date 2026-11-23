@@ -197,12 +197,12 @@
   The hard-sphere diameter at the critical point of component No.  3 was fitted to 
   reproduce the point of the vapor pressure curve 
   [   370.3500 K ; 1.000     atm ] 
-  DC =  4.0296759
+  DC =  4.0296760
 
   The hard-sphere diameter at the critical point of component No.  4 was fitted to 
   reproduce the point of the vapor pressure curve 
   [   390.8100 K ; 1.000     atm ] 
-  DC =  4.4058760
+  DC =  4.4058761
 
   The hard-sphere diameter at the critical point of component No.  5 was fitted to 
   reproduce the point of the vapor pressure curve 
@@ -231,7 +231,7 @@
    1      488.2500   52.780       52.002      0.1090      0.5358      -1.47     0.1454E+05
 
  AAD(ARD%) = ,   0.13811, atm , (,    1.19% ,)
- AbsStdDev(Rel.%) = ,   0.26636, atm , (,    1.32% ,)
+ AbsStdDev(Rel.%) = ,   0.26637, atm , (,    1.32% ,)
 
 
    Comp   Texp(K)    Pexp(atm)    Pcalc(atm)     Zliq      Zvap        DP%     DH_LV(J/mol) 
@@ -316,5 +316,5 @@
    6      646.5700   13.380       14.734      0.1396      0.6380       10.1     0.2414E+05
 
  AAD(ARD%) = ,   0.22531, atm , (,   25.73% ,)
- AbsStdDev(Rel.%) = ,   0.47882, atm , (,   55.20% ,)
+ AbsStdDev(Rel.%) = ,   0.47881, atm , (,   55.20% ,)
 

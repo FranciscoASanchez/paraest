@@ -78,8 +78,10 @@ must accept them from memory, not only from its input files.
 4. Dimensions
 -------------
 
-  Old package: NCM = 30 components, NGM = 20 groups, NGAM = 12 associating
-  groups, NSM = 24 sites (repeated in gca_bridge and in residuals: NCMgca).
+  Package (GCA v1.14.0.0 since 2026-11-23): NCM = 30 components, NGM = 30
+  groups, NGAM = 14 associating groups, NSM = 24 sites (repeated in
+  gca_bridge and in residuals: NCMgca). paraest's own arrays still allow
+  20 groups and 12 associating groups.
   paraest (src/main/dimensions.f90): NCM = 50. They must be the same; with
   GCA 2.0 paraest should take them from the package.
 

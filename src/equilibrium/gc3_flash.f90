@@ -455,11 +455,10 @@
       HMELT(I)=0.D0
 1     NOTRY(I)=0
       iOut = iOu
-!	write(*,*)'iOut =',iOut
-      CALL PARGR(NC,NG,NGA,NST,IOUt)
-      NSitio = NST
-!	write(*,*)'iOut =',iOut
-      CALL PARMOL(NC,NG,NST,IOUt)
+!	paraest loads the model with fakePARGR/fakePARMOL: INDAT is not used.
+!	(GCA v1.14 changed PARGR and PARMOL: they also take the input unit.)
+      write(*,*) 'INDAT (GC3Flash) is not supported in paraest'
+      stop 1
       RETURN
       END
 !-----------------------------------------------------------------------
