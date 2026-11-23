@@ -17,6 +17,8 @@
 !     ier = 0   converged
 !           1   no convergence in maxIter iterations
 !           2   zero derivative dP/dd
+!           3   PSAT failed (before, its error was ignored: PSAT leaves P
+!               as it was, so F = 0 and a meaningless d was accepted)
 !
 !--------------------------------------------------------------------------------------------------------------------------
 subroutine fit_dc(ic, nc, ng, nst, T, pFit, dcFit, ier)
@@ -55,6 +57,11 @@ subroutine fit_dc(ic, nc, ng, nst, T, pFit, dcFit, ier)
     endif
     D1 = D(ic)
     call PSAT(T, P1, Z, nc, ng, nst, ic, IGP, IGZ, ierPsat)
+    if (ierPsat < 0) then
+      ier = 3
+      DC(ic) = dcFit
+      return
+    endif
     if (iter == 3) IGZ = 5
     F1 = P1 - pFit
     fCrt = dabs(F1)
@@ -62,6 +69,11 @@ subroutine fit_dc(ic, nc, ng, nst, T, pFit, dcFit, ier)
     P2 = P1
     D(ic) = D1 + dd
     call PSAT(T, P2, Z, nc, ng, nst, ic, IGP, IGZ, ierPsat)
+    if (ierPsat < 0) then
+      ier = 3
+      DC(ic) = dcFit
+      return
+    endif
     F2 = P2 - pFit
     DFDD = (F2 - F1)/dd
     DPDD = (P2 - P1)/dd

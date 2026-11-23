@@ -1056,14 +1056,27 @@ SUBROUTINE PARAGC(T,NC,NG,NST,NTEMP)
 
 	      TR=T/(TSTR(I)+TSTR(J))*2.D0
 	      XKIJ1=XKIJ(I,J)*(1.D0+AKIJ(I,J)*DLOG(TR))
-	      HELP=DSQRT(A(I,I)*A(J,J))
+!	      g(T) <= 0 can only remain in a group not present in the mixture
+!	      (paraest does not calculate a point if a present group has it):
+!	      its terms are multiplied by zero, but a NaN would spoil them.
+	      HELP=A(I,I)*A(J,J)
+	      if(HELP.GT.0.D0)then
+	        HELP=DSQRT(HELP)
+	      else
+	        HELP=0.D0
+	      endif
 	      A(I,J)=HELP*XKIJ1
 !	      IF(NTEMP.EQ.0) GOTO 3
-	      if(nTemp.GT.0)then
+	      if(nTemp.GT.0 .AND. HELP.GT.0.D0)then
 
 	        DKIJ=XKIJ(I,J)*AKIJ(I,J)/T
 	        DADT(I,J)=DKIJ*HELP+XKIJ1/2.D0/HELP*(A(I,I)*DADT(J,J)+A(J,J)*DADT(I,I))
 	        DADT(J,I)=DADT(I,J)
+
+	      elseif(nTemp.GT.0)then
+
+	        DADT(I,J)=0.D0
+	        DADT(J,I)=0.D0
 
 	      endif
 !3	  A(J,I)=A(I,J)

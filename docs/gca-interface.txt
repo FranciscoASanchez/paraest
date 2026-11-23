@@ -43,8 +43,9 @@ must accept them from memory, not only from its input files.
   GCEOS          residuals, fugacity, pcrit,     ln phi and derivatives, Z
                  gc3_flash
   PSAT           residuals, fit_dc               vapor pressure of a pure component
-                                                 (must return IER /= 0 on failure,
-                                                 never loop: see commit 17d4f11)
+                                                 (must return IER < 0 on failure,
+                                                 never loop: see commit 17d4f11;
+                                                 fit_dc now checks it)
   ZMAX           gcxs (and PSAT internally)      Z of a phase at T, P
   NTLPY          residuals                       residual enthalpy (heat of
                                                  vaporization, IOBJSAT = 81)
@@ -89,5 +90,12 @@ must accept them from memory, not only from its input files.
   - Every routine returns an error flag instead of stopping: a failed point
     is reported and counted (write_failed_points), the fit goes on.
   - Results must not depend on the history of calls beyond ~1e-8 (today the
-    association solver warm-starts from previous site fractions).
+    association solver warm-starts from previous site fractions). The dc
+    fit used to start from the previous evaluation's dc: after a PSO
+    particle with extreme parameters, the same parameters gave SSQ 1.8e10
+    instead of 1.06. Fixed in paraest (it starts from the user's dc).
+  - g(T) = g*(1 + g'(T/T* - 1) + g" ln(T/T*)) must be positive; paraest
+    checks it before each point (negative_cohesion, in gca_bridge) and
+    PARAGC no longer takes the square root of a negative product for
+    groups that are not present.
   - No output to files or units other than the screen during a fit.

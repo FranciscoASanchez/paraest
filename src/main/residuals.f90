@@ -20,7 +20,7 @@ module residuals
   use dimensions
   use fit_data
   use gca_parameters, PSATu => PSAT   ! PSAT is also a subroutine of the GCA package
-  use gca_bridge, only: fakePARGR, fakePARMOL
+  use gca_bridge, only: fakePARGR, fakePARMOL, negative_cohesion
   use config, only: PENALIZ, PENALIZNAN
   implicit none
   private
@@ -39,6 +39,10 @@ module residuals
   ! last evaluation and in the first one (the initial parameters).
   integer, protected :: nFailed = 0, nNaN = 0, nFailedFirst = 0, nNaNFirst = 0
   integer :: nEval = 0
+
+  ! dc of each component at the first evaluation (the user's values): the dc
+  ! fit of fit_critical_diameters always starts from them.
+  double precision :: dcStart(NCM) = 0D0
 
 contains
 
@@ -154,16 +158,30 @@ endsubroutine write_failed_points
 !  Critical diameters: each dc that is not a fitted parameter is adjusted to
 !  reproduce exactly the vapor pressure point (TSAT, PSAT) of its component.
 !
+!  The Newton iteration always starts from the user's dc (dcStart), not from
+!  the result of the previous evaluation: otherwise the result depended on
+!  the history. A PSO particle with extreme parameters took dc to another
+!  root, and the following evaluations, even at the initial parameters,
+!  started from there (n-alkanes-fit-g with pso+lm: SSQ 1.06 at the initial
+!  values before the PSO, 1.8e10 after it). If the fit fails, dc keeps the
+!  user's value.
+!
 subroutine fit_critical_diameters()
   integer :: i, iErrDc
-  double precision :: dcFit
+  double precision :: dcFit, wDC(NCM)
 
   if (.not. any(TSAT(:NC) /= 0)) return
+
+  if (nEval == 0) dcStart(:NC) = DC(:NC)
+  wDC(:NC) = DC(:NC)
+  do i = 1, NC
+    if (TSAT(i) /= 0 .and. .not. any(IDDC(:numDC) == i)) wDC(i) = dcStart(i)
+  enddo
 
   call fakePARGR(NC, NG, NGA, NST, NU(:NG,:NC), QAREA(:NG), TSTR(:NG), GSTR(:NG), GDOT(:NG), GDDOT(:NG), &
                  RKIJ(:NG,:NG), RKTIJ(:NG,:NG), ALFAIJ(:NG,:NG), ONUASOC(:NGA,:NC), MASSOC(:NGA),             &
                  ENASS(:2,:NGA,:2,:NGA), RKASS(:2,:NGA,:2,:NGA))
-  call fakePARMOL(NC, NG, NST, DC(:NC), TEMPCRIT(:NC), PRCRIT(:NC))
+  call fakePARMOL(NC, NG, NST, wDC(:NC), TEMPCRIT(:NC), PRCRIT(:NC))
   do i = 1, NC
     if (TSAT(i) == 0) cycle
     if (any(IDDC(:numDC) == i)) cycle
@@ -171,6 +189,7 @@ subroutine fit_critical_diameters()
     if (iErrDc == 0) then
       DC(i) = dcFit
     else
+      DC(i) = dcStart(i)
       write(6,'(" dc fit failed for component ",I2,", ier = ",I2)') i, iErrDc
     endif
     write(6,'(" End of dc fit, component No. ",I2)') i
@@ -211,7 +230,11 @@ subroutine pure_component_residuals(FCION, numExp)
         ! Objective function: isofugacity
         write(6,'("Point ",I3," of component",I3)') j, i
         call load_component(i, WDC, WTEMPCRIT, WPRCRIT, NUW, ONUASOCW)
-        call isofug_pure(NG, NST, wTemp, wPsat, APART, WZFASL, WZFASV, IERRYAF)
+        if (negative_cohesion(wTemp, 1, NG)) then
+          IERRYAF = 1
+        else
+          call isofug_pure(NG, NST, wTemp, wPsat, APART, WZFASL, WZFASV, IERRYAF)
+        endif
         if (IERRYAF == 0) then
           PCALC(n) = wPsat
           ZLCALC(n) = WZFASL
@@ -237,7 +260,9 @@ subroutine pure_component_residuals(FCION, numExp)
         iGz = 0       ! could use the result of the dc fit...
         iErrPSat = 0
         iComp = 1
-        if (wPsat > 1E-10) then
+        if (negative_cohesion(wTemp, 1, NG)) then
+          iErrPSat = -1
+        elseif (wPsat > 1E-10) then
           ! Standard vapor pressure calculation
           call PSAT(wTemp, wPsat, wZ, 1, NG, NST, iComp, iGP, iGz, iErrPSat)
         else
@@ -257,7 +282,7 @@ subroutine pure_component_residuals(FCION, numExp)
           call NTLPY(1, NG, NST, wTemp, wPsat, feed, HRV, wZ(1), -1, -1, iErr)
           call NTLPY(1, NG, NST, wTemp, wPsat, feed, HRL, wZ(2), 1, 1, iErr)
         endif
-        if (wTemp < Tfu(i)) then
+        if (iErrPSat >= 0 .and. wTemp < Tfu(i)) then
           ! Sublimation pressure
           TR = (Tfu(i)/wTemp - 1)
           Yu = -DHfu(i)/Rgas_SI/Tfu(i) * TR
@@ -371,6 +396,7 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
   double precision :: TEMP, PRESS, X1, Y1, X2, Y2, ZLL, ZVV, zLiquido, zVapor, ZLiq, ZVap, sq
   integer :: indF(4), iVap(1)
   integer :: i, n, nFailure, iErr, iOrder, iType
+  logical :: badG
 
   nFailure = NOBS(ks)
   STDVA(ks) = 0D0
@@ -381,6 +407,9 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
     PRESS = PEXP(n)
     X1 = XEXP(n)
     Y1 = YEXP(n)
+    ! g(T) <= 0 at the experimental T: not calculated (for bubble
+    ! temperatures, IFL = 2, the check is at the experimental T)
+    badG = negative_cohesion(TEMP, NCw, NG)
 
     if (IFL(ks) == -1 .or. IFL(ks) == -2) then
       ! Isofugacity
@@ -389,7 +418,11 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
       xIsof(2) = 1D0 - X1
       yIsof(1) = Y1
       yIsof(2) = 1D0 - Y1
-      call isofug_mix(2, NG, NST, TEMP, PRESS, xIsof, yIsof, apartIsof, ZLL, ZVV, iErr)
+      if (badG) then
+        iErr = 1
+      else
+        call isofug_mix(2, NG, NST, TEMP, PRESS, xIsof, yIsof, apartIsof, ZLL, ZVV, iErr)
+      endif
       if (iErr == 0) then
         ZLCALC(n) = ZLL
         ZVCALC(n) = ZVV
@@ -430,7 +463,11 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
           iOrder = 2
         endif
         iErr = 0
-        call GC3Flash(NCw, NG, NST, TEMP, PRESS, feed(:NCMgca), zFrac, zVal, indF, iErr)
+        if (badG) then
+          iErr = 1
+        else
+          call GC3Flash(NCw, NG, NST, TEMP, PRESS, feed(:NCMgca), zFrac, zVal, indF, iErr)
+        endif
         if (zFrac(1,1) > zFrac(1,2)) then
           X1 = zFrac(1,iOrder)
           zLiquido = zVal(iOrder)
@@ -467,7 +504,11 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
           iType = 1
         endif
         iErr = 0
-        call GCADB(1, NCw, NG, NST, iType, TEMP, PRESS, X1, Y1, iErr, ZLiq, ZVap)
+        if (badG) then
+          iErr = 1
+        else
+          call GCADB(1, NCw, NG, NST, iType, TEMP, PRESS, X1, Y1, iErr, ZLiq, ZVap)
+        endif
         if (iErr == 0) then
           ZLCALC(n) = ZLiq
           ZVCALC(n) = ZVap
@@ -500,7 +541,11 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
           iOrder = 2
         endif
         iErr = 0
-        call GC3Flash(NCw, NG, NST, TEMP, PRESS, feed(:NCMgca), zFrac, zVal, indF, iErr)
+        if (badG) then
+          iErr = 1
+        else
+          call GC3Flash(NCw, NG, NST, TEMP, PRESS, feed(:NCMgca), zFrac, zVal, indF, iErr)
+        endif
         if (minval(indF(:4)) > -1) then
           ! LLE: phases in the same order as the experimental data
           if (zFrac(1,1) > zFrac(1,2)) then
@@ -621,7 +666,6 @@ subroutine excess_property_residuals(ks, FCION, numExp)
   integer :: i, n, nFailure, iErrEx, numExp1, numExp2
 
   nFailure = 0
-  iErrEx = 0
   STDVA(ks) = 0D0
   write(*,'(/,"Set (excess property) No. ",I2)') ks
   do i = 1, NOBS(ks)
@@ -632,7 +676,13 @@ subroutine excess_property_residuals(ks, FCION, numExp)
     feed(2) = 1D0 - feed(1)
     if (feed(2) < 0.D0) feed(2) = 1D-20
     write(*,'("  Point No. ",I2)') i
-    call GCXS(IFL(ks), NG, NST, Temp, Press, feed(:NCMgca), prop_E_calc(n), zLiCalc(n), iErrEx)
+    ! GCXS does not set iErrEx (its error exits are commented out)
+    iErrEx = 0
+    if (negative_cohesion(Temp, 2, NG)) then
+      iErrEx = 1
+    else
+      call GCXS(IFL(ks), NG, NST, Temp, Press, feed(:NCMgca), prop_E_calc(n), zLiCalc(n), iErrEx)
+    endif
     if (iErrEx == 0) then
       if (prop_E_exp(n) /= 0D0) then
         FCAUX(n) = dabs(prop_E_calc(n) - prop_E_exp(n))
@@ -693,8 +743,12 @@ subroutine sle_residuals(ks, NCw, FCION, numExp)
     iErrSol = 0
     ! zFrac(:,1) gets the liquid composition, zFrac(:,2) the fugacity (kept
     ! only because the original program printed it).
-    call GCSLE(NCw, NG, NST, Temp, Press, feed(:NCMgca), wwDHfu, wwDVfu, wwTfu, wwPfu, wwDCpfu, &
-               wwTtrSS, wwDHss, CZ, zFrac(:NCMgca,1), zFrac(:NCMgca,2), iErrSol)
+    if (negative_cohesion(Temp, NCw, NG)) then
+      iErrSol = 1
+    else
+      call GCSLE(NCw, NG, NST, Temp, Press, feed(:NCMgca), wwDHfu, wwDVfu, wwTfu, wwPfu, wwDCpfu, &
+                 wwTtrSS, wwDHss, CZ, zFrac(:NCMgca,1), zFrac(:NCMgca,2), iErrSol)
+    endif
     if (iErrSol == 0) then
       zLiCalc(n) = CZ
       XCALC(n) = zFrac(1,1)
@@ -739,10 +793,18 @@ subroutine critical_point_residuals(ks, NCw, FCION, numExp)
     Press = PEXP(n)
     feed(1) = XEXP(n)
     feed(2) = 1D0 - feed(1)
-    call implicitPCrit(NCw, NG, NST, Temp, Press, feed(:NCMgca), dlnF_dz1, d2lnF_dz12, zLiCalc(n))
-    FCION(n) = wBin(1,n)**2*dlnF_dz1**2 + wBin(2,n)**2*d2lnF_dz12**2
-    FCAUX(n) = dlnF_dz1
-    FCAUX2(n) = d2lnF_dz12
+    if (negative_cohesion(Temp, NCw, NG)) then
+      zLiCalc(n) = 0
+      FCION(n) = PENALIZ*wBin(1,n)**2
+      nFailed = nFailed + 1
+      FCAUX(n) = 0
+      FCAUX2(n) = 0
+    else
+      call implicitPCrit(NCw, NG, NST, Temp, Press, feed(:NCMgca), dlnF_dz1, d2lnF_dz12, zLiCalc(n))
+      FCION(n) = wBin(1,n)**2*dlnF_dz1**2 + wBin(2,n)**2*d2lnF_dz12**2
+      FCAUX(n) = dlnF_dz1
+      FCAUX2(n) = d2lnF_dz12
+    endif
     numExp = numExp + 1
   enddo
 endsubroutine critical_point_residuals
@@ -783,21 +845,37 @@ subroutine activity_coefficient_residuals(ks, NCw, FCION, numExp)
     iTyp = 1
     iGz = 0
     jTemp = 0
-    call paraGC(Temp, NCw, NG, NST, jTemp)
-    call GAMMA(NCw, NG, NST, iTyp, iGz, jTemp, feed(:NCMgca), Temp, Press, lnGamma, dlnGammadT, zLiCalc(n))
+    if (negative_cohesion(Temp, NCw, NG)) then
+      ! Not calculated: g(T) <= 0
+      nFailure = nFailure - 1
+      rGamCalc1(n) = 0
+      rGamCalc2(n) = 0
+      FCAUX(n) = 0
+      FCAUX2(n) = 0
+      if (mez(ks) == 3) then
+        rGamCalc3(n) = 0
+        FCAUX3(n) = 0
+      endif
+      zLiCalc(n) = 0
+      FCION(n) = PENALIZ
+      nFailed = nFailed + 1
+    else
+      call paraGC(Temp, NCw, NG, NST, jTemp)
+      call GAMMA(NCw, NG, NST, iTyp, iGz, jTemp, feed(:NCMgca), Temp, Press, lnGamma, dlnGammadT, zLiCalc(n))
 
-    rGamCalc1(n) = dexp(lnGamma(1))
-    rGamCalc2(n) = dexp(lnGamma(2))
-    FCAUX(n) = rGamCalc1(n)/rGamExp1(n) - 1.D0
-    FCAUX2(n) = rGamCalc2(n)/rGamExp2(n) - 1.D0
-    FCION(n) = W8**2*(rGamCalc1(n) - rGamExp1(n))**2*wGam(1,n)**2 + &
-               W9**2*(rGamCalc2(n) - rGamExp2(n))**2*wGam(2,n)**2
-    if (mez(ks) == 3) then
-      rGamCalc3(n) = dexp(lnGamma(3))
-      FCAUX3(n) = rGamCalc3(n)/rGamExp3(n) - 1.d0
-      FCION(n) = FCION(n) + W10**2*(rGamCalc3(n) - rGamExp3(n))**2*wGam(3,n)**2
+      rGamCalc1(n) = dexp(lnGamma(1))
+      rGamCalc2(n) = dexp(lnGamma(2))
+      FCAUX(n) = rGamCalc1(n)/rGamExp1(n) - 1.D0
+      FCAUX2(n) = rGamCalc2(n)/rGamExp2(n) - 1.D0
+      FCION(n) = W8**2*(rGamCalc1(n) - rGamExp1(n))**2*wGam(1,n)**2 + &
+                 W9**2*(rGamCalc2(n) - rGamExp2(n))**2*wGam(2,n)**2
+      if (mez(ks) == 3) then
+        rGamCalc3(n) = dexp(lnGamma(3))
+        FCAUX3(n) = rGamCalc3(n)/rGamExp3(n) - 1.d0
+        FCION(n) = FCION(n) + W10**2*(rGamCalc3(n) - rGamExp3(n))**2*wGam(3,n)**2
+      endif
+      FCION(n) = sqrt(FCION(n))
     endif
-    FCION(n) = sqrt(FCION(n))
 
     STDVA(ks) = STDVA(ks) + FCAUX(n)**2
     STDVB(ks) = STDVB(ks) + FCAUX2(n)**2

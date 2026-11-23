@@ -7,11 +7,15 @@
 !  reading them from files. They disappear when paraest uses GCA 2.0, whose
 !  parameters are in modules.
 !
+!  negative_cohesion tells whether the attractive energy g(T) of a group of
+!  the loaded components is not positive at T (the calculation is then
+!  meaningless: paraest counts the point as not calculated).
+!
 !--------------------------------------------------------------------------------------------------------------------------
 module gca_bridge
   implicit none
   private
-  public :: fakePARGR, fakePARMOL
+  public :: fakePARGR, fakePARMOL, negative_cohesion
 
 contains
 
@@ -226,5 +230,37 @@ subroutine fakePARMOL(NC,NG,NST,WWDC,WWTEMPCRIT,wwPRCRIT)
   enddo
   return
 endsubroutine fakePARMOL
+
+!---------------------------------------------------------------------------------------------------------
+!
+!  True if g(T) = g*(1 + g'(T/T* - 1) + g" ln(T/T*)) <= 0 at temperature T
+!  for a group present in any of the NC components loaded by fakePARGR.
+!  Above the spline temperature PARAGC uses g*/4/(T/Tspl)**epx, which is
+!  positive. A group that is not present does not count: its g(T) only
+!  enters through k_ij terms that are multiplied by zero.
+!
+logical function negative_cohesion(T, NC, NG)
+  implicit none
+  integer, parameter :: NCM=30, NGM=20     ! must match the GCA package
+  double precision, intent(in) :: T
+  integer, intent(in) :: NC, NG
+  integer :: j, NY
+  double precision :: A, AKIJ, ALFA, DADT, EPX, G1, G2, GSTR, Q, R, TSPL, TSTR, XKIJ, Tr
+
+  COMMON/GROUP1/GSTR(NGM),G1(NGM),G2(NGM),TSTR(NGM),TSPL(NGM),XKIJ(NGM,NGM),      &
+&                AKIJ(NGM,NGM),EPX(NGM)
+  COMMON/GROUP2/Q(NGM),A(NGM,NGM),DADT(NGM,NGM),ALFA(NGM,NGM),R,NY(NCM,NGM)
+
+  negative_cohesion = .false.
+  do j = 1, NG
+    if (all(NY(:NC,j) == 0)) cycle
+    if (T >= TSPL(j)) cycle
+    Tr = T/TSTR(j)
+    if (GSTR(j)*(1D0 + G1(j)*(Tr - 1D0) + G2(j)*dlog(Tr)) <= 0D0) then
+      negative_cohesion = .true.
+      return
+    endif
+  enddo
+endfunction negative_cohesion
 
 endmodule gca_bridge
