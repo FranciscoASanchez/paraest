@@ -13,7 +13,10 @@ module model_output
                             ENASS, RKASS, groupID, assocID, groupName, assocName
   implicit none
   private
-  public :: write_model_params
+  public :: write_model_params, keep_pargr_warnings, write_pargr_warnings
+
+  ! Warnings that PARGR wrote (binary parameters not in the database)
+  character(200), allocatable :: pargrWarning(:)
 
 contains
 
@@ -110,5 +113,47 @@ contains
   endsubroutine site_header
 
 endsubroutine write_model_params
+
+!------------------------------------------------------------------------------------------------------------------------------------
+!
+!  Keeps the warnings that PARGR wrote to unit u (binary parameters not found
+!  in the database: the line and the one that follows it) and closes u, so
+!  that the scratch file does not stay behind if the program stops later.
+!
+subroutine keep_pargr_warnings(u)
+  integer, intent(in) :: u
+  character(200) :: line
+  integer :: ios, n, pass
+  do pass = 1, 2
+    rewind(u)
+    n = 0
+    do
+      read(u,'(A)',iostat=ios) line
+      if (ios /= 0) exit
+      if (index(line, 'not available in the database') > 0) then
+        n = n + 1
+        if (pass == 2) pargrWarning(n) = line
+        read(u,'(A)',iostat=ios) line
+        if (ios /= 0) exit
+        n = n + 1
+        if (pass == 2) pargrWarning(n) = line
+      endif
+    enddo
+    if (pass == 1) then
+      if (allocated(pargrWarning)) deallocate(pargrWarning)
+      allocate(pargrWarning(n))
+    endif
+  enddo
+  close(u)
+endsubroutine keep_pargr_warnings
+
+subroutine write_pargr_warnings(u)
+  integer, intent(in) :: u
+  integer :: i
+  if (.not. allocated(pargrWarning)) return
+  do i = 1, size(pargrWarning)
+    write(u,'(A)') trim(pargrWarning(i))
+  enddo
+endsubroutine write_pargr_warnings
 
 endmodule model_output

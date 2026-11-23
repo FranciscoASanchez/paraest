@@ -197,6 +197,7 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
   use gca_bridge, only: load_from_pargr
   use scaling, only: dc_mean, error_Dc
   use utilities, only: i2s, rep, check_limit
+  use model_output, only: keep_pargr_warnings
 !
   implicit none
   integer :: I, IOPT, J, K, L, NCXP, NPAR, NPRED, NSIG, NSSA, NSSE, NSSRK
@@ -276,10 +277,11 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
   ! (v1.14), as in the flash programs: group composition of each component
   ! as pairs (database number, number of groups), parameters from the
   ! database FOR010-FOR015 plus those given by the user. What PARGR writes
-  ! goes to a scratch file (unit 31): write_output_header copies its
-  ! warnings to paraest.out.
+  ! goes to a scratch file (unit 31), closed at once; its warnings are kept
+  ! and write_output_header copies them to paraest.out.
   open(unit=31, status='scratch', form='formatted')
   call PARGR(NC, NG, NGA, NST, 1, 31)
+  call keep_pargr_warnings(31)
   call load_from_pargr(NC)
 !-----------------------------------------------------------------------
 !
@@ -647,7 +649,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 &                      IDQ, IDALF, NIDALF, IDIDALF, IDENASS, NIDENASS, IDIDENASS, IDRKASS, NIDRKASS, &
 &                      IDIDRKASS, DC, NUMDC, IDDC, TSPLINE, numtc, idtc
   use fit_data, only: DHfu, Tfu, DCpfu, DVfu, TtrSS, DHss, Pfu
-  use model_output, only: write_model_params
+  use model_output, only: write_model_params, write_pargr_warnings
   use utilities, only: i2s, rep
 !
   implicit none
@@ -684,7 +686,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
   WRITE(1,'(/,X,"--------------------------------------------------",/,&
 &            X,"--------------- INITIAL PARAMETERS ---------------",/,  &
 &            X,"--------------------------------------------------")')
-  call copy_pargr_warnings()
+  call write_pargr_warnings(1)
   call write_model_params(1, NC)
 !
   WRITE(1,18)
@@ -843,28 +845,6 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 !
   CLOSE(UNIT=1)
 !
-contains
-
-  ! Copies to paraest.out the warnings that PARGR wrote to its scratch file
-  ! (unit 31): binary parameters not found in the database.
-  subroutine copy_pargr_warnings()
-    character(400) :: line
-    integer :: ios
-    logical :: isOpen
-    inquire(unit=31, opened=isOpen)
-    if (.not. isOpen) return
-    rewind(31)
-    do
-      read(31,'(A)',iostat=ios) line
-      if (ios /= 0) exit
-      if (index(line, 'not available in the database') > 0) then
-        write(1,'(A)') trim(line)
-        read(31,'(A)',iostat=ios) line
-        if (ios == 0) write(1,'(A)') trim(line)
-      endif
-    enddo
-    close(31)
-  endsubroutine copy_pargr_warnings
 
 ENDsubroutine write_output_header
 !
