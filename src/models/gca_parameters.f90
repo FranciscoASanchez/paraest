@@ -8,21 +8,26 @@
 !
 !--------------------------------------------------------------------------------------------------------------------------
 module gca_parameters
-  use dimensions, only: NCM, NGM, NPTIPOM, NIDM, NPARM
+  use dimensions, only: NCM, NGM, NGAM, NPTIPOM, NIDM, NPARM
   implicit none
 
   ! --- Structure ----------------------------------------------------------
   integer :: NG, NGA                       ! groups and associating groups
   integer :: NU(NGM,NCM)                   ! groups of each component
-  integer :: MASSOC(12)                    ! sites of each associating group
-  double precision :: ONUASOC(12,NCM)      ! associating groups of each component
+  integer :: MASSOC(NGAM)                  ! sites of each associating group
+  double precision :: ONUASOC(NGAM,NCM)    ! associating groups of each component
+  ! Number in the database (FOR010 / FOR014) and name of each group. The
+  ! groups are in increasing order of their database number (as PARGR
+  ! leaves them); the input refers to them by that number.
+  integer :: groupID(NGM) = 0, assocID(NGAM) = 0
+  character(10) :: groupName(NGM) = '', assocName(NGAM) = ''
 
   ! --- Dispersive parameters (per group and per pair of groups) -------------
   double precision :: QAREA(NGM), TSTR(NGM), GSTR(NGM), GDOT(NGM), GDDOT(NGM), TSPLINE(NGM)
   double precision :: RKIJ(NGM,NGM), RKTIJ(NGM,NGM), ALFAIJ(NGM,NGM)
 
   ! --- Association parameters ---------------------------------------------
-  double precision :: ENASS(6,12,6,12), RKASS(6,12,6,12)
+  double precision :: ENASS(6,NGAM,6,NGAM), RKASS(6,NGAM,6,NGAM)
 
   ! --- Critical diameter --------------------------------------------------
   double precision :: DC(NCM)
@@ -41,6 +46,42 @@ module gca_parameters
   integer :: idTc(NPTIPOM), IDDC(NPTIPOM)                                     ! Tc and dc
 
 contains
+
+!------------------------------------------------------------------------------------------------------------------------------------
+!
+!  Position (1..NG) of the attractive group with database number id, and of
+!  the associating group (1..NGA). Stops if the group is not in the system:
+!  the fitted parameters refer to groups by their database number.
+!
+integer function local_group(id, what)
+  integer, intent(in) :: id
+  character(*), intent(in) :: what
+  integer :: i
+  do i = 1, NG
+    if (groupID(i) == id) then
+      local_group = i
+      return
+    endif
+  enddo
+  write(*,'(3A,I0,A)') ' Error in the fitted parameters (', what, '): group ', id, &
+    ' is not one of the attractive groups of the system'
+  stop 1
+endfunction local_group
+
+integer function local_assoc(id, what)
+  integer, intent(in) :: id
+  character(*), intent(in) :: what
+  integer :: i
+  do i = 1, NGA
+    if (assocID(i) == id) then
+      local_assoc = i
+      return
+    endif
+  enddo
+  write(*,'(3A,I0,A)') ' Error in the fitted parameters (', what, '): associating group ', id, &
+    ' is not one of the associating groups of the system'
+  stop 1
+endfunction local_assoc
 
 !------------------------------------------------------------------------------------------------------------------------------------
 !
@@ -80,10 +121,15 @@ SUBROUTINE set_model_params(XXAUX, tempCrit)
 !
       ELSE
 
+        ! k* and k' are symmetric (PARGR leaves both triangles equal, and
+        ! PARAGC uses the upper one in the order of the database numbers)
         RKIJ(IDG(I,1),IDG(I,2)) = XXAUX(NPAR2+1)
+        RKIJ(IDG(I,2),IDG(I,1)) = XXAUX(NPAR2+1)
         NPAR2 = NPAR2 + 1
         IF(ITEMP(I).EQ.0) RKTIJ(IDG(I,1),IDG(I,2))= 0.D0
+        IF(ITEMP(I).EQ.0) RKTIJ(IDG(I,2),IDG(I,1))= 0.D0
 1001        IF(ITEMP(I).EQ.1) RKTIJ(IDG(I,1),IDG(I,2))=XXAUX(NPAR2+1)
+        IF(ITEMP(I).EQ.1) RKTIJ(IDG(I,2),IDG(I,1))=XXAUX(NPAR2+1)
         IF(ITEMP(I).EQ.1) NPAR2 = NPAR2 + 1
         IF(ITEMP(I).EQ.2) THEN
 
@@ -124,6 +170,8 @@ SUBROUTINE set_model_params(XXAUX, tempCrit)
 
             RKIJ(IDIDG(J,1),IDIDG(J,2)) = RKIJ(IDG(I,1),IDG(I,2))
             RKTIJ(IDIDG(J,1),IDIDG(J,2))= RKTIJ(IDG(I,1),IDG(I,2))
+            RKIJ(IDIDG(J,2),IDIDG(J,1)) = RKIJ(IDG(I,1),IDG(I,2))
+            RKTIJ(IDIDG(J,2),IDIDG(J,1))= RKTIJ(IDG(I,1),IDG(I,2))
 
           END DO
           NSSS = NSSS + NIDG(I)
@@ -186,7 +234,11 @@ SUBROUTINE set_model_params(XXAUX, tempCrit)
 !
     DO I=1,NENASS
 
+      ! Symmetric: site k of group i with site l of group j is the same pair
+      ! as site l of j with site k of i (fakePARGR reads one or the other,
+      ! depending on the order of the groups)
       ENASS(IDENASS(I,1),IDENASS(I,2),IDENASS(I,3),IDENASS(I,4)) = XXAUX(NPAR2+1)
+      ENASS(IDENASS(I,3),IDENASS(I,4),IDENASS(I,1),IDENASS(I,2)) = XXAUX(NPAR2+1)
       NPAR2 = NPAR2 + 1
 
     END DO
@@ -204,6 +256,7 @@ SUBROUTINE set_model_params(XXAUX, tempCrit)
         DO J=(1+NSSE),(NIDENASS(L)+NSSE)
 
           ENASS(IDIDENASS(J,1),IDIDENASS(J,2),IDIDENASS(J,3),IDIDENASS(J,4)) = ENASS(IDENASS(L,1),IDENASS(L,2) ,IDENASS(L,3),IDENASS(L,4))
+          ENASS(IDIDENASS(J,3),IDIDENASS(J,4),IDIDENASS(J,1),IDIDENASS(J,2)) = ENASS(IDENASS(L,1),IDENASS(L,2) ,IDENASS(L,3),IDENASS(L,4))
 
         END DO
         NSSE = NSSE + NIDENASS(L)
@@ -220,6 +273,7 @@ SUBROUTINE set_model_params(XXAUX, tempCrit)
     DO I=1,NRKASS
 
       RKASS(IDRKASS(I,1),IDRKASS(I,2),IDRKASS(I,3),IDRKASS(I,4)) = XXAUX(NPAR2+1)
+      RKASS(IDRKASS(I,3),IDRKASS(I,4),IDRKASS(I,1),IDRKASS(I,2)) = XXAUX(NPAR2+1)
       NPAR2 = NPAR2 + 1
 
     END DO
@@ -237,6 +291,7 @@ SUBROUTINE set_model_params(XXAUX, tempCrit)
         DO J=(1+NSSRK),(NIDRKASS(L)+NSSRK)
 
           RKASS(IDIDRKASS(J,1),IDIDRKASS(J,2),IDIDRKASS(J,3),IDIDRKASS(J,4)) = RKASS(IDRKASS(L,1),IDRKASS(L,2),IDRKASS(L,3),IDRKASS(L,4))
+          RKASS(IDIDRKASS(J,3),IDIDRKASS(J,4),IDIDRKASS(J,1),IDIDRKASS(J,2)) = RKASS(IDRKASS(L,1),IDRKASS(L,2),IDRKASS(L,3),IDRKASS(L,4))
 
         END DO
         NSSRK = NSSRK + NIDRKASS(L)

@@ -22,64 +22,62 @@
  --------------------------------------------------
  --------------- INITIAL PARAMETERS ---------------
  --------------------------------------------------
-  Pure-group parameters (dispersive term)
 
-                                        COMPONENTS
-  Gr.No.:   T*        Q        TSPLINE   1  2  3  4
+ Pure group attractive parameters:
+                                                                                                          Groups per component
+   No   Name        T*(K)      q       g*(atm cm6/mol2)       g'           g"          Ts(K)     exp    1    2    3    4
+ -------------------------------------------------------------------------------------------------------------------------------
+    1  CH3         600.00   0.8480        316910.00      -0.927400     0.000000     1085.23  6.710    0    2    2    2
+    2  CH2         600.00   0.5400        356080.00      -0.875500     0.000000     1113.99  6.502    0    2    3    6
+  193  H2O         647.13   0.8660        699570.91      -0.502100     0.430900     2323.73  5.488    1    0    0    0
 
-   1       647.1300    0.8660 0.2324E+04  1  0  0  0
-   2       600.0000    0.8480 0.1085E+04  0  2  2  2
-   3       600.0000    0.5400 0.1114E+04  0  2  3  6
+ Binary interaction parameter at T* matrix, [k*]
 
-  Interaction energies gjj 
- (the functional form changes at high temperatures)
+                           1         2       193
+                         CH3       CH2       H2O
+    1  CH3       |  1.000000
+    2  CH2       |  1.000000  1.000000
+  193  H2O       |  1.000000  1.000000  1.000000
 
-  g( 1 1) =   699570.9 * [ 1 +    -0.5021 *(T/T* - 1) +     0.4309 *LN(T/T*)] 
+ Binary interaction parameter temperature dependence matrix, [k']
 
-  g( 2 2) =   316910.0 * [ 1 +    -0.9274 *(T/T* - 1) +     0.0000 *LN(T/T*)] 
+                           1         2       193
+                         CH3       CH2       H2O
+    1  CH3       |  0.000000
+    2  CH2       |  0.000000  0.000000
+  193  H2O       |  0.000000  0.000000  0.000000
 
-  g( 3 3) =   356080.0 * [ 1 +    -0.8755 *(T/T* - 1) +     0.0000 *LN(T/T*)] 
+ Non-randomness parameters matrix, [alpha] (row i, column j: alpha_ij)
 
+                           1         2       193
+                         CH3       CH2       H2O
+    1  CH3       |   -------    0.0000    0.0000
+    2  CH2       |    0.0000   -------    0.0000
+  193  H2O       |    0.0000    0.0000   -------
 
-  Binary parameters: [k*] 
+ Number of associating groups =  1
 
-     1.0000    1.0000    1.0000
-     1.0000    1.0000    1.0000
-     1.0000    1.0000    1.0000
+ Associating group configuration
+                                Groups per component
+   No   Name       Sites        1    2    3    4
+ --------------------------------------------------
+    1  A1           2          2    0    0    0
 
-  Temperature dependence: [k`] 
+ Association energy matrix, [epsilon/R] (K)
 
-     0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000
+                                1           1
+                               A1          A1
+                                1           2
+    1  A1         1 |      0.0000
+    1  A1         2 |   2350.0000      0.0000
 
-  Binary non-randomness parameters: [alpha] 
+ Association volume matrix, [kappa] (cm3/mol)
 
-     0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000
-
-  Number of groups in the association contribution =   1
-
-  Association parameters 
-                       Components
- Group 	  # Assoc sites    1    2    3    4
-
-     1           2       2.00 0.00 0.00 0.00
-
- Association energy parameters (K)  
-
-  ENASS( 1 1  1 1)  =     0.0000
-  ENASS( 1 1  2 1)  =  2350.0000
-  ENASS( 2 1  1 1)  =  2350.0000
-  ENASS( 2 1  2 1)  =     0.0000
-
- Association volume parameters (cm3/mol) 
-
-  RKASS( 1 1  1 1) =     0.0000000000
-  RKASS( 1 1  2 1) =     0.3787000000
-  RKASS( 2 1  1 1) =     0.3787000000
-  RKASS( 2 1  2 1) =     0.0000000000
+                                1           1
+                               A1          A1
+                                1           2
+    1  A1         1 | 0.00000E+00
+    1  A1         2 | 3.78700E-01 0.00000E+00
 
  Pure-component data
 
@@ -91,10 +89,10 @@
   469.70      33.2590   309.20    1.000           4.6970          0.00    0.000            0.0        0.00    0.000        0.000        0.000    
   568.70      24.5740   398.84   0.9999           5.5375          0.00    0.000            0.0        0.00    0.000        0.000        0.000    
 
-  Parameters to estimate 
+  Parameters to estimate (groups by their database number)
 
  Parameters gii or kij 
-   1  1
+   193  193
   Temperature dependence 
    2
   Number of identical par. 
@@ -118,64 +116,62 @@
  --------------------------------------------------
   ---------------- FINAL PARAMETERS ----------------
  --------------------------------------------------
-  PURE-GROUP PARAMETERS (dispersive term)
 
-                                        COMPONENTS
-  Gr.No.:   T*        Q        TSPLINE   1  2  3  4
+ Pure group attractive parameters:
+                                                                                                          Groups per component
+   No   Name        T*(K)      q       g*(atm cm6/mol2)       g'           g"          Ts(K)     exp    1    2    3    4
+ -------------------------------------------------------------------------------------------------------------------------------
+    1  CH3         600.00   0.8480        316910.00      -0.927400     0.000000     1085.23  6.710    0    2    2    2
+    2  CH2         600.00   0.5400        356080.00      -0.875500     0.000000     1113.99  6.502    0    2    3    6
+  193  H2O         647.13   0.8660        964720.00      -1.065580     0.888376     1586.36  6.895    1    0    0    0
 
-   1       647.1300    0.8660 0.2324E+04  1  0  0  0
-   2       600.0000    0.8480 0.1085E+04  0  2  2  2
-   3       600.0000    0.5400 0.1114E+04  0  2  3  6
+ Binary interaction parameter at T* matrix, [k*]
 
-  Interaction energies gjj 
- (the functional form changes at high temperatures)
+                           1         2       193
+                         CH3       CH2       H2O
+    1  CH3       |  1.000000
+    2  CH2       |  1.000000  1.000000
+  193  H2O       |  1.000000  1.000000  1.000000
 
-  g(  1  1) =   964720.0 * [ 1 +    -1.0656 *(T/T* - 1) +     0.8884 *LN(T/T*)] 
+ Binary interaction parameter temperature dependence matrix, [k']
 
-  g(  2  2) =   316910.0 * [ 1 +    -0.9274 *(T/T* - 1) +     0.0000 *LN(T/T*)] 
+                           1         2       193
+                         CH3       CH2       H2O
+    1  CH3       |  0.000000
+    2  CH2       |  0.000000  0.000000
+  193  H2O       |  0.000000  0.000000  0.000000
 
-  g(  3  3) =   356080.0 * [ 1 +    -0.8755 *(T/T* - 1) +     0.0000 *LN(T/T*)] 
+ Non-randomness parameters matrix, [alpha] (row i, column j: alpha_ij)
 
+                           1         2       193
+                         CH3       CH2       H2O
+    1  CH3       |   -------    0.0000    0.0000
+    2  CH2       |    0.0000   -------    0.0000
+  193  H2O       |    0.0000    0.0000   -------
 
-  Binary parameters: [k*] 
+ Number of associating groups =  1
 
-     1.0000    1.0000    1.0000
-     1.0000    1.0000    1.0000
-     1.0000    1.0000    1.0000
+ Associating group configuration
+                                Groups per component
+   No   Name       Sites        1    2    3    4
+ --------------------------------------------------
+    1  A1           2          2    0    0    0
 
-  Temperature dependence: [k`]
+ Association energy matrix, [epsilon/R] (K)
 
-     0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000
+                                1           1
+                               A1          A1
+                                1           2
+    1  A1         1 |      0.0000
+    1  A1         2 |   2350.0000      0.0000
 
-  Binary non-randomness parameters: [ALPHA]
+ Association volume matrix, [kappa] (cm3/mol)
 
-     0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000
-
-  Number of groups in the association contribution =   1
-
-  Association parameters 
-                       Components
- Group 	  # Assoc sites  1  2  3  4
-
-     1           2       2.00 0.00 0.00 0.00
-
- Association energy parameters (K)  
-
-  ENASS( 1 1  1 1)  =     0.0000
-  ENASS( 1 1  2 1)  =  2350.0000
-  ENASS( 2 1  1 1)  =  2350.0000
-  ENASS( 2 1  2 1)  =     0.0000
-
- Association volume parameters (cm3/mol) 
-
-  RKASS( 1 1  1 1) =     0.0000000000
-  RKASS( 1 1  2 1) =     0.3787000000
-  RKASS( 2 1  1 1) =     0.3787000000
-  RKASS( 2 1  2 1) =     0.0000000000
+                                1           1
+                               A1          A1
+                                1           2
+    1  A1         1 | 0.00000E+00
+    1  A1         2 | 3.78700E-01 0.00000E+00
 
   The hard-sphere diameter at the critical point of component No.  2 was fitted to 
   reproduce the point of the vapor pressure curve 

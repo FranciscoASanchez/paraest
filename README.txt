@@ -13,7 +13,46 @@ Before using ifx, load the Intel environment:
 
 Run
 ---
-    ./paraest.x           reads paraest.dat (and FOR010-013.DAT) from the current directory
+    ./paraest.x           reads paraest.dat and the database FOR010-FOR015.DAT
+                          from the current directory
+
+Model parameters in paraest.dat (since 2026-11-23, as in the flash programs)
+-----------------------------------------------------------------------------
+The attractive and associative parameters are read by PARGR of the GCA
+package (v1.14): the groups are identified by their number in the database
+(FOR010.DAT: attractive groups; FOR014.DAT: associating groups) and the
+database values can be replaced by the user's ("own") values. The block goes
+where the old parameter block was (after the vapor-pressure data, before the
+pure-component properties); the old group-composition lines (NU, ONUASOC)
+are gone.
+
+    NownII  NownIJ                      own pure-group lines, own binary lines
+    id n  id n ...  k*0                 one line per component: (group, number)
+                                        pairs, 2*NG values in all (pad with
+                                        zeros); the ids in increasing order
+    id  Q  T*  g*  g'  g"  name         NownII lines
+    i  j  k*  k'  alpha_ij  alpha_ji    NownIJ lines
+  only if NGA > 0:
+    NownII  NownIJ                      own associating groups, own pairs
+    id n  id n ...  k*0                 one line per component, 2*NGA values
+    id  sites  name                     NownII lines
+    k  i  l  j  eps/R  kappa            NownIJ lines: site k of group i with
+                                        site l of group j (i <= j)
+
+A group that is not in the database: use the number of a group that the
+system does not use and give all its values as own values. A group listed
+with 0 groups in a component is part of the system without being in it.
+
+The fitted parameters (the lines after the data sets) refer to the groups by
+their database number, and to the association parameters by (site, group,
+site, group) with associating-group numbers. k*, k', and the association
+energy and volume are symmetric: fitting (i,j) also sets (j,i).
+
+Old files (all the parameters written out, groups numbered 1..NG) are
+converted with
+    tools/convert_input.py old.dat new.dat [directory with FOR010-FOR015]
+It finds each group in FOR010 by (Q, T*), writes as own values what differs
+from the database, and tells which groups it could not find.
 
 Options (optional file paraest.cfg in the current directory, a namelist):
     &options

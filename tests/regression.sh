@@ -5,7 +5,7 @@
 #  Each case is a directory tests/cases/<name>/ with:
 #     paraest.dat        input file
 #     reference/         expected output (paraest.out, graficos.csv, tables.csv)
-#  FOR01?.DAT and fort.3 are taken from the case if it has them, otherwise
+#  FOR010-FOR015.DAT and fort.3 are taken from the case if it has them, otherwise
 #  from the root directory. paraest.cfg (optional) is taken only from the case.
 #
 #  Each case runs in tests/tmp/<name>/ (all at once, in parallel) and its
@@ -82,7 +82,7 @@ for case in "${list[@]}"; do
     d=$TMP/$case
     rm -rf "$d" && mkdir -p "$d"
     cp "$CASES/$case/paraest.dat" "$d/"
-    for f in FOR010.DAT FOR011.DAT FOR012.DAT FOR013.DAT fort.3; do
+    for f in FOR010.DAT FOR011.DAT FOR012.DAT FOR013.DAT FOR014.DAT FOR015.DAT fort.3; do
         if [ -e "$CASES/$case/$f" ]; then cp "$CASES/$case/$f" "$d/"; else cp "$ROOT/$f" "$d/"; fi
     done
     if [ -e "$CASES/$case/paraest.cfg" ]; then cp "$CASES/$case/paraest.cfg" "$d/"; fi

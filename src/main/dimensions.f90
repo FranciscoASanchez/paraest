@@ -6,7 +6,8 @@ module dimensions
   implicit none
 
   integer, parameter :: NCM   = 50     !< components
-  integer, parameter :: NGM   = 20     !< dispersive groups
+  integer, parameter :: NGM   = 30     !< dispersive groups (as the GCA package, v1.14)
+  integer, parameter :: NGAM  = 14     !< associating groups (as the GCA package, v1.14)
   integer, parameter :: NDM   = 1520   !< experimental data points (in total)
   integer, parameter :: NSetM = 100    !< data sets
 

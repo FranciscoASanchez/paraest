@@ -206,7 +206,7 @@ subroutine pure_component_residuals(FCION, numExp)
   double precision, intent(inout) :: FCION(*)
   integer, intent(inout) :: numExp
 
-  double precision :: WDC(1), WTEMPCRIT(1), WPRCRIT(1), ONUASOCW(12,1), wZ(2)
+  double precision :: WDC(1), WTEMPCRIT(1), WPRCRIT(1), ONUASOCW(NGAM,1), wZ(2)
   integer :: NUW(NGM,1)
   double precision :: feed(NCMgca), lnPhi(NCMgca), dLnPhi(NCMgca,NCMgca), dLnPhiT(NCMgca), dLnPhiP(NCMgca)
   double precision :: wTemp, wPsat, APART, WZFASL, WZFASV, HRV, HRL, TR, Yu, DHSL
@@ -335,7 +335,7 @@ endsubroutine pure_component_residuals
 !
 subroutine load_component(i, WDC, WTEMPCRIT, WPRCRIT, NUW, ONUASOCW)
   integer, intent(in) :: i
-  double precision, intent(in) :: WDC(1), WTEMPCRIT(1), WPRCRIT(1), ONUASOCW(12,1)
+  double precision, intent(in) :: WDC(1), WTEMPCRIT(1), WPRCRIT(1), ONUASOCW(NGAM,1)
   integer, intent(in) :: NUW(NGM,1)
 
   call fakePARGR(1, NG, NGA, NST, NUW(:NG,1), QAREA(:NG), TSTR(:NG), GSTR(:NG), GDOT(:NG), GDDOT(:NG), &
@@ -353,7 +353,7 @@ subroutine load_set_components(ks, NCw)
   integer, intent(in) :: ks
   integer, intent(out) :: NCw
 
-  double precision :: WWDC(3), WWTEMPCRIT(3), WWPRCRIT(3), ONUASOCWW(12,3)
+  double precision :: WWDC(3), WWTEMPCRIT(3), WWPRCRIT(3), ONUASOCWW(NGAM,3)
   integer :: NUWW(NGM,3), k, ic
 
   ! mez is read only for some data types (0 for the others)

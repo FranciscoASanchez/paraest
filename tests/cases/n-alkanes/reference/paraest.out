@@ -22,56 +22,58 @@
  --------------------------------------------------
  --------------- INITIAL PARAMETERS ---------------
  --------------------------------------------------
-  Pure-group parameters (dispersive term)
+ Binary interaction parameters of groups   1 (CH3)  and 209 (G2) are not available in the database.
+ Standard (predictive) values will be used unless they are specified by the user.
+ Binary interaction parameters of groups   2 (CH2)  and 209 (G2) are not available in the database.
+ Standard (predictive) values will be used unless they are specified by the user.
+ Binary interaction parameters of groups 194 (CH4)  and 208 (G3) are not available in the database.
+ Standard (predictive) values will be used unless they are specified by the user.
+ Binary interaction parameters of groups 194 (CH4)  and 209 (G2) are not available in the database.
+ Standard (predictive) values will be used unless they are specified by the user.
+ Binary interaction parameters of groups 208 (G3)  and 209 (G2) are not available in the database.
+ Standard (predictive) values will be used unless they are specified by the user.
 
-                                        COMPONENTS
-  Gr.No.:   T*        Q        TSPLINE   1  2  3  4  5  6  7  8  9 10 11 12 13 14
+ Pure group attractive parameters:
+                                                                                                          Groups per component
+   No   Name        T*(K)      q       g*(atm cm6/mol2)       g'           g"          Ts(K)     exp    1    2    3    4    5    6    7    8    9   10   11   12   13   14
+ ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    1  CH3         600.00   0.8480        316910.00      -0.927400     0.000000     1085.23  6.710    0    2    2    2    2    2    2    2    2    2    2    2    2    2
+    2  CH2         600.00   0.5400        356080.00      -0.875500     0.000000     1113.99  6.502    0    0    1    2    3    4    5    6    7    8   11   14   18   34
+  194  CH4         190.60   1.1600        402440.00      -0.276200     0.022100      728.61  4.135    1    0    0    0    0    0    0    0    0    0    0    0    0    0
+  208  G3          369.83   2.2360        439804.00      -0.400000    -0.051900     1014.82  4.598    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+  209  G2          305.32   1.6960        452424.00      -0.385000    -0.008600      892.78  4.537    0    0    0    0    0    0    0    0    0    0    0    0    0    0
 
-   1       190.6000    1.1600 0.7286E+03  1  0  0  0  0  0  0  0  0  0  0  0  0  0
-   2       305.3200    1.6960 0.8928E+03  0  0  0  0  0  0  0  0  0  0  0  0  0  0
-   3       369.8300    2.2360 0.1015E+04  0  0  0  0  0  0  0  0  0  0  0  0  0  0
-   4       600.0000    0.8480 0.1085E+04  0  2  2  2  2  2  2  2  2  2  2  2  2  2
-   5       600.0000    0.5400 0.1114E+04  0  0  1  2  3  4  5  6  7  8 11 14 18 34
+ Binary interaction parameter at T* matrix, [k*]
 
-  Interaction energies gjj 
- (the functional form changes at high temperatures)
+                           1         2       194       208       209
+                         CH3       CH2       CH4        G3        G2
+    1  CH3       |  1.000000
+    2  CH2       |  1.000000  1.000000
+  194  CH4       |  0.997700  0.940400  1.000000
+  208  G3        |  1.000000  1.000000  0.993700  1.000000
+  209  G2        |  0.986800  0.986800  1.009000  0.997000  1.000000
 
-  g( 1 1) =   402440.0 * [ 1 +    -0.2762 *(T/T* - 1) +     0.0221 *LN(T/T*)] 
+ Binary interaction parameter temperature dependence matrix, [k']
 
-  g( 2 2) =   452424.0 * [ 1 +    -0.3850 *(T/T* - 1) +    -0.0086 *LN(T/T*)] 
+                           1         2       194       208       209
+                         CH3       CH2       CH4        G3        G2
+    1  CH3       |  0.000000
+    2  CH2       |  0.000000  0.000000
+  194  CH4       | -0.060700  0.055500  0.000000
+  208  G3        |  0.000000  0.000000  0.000000  0.000000
+  209  G2        |  0.000000  0.000000  0.000000  0.000000  0.000000
 
-  g( 3 3) =   439804.0 * [ 1 +    -0.4000 *(T/T* - 1) +    -0.0519 *LN(T/T*)] 
+ Non-randomness parameters matrix, [alpha] (row i, column j: alpha_ij)
 
-  g( 4 4) =   316910.0 * [ 1 +    -0.9274 *(T/T* - 1) +     0.0000 *LN(T/T*)] 
+                           1         2       194       208       209
+                         CH3       CH2       CH4        G3        G2
+    1  CH3       |   -------    0.0000    0.0000    0.0000    0.0000
+    2  CH2       |    0.0000   -------    0.0000    0.0000    0.0000
+  194  CH4       |    0.0000    0.0000   -------    0.0000    0.0000
+  208  G3        |    0.0000    0.0000    0.0000   -------    0.0000
+  209  G2        |    0.0000    0.0000    0.0000    0.0000   -------
 
-  g( 5 5) =   356080.0 * [ 1 +    -0.8755 *(T/T* - 1) +     0.0000 *LN(T/T*)] 
-
-
-  Binary parameters: [k*] 
-
-     1.0000    1.0090    0.9937    0.9977    0.9404
-     1.0090    1.0000    0.9970    0.9868    0.9868
-     0.9937    0.9970    1.0000    1.0000    1.0000
-     0.9977    0.9868    1.0000    1.0000    1.0000
-     0.9404    0.9868    1.0000    1.0000    1.0000
-
-  Temperature dependence: [k`] 
-
-     0.0000    0.0000    0.0000   -0.0607    0.0555
-     0.0000    0.0000    0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000    0.0000    0.0000
-    -0.0607    0.0000    0.0000    0.0000    0.0000
-     0.0555    0.0000    0.0000    0.0000    0.0000
-
-  Binary non-randomness parameters: [alpha] 
-
-     0.0000    0.0000    0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000    0.0000    0.0000
-
-  Number of groups in the association contribution =   0
+ Number of associating groups =  0
 
  Pure-component data
 
@@ -93,10 +95,10 @@
   768.00      11.4000   450.15   0.5461E-02       7.9068          0.00    0.000            7.8        0.00    0.000        0.000        0.000    
   874.00       6.0400   506.53   0.1291E-02      10.2171          0.00    0.000            0.0        0.00    0.000        0.000        0.000    
 
-  Parameters to estimate 
+  Parameters to estimate (groups by their database number)
 
  Parameters gii or kij 
-   4  4  5  5
+     1    1    2    2
   Temperature dependence 
    2  2
   Number of identical par. 
@@ -120,56 +122,48 @@
  --------------------------------------------------
   ---------------- FINAL PARAMETERS ----------------
  --------------------------------------------------
-  PURE-GROUP PARAMETERS (dispersive term)
 
-                                        COMPONENTS
-  Gr.No.:   T*        Q        TSPLINE   1  2  3  4  5  6  7  8  9 10 11 12 13 14
+ Pure group attractive parameters:
+                                                                                                          Groups per component
+   No   Name        T*(K)      q       g*(atm cm6/mol2)       g'           g"          Ts(K)     exp    1    2    3    4    5    6    7    8    9   10   11   12   13   14
+ ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    1  CH3         600.00   0.8480        416711.72      -0.134600    -0.098000     3210.53  3.273    0    2    2    2    2    2    2    2    2    2    2    2    2    2
+    2  CH2         600.00   0.5400        316557.32      -0.331900    -0.605200     1198.68  5.073    0    0    1    2    3    4    5    6    7    8   11   14   18   34
+  194  CH4         190.60   1.1600        402440.00      -0.276200     0.022100      728.61  4.135    1    0    0    0    0    0    0    0    0    0    0    0    0    0
+  208  G3          369.83   2.2360        439804.00      -0.400000    -0.051900     1014.82  4.598    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+  209  G2          305.32   1.6960        452424.00      -0.385000    -0.008600      892.78  4.537    0    0    0    0    0    0    0    0    0    0    0    0    0    0
 
-   1       190.6000    1.1600 0.7286E+03  1  0  0  0  0  0  0  0  0  0  0  0  0  0
-   2       305.3200    1.6960 0.8928E+03  0  0  0  0  0  0  0  0  0  0  0  0  0  0
-   3       369.8300    2.2360 0.1015E+04  0  0  0  0  0  0  0  0  0  0  0  0  0  0
-   4       600.0000    0.8480 0.1085E+04  0  2  2  2  2  2  2  2  2  2  2  2  2  2
-   5       600.0000    0.5400 0.1114E+04  0  0  1  2  3  4  5  6  7  8 11 14 18 34
+ Binary interaction parameter at T* matrix, [k*]
 
-  Interaction energies gjj 
- (the functional form changes at high temperatures)
+                           1         2       194       208       209
+                         CH3       CH2       CH4        G3        G2
+    1  CH3       |  1.000000
+    2  CH2       |  1.000000  1.000000
+  194  CH4       |  0.997700  0.940400  1.000000
+  208  G3        |  1.000000  1.000000  0.993700  1.000000
+  209  G2        |  0.986800  0.986800  1.009000  0.997000  1.000000
 
-  g(  1  1) =   402440.0 * [ 1 +    -0.2762 *(T/T* - 1) +     0.0221 *LN(T/T*)] 
+ Binary interaction parameter temperature dependence matrix, [k']
 
-  g(  2  2) =   452424.0 * [ 1 +    -0.3850 *(T/T* - 1) +    -0.0086 *LN(T/T*)] 
+                           1         2       194       208       209
+                         CH3       CH2       CH4        G3        G2
+    1  CH3       |  0.000000
+    2  CH2       |  0.000000  0.000000
+  194  CH4       | -0.060700  0.055500  0.000000
+  208  G3        |  0.000000  0.000000  0.000000  0.000000
+  209  G2        |  0.000000  0.000000  0.000000  0.000000  0.000000
 
-  g(  3  3) =   439804.0 * [ 1 +    -0.4000 *(T/T* - 1) +    -0.0519 *LN(T/T*)] 
+ Non-randomness parameters matrix, [alpha] (row i, column j: alpha_ij)
 
-  g(  4  4) =   416711.7 * [ 1 +    -0.1346 *(T/T* - 1) +    -0.0980 *LN(T/T*)] 
+                           1         2       194       208       209
+                         CH3       CH2       CH4        G3        G2
+    1  CH3       |   -------    0.0000    0.0000    0.0000    0.0000
+    2  CH2       |    0.0000   -------    0.0000    0.0000    0.0000
+  194  CH4       |    0.0000    0.0000   -------    0.0000    0.0000
+  208  G3        |    0.0000    0.0000    0.0000   -------    0.0000
+  209  G2        |    0.0000    0.0000    0.0000    0.0000   -------
 
-  g(  5  5) =   316557.3 * [ 1 +    -0.3319 *(T/T* - 1) +    -0.6052 *LN(T/T*)] 
-
-
-  Binary parameters: [k*] 
-
-     1.0000    1.0090    0.9937    0.9977    0.9404
-     1.0090    1.0000    0.9970    0.9868    0.9868
-     0.9937    0.9970    1.0000    1.0000    1.0000
-     0.9977    0.9868    1.0000    1.0000    1.0000
-     0.9404    0.9868    1.0000    1.0000    1.0000
-
-  Temperature dependence: [k`]
-
-     0.0000    0.0000    0.0000   -0.0607    0.0555
-     0.0000    0.0000    0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000    0.0000    0.0000
-    -0.0607    0.0000    0.0000    0.0000    0.0000
-     0.0555    0.0000    0.0000    0.0000    0.0000
-
-  Binary non-randomness parameters: [ALPHA]
-
-     0.0000    0.0000    0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000    0.0000    0.0000
-     0.0000    0.0000    0.0000    0.0000    0.0000
-
-  Number of groups in the association contribution =   0
+ Number of associating groups =  0
 
   The hard-sphere diameter at the critical point of component No.  6 was fitted to 
   reproduce the point of the vapor pressure curve 

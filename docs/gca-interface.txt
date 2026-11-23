@@ -10,6 +10,13 @@ src/equilibrium/), so the new package can be checked against it.
 1. Loading the parameters (today: src/models/gca_bridge.f90)
 ------------------------------------------------------------
 
+  Since 2026-11-23 the input is read by PARGR of the package itself (v1.14:
+  database FOR010-FOR015 plus the user's values); load_from_pargr copies
+  the result to paraest's arrays. PARGR was given an exit (module
+  pargr_export) for what is not in a COMMON: database numbers of the
+  groups, sites per associating group, associating groups per component,
+  energy and volume with 4 indices. GCA 2.0 should provide these.
+
 paraest keeps its own copy of the model parameters (module gca_parameters)
 and changes them at every evaluation of the objective function. The package
 must accept them from memory, not only from its input files.

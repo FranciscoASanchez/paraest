@@ -24,6 +24,7 @@ MAIN         = src/main/dimensions.f90                   \
                src/main/statistics.f90                   \
                src/main/scaling.f90                      \
                src/main/utilities.f90                    \
+               src/main/model_output.f90                 \
                src/main/residuals.f90                    \
                src/main/paraest.f90
 
@@ -101,7 +102,7 @@ $(OBJDIR) $(DBGDIR):
 
 # Module dependencies: when a module changes, whatever uses it is rebuilt
 # (and make builds the module first).
-MODULES = dimensions config fit_data gca_parameters statistics scaling utilities residuals pso
+MODULES = dimensions config fit_data gca_parameters statistics scaling utilities residuals pso model_output gca_bridge
 dep = $(addprefix $(1)/,$(addsuffix .o,$(2)))
 $(OBJDIR)/paraest.o: $(call dep,$(OBJDIR),$(MODULES))
 $(DBGDIR)/paraest.o: $(call dep,$(DBGDIR),$(MODULES))

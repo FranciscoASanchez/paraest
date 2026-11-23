@@ -1,0 +1,47 @@
+2	H2O	1	water
+2	C1OH	2	methanol
+2	-OH_1º	3	prim. alcohol
+2	-OH_2º	4	sec. alcohol
+2	-OH_3°	5	tert. alcohol
+1	-COOH	6	acid
+1	-O-	7	ether
+1	-CHO	8	aldehyde
+1	>CO	9	ketone
+1	-COO-	10	ester
+1	>O2CO	11	carbonate
+1	cO	12	cycloether
+1	caO	13	cycloacetal
+1	caCHx	14	cycloacetal
+2	AOH	15	phenol
+2	o-AOH	16	o-phenol
+1	AO-	17	aromatic ether
+1	AOA	18	furan
+1	CO2	19	carbon dioxide
+1	C=C	20	alkene
+1	ARing	21	aromatic ring
+1	H3N	22	ammonia
+1	-NH2	23	prim. amine
+1	-NH-	24	sec. amine
+1	-N<	25	tert. amine
+1	-CN	26	nitrile
+1	ANH2	27	aniline
+1	ANA	28	piridine
+1	-NN-	29	azo
+2	-CONH2	30	amide
+1	-CON<	31	tert. amide
+1	CONRCO	32	imide
+1	H2S	33	hydrogen sulfide
+1	-SH	34	tiol
+1	-S-	35	sulfide
+1	-COSH	36	thioic acid
+1	-COS-	37	thiolacetate
+1	>SO	38	sulfoxyde
+1	>SO2	39	Solfolane
+1	-SO3H	40	sulfonic acid
+1	-SO3-	41	sulfoonate
+1	cS	42	cyclic sulfide
+1	ASA	43	thiofene
+1	CSO	44	carbonyl sulfide
+2	HF	45	hydrogen fluoride
+1	CHF3	46	fluoroform
+1	CHCl3	47	cloroform

@@ -193,7 +193,8 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
   use gca_parameters, only: NG, NU, QAREA, TSTR, GSTR, GDOT, GDDOT, RKIJ, RKTIJ, ALFAIJ, NGA, ONUASOC, MASSOC, &
 &                      ENASS, RKASS, NNP, NNQ, NALFA, NENASS, NRKASS, TSAT, PSAT, dc, IDG, ITEMP, NIDG, IDIDG, &
 &                      iDQ, IDALF, NIDALF, IDIDALF, IDENASS, NIDENASS, IDIDENASS, IDRKASS, NIDRKASS, &
-&                      IDIDRKASS, NUMDC, IDDC, numTc, idTc
+&                      IDIDRKASS, NUMDC, IDDC, numTc, idTc, local_group, local_assoc
+  use gca_bridge, only: load_from_pargr
   use scaling, only: dc_mean, error_Dc
   use utilities, only: i2s, rep, check_limit
 !
@@ -271,111 +272,15 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
 
   endif
   write(*,'(//)')
-  ! Area and reference temperature of each dispersive group
-  DO I=1,NG
-
-    READ(1,*) QAREA(I), TSTR(I)
-    write(*,'(F6.3,F7.2)')qArea(i),Tstr(i)
-
-  END DO
-  ! Segment energy of each group
-  READ(1,*) (GSTR(I), I=1,NG)
-  write(*,'(/,'//rep(NG,"F8.0,2X")//'"   !g*")')(GSTR(I), I=1,NG)
-!
-  READ(1,*) (GDOT(I), I=1,NG)
-  write(*,'('//rep(NG,"F7.4,2X")//'"   !g`")')(GDOT(I), I=1,NG)
-!
-  READ(1,*) (GDDOT(I), I=1,NG)
-  write(*,'('//rep(NG,"F7.4,2X")//'"   !g``",//)')(GDdOT(I), I=1,NG)
-!
-  ! Binary interaction parameters: k*
-  DO I=1,NG
-
-    READ(1,*) (RKIJ(I,J), J=1,NG)
-    if(i.EQ.1)then
-
-      write(*,'(/,'//rep(NG,"F6.4,2X")//'"  !k*")')(RKIJ(I,J), J=1,NG)
-
-    else
-
-      write(*,'(*(F6.4,2X))')(RKIJ(I,J), J=1,NG)
-
-    endif
-
-
-  END DO
-  ! k': temperature dependence of k*
-  DO I=1,NG
-
-    READ(1,*) (RKTIJ(I,J), J=1,NG)
-    if(i.EQ.1)then
-
-      write(*,'(/,'//rep(NG,"F6.4,2X")//'"  !k`")')(RKTIJ(I,J), J=1,NG)
-
-    else
-
-      write(*,'(*(F6.4,2X))')(RKTIJ(I,J), J=1,NG)
-
-    endif
-
-  END DO
-  ! alpha: non-randomness parameters
-  DO I=1,NG
-
-    READ(1,*) (ALFAIJ(I,J), J=1,NG)
-    if(i.EQ.1)then
-
-      write(*,'(/,'//rep(NG,"F8.4,2X")//'"  !alfa")')(alfaIJ(I,J), J=1,NG)
-
-    else
-
-      write(*,'(*(F8.4,2X))')(alfaIJ(I,J), J=1,NG)
-
-    endif
-
-  END DO
-!
-  IF(NGA.GT.0)THEN
-!
-    ! Association contribution
-    ! Number of association sites of each group:
-    READ(1,*) (MASSOC(I),I=1,NGA)
-    write(*,'(//,'//rep(NGA,"I2,2X")//'5X,"! Association sites per group",/)') (MASSOC(I),I=1,NGA)
-
-    ! Association energy and volume, on the same line
-    NST = 0
-    EnAss(:6,:12,:6,:12) = 0D0
-    rKAss(:6,:12,:6,:12) = 0D0
-    do i = 1,NGA
-      do j = i,NGA
-        do k = 1,Massoc(i)
-          do l = k,Massoc(j)
-!
-            NST = NST + 1
-            read(1,*)EnAss(k,i,l,j),rKAss(k,i,l,j)
-        if(NST.EQ.1)then
-
-              write(*,'(F6.1,4X,F8.5,4X,"! ",2I2,3X,2I2,4X,"Association energy and volume")')EnAss(k,i,l,j),rKAss(k,i,l,j)
-
-            else
-
-              write(*,'(F6.1,4X,F8.5,4X,"! ",2I2,3X,2I2,4X)')EnAss(k,i,l,j),rKAss(k,i,l,j)
-
-            endif
-            ! Symmetries
-            EnAss(l,i,k,j) = EnAss(k,i,l,j)
-            EnAss(l,j,k,i) = EnAss(k,i,l,j)
-            EnAss(k,j,l,i) = EnAss(k,i,l,j)
-            rKAss(l,i,k,j) = rKAss(k,i,l,j)
-            rKAss(l,j,k,i) = rKAss(k,i,l,j)
-            rKAss(k,j,l,i) = rKAss(k,i,l,j)
-!
-          enddo
-        enddo
-        write(*,'(/)')
-      enddo
-    enddo
-  endif
+  ! Attractive and associative parameters: read by PARGR of the GCA package
+  ! (v1.14), as in the flash programs: group composition of each component
+  ! as pairs (database number, number of groups), parameters from the
+  ! database FOR010-FOR015 plus those given by the user. What PARGR writes
+  ! goes to a scratch file (unit 31): write_output_header copies its
+  ! warnings to paraest.out.
+  open(unit=31, status='scratch', form='formatted')
+  call PARGR(NC, NG, NGA, NST, 1, 31)
+  call load_from_pargr(NC)
 !-----------------------------------------------------------------------
 !
   write(*,'(//)')
@@ -388,45 +293,7 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
   END DO
   write(*,'(//)')
 !
-  ! Group composition, dispersive contribution:
-  DO I=1,NG
-!
-    ! NU(I,J) = number of groups of type i in component j.
-    READ(1,*) (NU(I,J), J=1,NC)
-    if(i.EQ.1)then
-
-      write(*,'(//,'//rep(NC,"I2,4X")//'"!  Disp. group No.",I2,"   Dispersive group composition")')(NU(I,J), J=1,NC),I
-
-    else
-
-      write(*,'('//rep(NC,"I2,4X")//'"!  Disp. group No.",I2)')(NU(I,J), J=1,NC),I
-
-    endif
-!
-  END DO
-!
-!
-  IF(NGA.GT.0) THEN
-!
-    ! Group composition, association contribution:
-    DO I=1,NGA
-!
-      ! ONUASOC(I,J) = number of associating groups of type i in component j.
-      READ(1,*) (ONUASOC(I,J), J=1,NC)
-      if(i.EQ.1)then
-
-        write(*,'(/,'//rep(NC,"F2.0,4X")//'"!  Assoc. group No.",I2,"   Associating group composition")')(oNUAsoc(I,J), J=1,NC),I
-
-      else
-
-        write(*,'('//rep(NC,"F2.0,4X")//'"!  Assoc. group No.",I2)')(oNUAsoc(I,J), J=1,NC),I
-
-      endif
-
-    END DO
-
-  END IF
-!
+  ! (The group composition of each component was read by PARGR.)
 !
   ! Data sets (binary or ternary equilibrium, excess properties, ...)
   DO I=1,IGLE
@@ -709,6 +576,45 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
 
   endif
 !
+  ! The fitted parameters refer to the groups by their database number:
+  ! from here on, their position in the system (1..NG, 1..NGA).
+  do I = 1, NNP
+    IDG(I,1) = local_group(IDG(I,1), 'g/k')
+    IDG(I,2) = local_group(IDG(I,2), 'g/k')
+  enddo
+  do I = 1, sum(NIDG(:NNP))
+    IDIDG(I,1) = local_group(IDIDG(I,1), 'identical g/k')
+    IDIDG(I,2) = local_group(IDIDG(I,2), 'identical g/k')
+  enddo
+  do I = 1, NNQ
+    IDQ(I) = local_group(IDQ(I), 'area')
+  enddo
+  do I = 1, NALFA
+    IDALF(I,1) = local_group(IDALF(I,1), 'alpha')
+    IDALF(I,2) = local_group(IDALF(I,2), 'alpha')
+  enddo
+  do I = 1, sum(NIDALF(:NALFA))
+    IDIDALF(I,1) = local_group(IDIDALF(I,1), 'identical alpha')
+    IDIDALF(I,2) = local_group(IDIDALF(I,2), 'identical alpha')
+  enddo
+  ! Association: (site, group, site, group)
+  do I = 1, NENASS
+    IDENASS(I,2) = local_assoc(IDENASS(I,2), 'association energy')
+    IDENASS(I,4) = local_assoc(IDENASS(I,4), 'association energy')
+  enddo
+  do I = 1, sum(NIDENASS(:NENASS))
+    IDIDENASS(I,2) = local_assoc(IDIDENASS(I,2), 'identical association energy')
+    IDIDENASS(I,4) = local_assoc(IDIDENASS(I,4), 'identical association energy')
+  enddo
+  do I = 1, NRKASS
+    IDRKASS(I,2) = local_assoc(IDRKASS(I,2), 'association volume')
+    IDRKASS(I,4) = local_assoc(IDRKASS(I,4), 'association volume')
+  enddo
+  do I = 1, sum(NIDRKASS(:NRKASS))
+    IDIDRKASS(I,2) = local_assoc(IDIDRKASS(I,2), 'identical association volume')
+    IDIDRKASS(I,4) = local_assoc(IDIDRKASS(I,4), 'identical association volume')
+  enddo
+!
   ! Number of parameters
   NPAR = NNP+NNQ+NALFA+NENASS+NRKASS+numTc+NUMDC
   IF(NNP.NE.0) THEN
@@ -747,8 +653,9 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
   use gca_parameters, only: NG, NU, QAREA, TSTR, GSTR, GDOT, GDDOT, RKIJ, RKTIJ, ALFAIJ, NGA, ONUASOC, MASSOC, &
 &                      ENASS, RKASS, NNP, NNQ, NALFA, NENASS, NRKASS, TSAT, PSAT, IDG, ITEMP, NIDG, IDIDG, &
 &                      IDQ, IDALF, NIDALF, IDIDALF, IDENASS, NIDENASS, IDIDENASS, IDRKASS, NIDRKASS, &
-&                      IDIDRKASS, DC, NUMDC, IDDC, TSPLINE, numtc, idtc
+&                      IDIDRKASS, DC, NUMDC, IDDC, TSPLINE, numtc, idtc, groupID, assocID
   use fit_data, only: DHfu, Tfu, DCpfu, DVfu, TtrSS, DHss, Pfu
+  use model_output, only: write_model_params
   use utilities, only: i2s, rep
 !
   implicit none
@@ -784,115 +691,10 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 !
   WRITE(1,'(/,X,"--------------------------------------------------",/,&
 &            X,"--------------- INITIAL PARAMETERS ---------------",/,  &
-&            X,"--------------------------------------------------",/,  &
-&            X," Pure-group parameters (dispersive term)",/)')
-
-  WRITE(1,"(40X,'COMPONENTS',/,X,' Gr.No.:   T*        Q        TSPLINE ',"//rep(NC,'I3')//"/)") (I, I=1,NC)
+&            X,"--------------------------------------------------")')
+  call copy_pargr_warnings()
+  call write_model_params(1, NC)
 !
-  DO I=1,NG
-
-    WRITE(1,4) I,TSTR(I),QAREA(I),TSPLINE(I),(NU(I,J), J=1,NC)
-4    FORMAT(X,I3,5X,2F10.4,X,E10.4,*(I3))
-
-  END DO
-  ! NU(I,J) = number of groups of type i in component j
-  WRITE(1,5)
- 5  FORMAT(/,X,' Interaction energies gjj ',/,X,'(the functional form changes at high temperatures)',/)
-!
-  DO I=1,NG
-!
-    WRITE(1,6) I,I,GSTR(I), GDOT(I), GDDOT(I)
-6    FORMAT(X,' g(',I2,I2,') = ',F10.1,' * [ 1 + ',F10.4,' *(T/T* - 1) + ',F10.4, ' *LN(T/T*)] ',/)
-
-  END DO
-  WRITE(1,7)
- 7  FORMAT(/,X,' Binary parameters: [k*] ',/)
-  DO I=1,NG
-
-    WRITE(1,8) (RKIJ(I,J), J=1,NG)
-8    FORMAT(X,*(F10.4))
-  END DO
-!
-  WRITE(1,9)
- 9  FORMAT(/,X,' Temperature dependence: [k`] ',/)
-  DO I=1,NG
-
-    WRITE(1,8) (RKTIJ(I,J), J=1,NG)
-
-  END DO
-  WRITE(1,10)
- 10  FORMAT(/,X,' Binary non-randomness parameters: [alpha] ',/)
-  DO I=1,NG
-
-    WRITE(1,8) (ALFAIJ(I,J), J=1,NG)
-
-  END DO
-!
-  WRITE(1,186) NGA
- 186  FORMAT(/,X,' Number of groups in the association contribution = ',I3)
-!
-  IF(NGA.GT.0) THEN
-
-    WRITE(1,"(/,X,' Association parameters ',/,23X,'Components',/,' Group 	  # Assoc sites',"//rep(NC,'I5')//"/)") (I, I=1,NC)
-    DO I=1,NGA
-
-      WRITE(1,12) I, MASSOC(I), (ONUASOC(I,J), J=1,NC)
-12      FORMAT(3X,I3,9X,I3,6X,*(F5.2))
-
-    END DO
-    WRITE(1,13)
-13    FORMAT(/,X,'Association energy parameters (K)  ',/)
-!
-    DO J=1,NGA
-
-      IF(MASSOC(J).NE.0)then
-        DO L=1,NGA
-
-              IF(MASSOC(L).NE.0)then
-              DO I=1,MASSOC(J)
-
-                DO K=1,MASSOC(L)
-
-                  WRITE(1,14) I,J,K,L,ENASS(I,J,K,L)
-14                  FORMAT(X,' ENASS(',I2,I2,X,I2,I2,')  = ',F10.4)
-
-                END DO
-
-              END DO
-            endif
-
-        END DO
-      endif
-
-    END DO
-!
-    ! Association volume parameters (cm3/mol)
-    WRITE(1,15)
-15    FORMAT(/,X,'Association volume parameters (cm3/mol) ',/)
-    DO J=1,NGA
-
-      IF(MASSOC(J).NE.0)then
-        DO L=1,NGA
-
-          IF(MASSOC(L).NE.0)then
-            DO I=1,MASSOC(J)
-
-              DO K=1,MASSOC(L)
-
-                WRITE(1,16) I,J,K,L,RKASS(I,J,K,L)
-16                FORMAT(X,' RKASS(',I2,I2,X,I2,I2,') = ',F16.10)
-
-              END DO
-
-            END DO
-          endif
-
-        END DO
-      endif
-
-    END DO
-
-  END IF
   WRITE(1,18)
 18  FORMAT(/,X,'Pure-component data')
   WRITE(1,19)
@@ -907,15 +709,15 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
   END DO
 !
   WRITE(1,201)
-201  FORMAT(/,X,' Parameters to estimate ',/)
+201  FORMAT(/,X,' Parameters to estimate (groups by their database number)',/)
 !
   if(NNP.NE.0) then
 !
     WRITE(1,202)
 202    FORMAT(' Parameters gii or kij ')
 !
-    WRITE(1,203) (IDG(I,1),IDG(I,2),I=1,NNP)
-203    FORMAT(X,*(I3))
+    WRITE(1,203) (groupID(IDG(I,1)),groupID(IDG(I,2)),I=1,NNP)
+203    FORMAT(X,*(I5))
 !
     WRITE(1,204) (ITEMP(I), I=1,NNP)
 204    FORMAT(X,' Temperature dependence ',/,X,*(I3))
@@ -932,8 +734,8 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
       if(NIDG(L).ne.0) then
 !
-        WRITE(1,210) (IDIDG(J,1), IDIDG(J,2),J=(1+NSSS),(NIDG(L)+NSSS))
-210        FORMAT(X,*(I3))
+        WRITE(1,210) (groupID(IDIDG(J,1)), groupID(IDIDG(J,2)),J=(1+NSSS),(NIDG(L)+NSSS))
+210        FORMAT(X,*(I5))
         NSSS = NSSS + NIDG(L)
 !
       end if
@@ -942,13 +744,13 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
   end if
 !
-  if(NNQ.NE.0) WRITE(1,211) (IDQ(I), I=1,NNQ)
-211  FORMAT(/,X,' Area parameters  ',/,X,*(I3))
+  if(NNQ.NE.0) WRITE(1,211) (groupID(IDQ(I)), I=1,NNQ)
+211  FORMAT(/,X,' Area parameters  ',/,X,*(I5))
 !
   if(NALFA.ne.0) then
 
-    WRITE(1,213) (IDALF(I,1),IDALF(I,2),I=1,NALFA)
-213    FORMAT(/,X,' Non-randomness parameters ',/,X,*(I3))
+    WRITE(1,213) (groupID(IDALF(I,1)),groupID(IDALF(I,2)),I=1,NALFA)
+213    FORMAT(/,X,' Non-randomness parameters ',/,X,*(I5))
 !
     WRITE(1,215) (NIDALF(I),I=1,NALFA)
 215    FORMAT(X,' Number of identical par. ',/,X,*(I3))
@@ -958,8 +760,8 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
           if(NIDALF(L).ne.0) then
 
-        WRITE(1,217) (IDIDALF(J,1),IDIDALF(J,2),J=(1+NSSA),(NIDALF(L)+NSSA))
-217        FORMAT(X,' Identical : ',*(I3))
+        WRITE(1,217) (groupID(IDIDALF(J,1)),groupID(IDIDALF(J,2)),J=(1+NSSA),(NIDALF(L)+NSSA))
+217        FORMAT(X,' Identical : ',*(I5))
         NSSA = NSSA + NIDALF(L)
 
       end if
@@ -975,7 +777,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 !
     DO I=1,NENASS
 
-      WRITE(1,221) IDENASS(I,1),IDENASS(I,2),IDENASS(I,3),IDENASS(I,4)
+      WRITE(1,221) IDENASS(I,1),assocID(IDENASS(I,2)),IDENASS(I,3),assocID(IDENASS(I,4))
 221      FORMAT(X,4I3)
 
     END DO
@@ -988,7 +790,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
         DO J=(1+NSSE),(NIDENASS(L)+NSSE)
 
-          WRITE(1,225) IDIDENASS(J,1), IDIDENASS(J,2),IDIDENASS(J,3), IDIDENASS(J,4)
+          WRITE(1,225) IDIDENASS(J,1), assocID(IDIDENASS(J,2)),IDIDENASS(J,3), assocID(IDIDENASS(J,4))
 225          FORMAT(' Identical: ',4I5)
 
         END DO
@@ -1007,7 +809,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
     DO I=1,NRKASS
 
-      WRITE(1,229) IDRKASS(I,1),IDRKASS(I,2),IDRKASS(I,3),IDRKASS(I,4)
+      WRITE(1,229) IDRKASS(I,1),assocID(IDRKASS(I,2)),IDRKASS(I,3),assocID(IDRKASS(I,4))
 229      FORMAT(X,4I3)
 
     END DO
@@ -1020,7 +822,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
         DO J=(1+NSSRK),(NIDRKASS(L)+NSSRK)
 
-          WRITE(1,232) IDIDRKASS(J,1), IDIDRKASS(J,2),IDIDRKASS(J,3), IDIDRKASS(J,4)
+          WRITE(1,232) IDIDRKASS(J,1), assocID(IDIDRKASS(J,2)),IDIDRKASS(J,3), assocID(IDIDRKASS(J,4))
 232          FORMAT(X,' Identical: ',4I3)
 
         END DO
@@ -1049,6 +851,29 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 !
   CLOSE(UNIT=1)
 !
+contains
+
+  ! Copies to paraest.out the warnings that PARGR wrote to its scratch file
+  ! (unit 31): binary parameters not found in the database.
+  subroutine copy_pargr_warnings()
+    character(400) :: line
+    integer :: ios
+    logical :: isOpen
+    inquire(unit=31, opened=isOpen)
+    if (.not. isOpen) return
+    rewind(31)
+    do
+      read(31,'(A)',iostat=ios) line
+      if (ios /= 0) exit
+      if (index(line, 'not available in the database') > 0) then
+        write(1,'(A)') trim(line)
+        read(31,'(A)',iostat=ios) line
+        if (ios == 0) write(1,'(A)') trim(line)
+      endif
+    enddo
+    close(31)
+  endsubroutine copy_pargr_warnings
+
 ENDsubroutine write_output_header
 !
 !------------------------------------------------------------------------------------------------------------------------------------
@@ -1230,6 +1055,7 @@ SUBROUTINE write_results(NTEXT)
 &                      rgamexp1, rgamexp2, rgamexp3, zLicalc, prop_E_calc, prop_E_exp, DHVL
   use gca_parameters, only: NG, NU, QAREA, TSTR, GSTR, GDOT, GDDOT, RKIJ, RKTIJ, ALFAIJ, NGA, ONUASOC, MASSOC, &
 &                      ENASS, RKASS, TSAT, PSAT, DC, numTc, idTc, NUMDC, IDDC, TSPLINE
+  use model_output, only: write_model_params
   use utilities, only: i2s, rep
   use statistics, only: AAD, ARD, ASD, RSD
 !
@@ -1250,128 +1076,8 @@ SUBROUTINE write_results(NTEXT)
   WRITE(1,47)
  47  FORMAT(/,X,'--------------------------------------------------',/, &
 &           X,' ---------------- FINAL PARAMETERS ----------------',/,   &
-&           X,'--------------------------------------------------',/,   &
-&          X,' PURE-GROUP PARAMETERS (dispersive term)',/)
-!
-  WRITE(1,"(40X,'COMPONENTS',/,X,' Gr.No.:   T*        Q        TSPLINE ',"//rep(NC,'I3')//"/)") (I, I=1,NC)
-!
-  DO I=1,NG
-
-    WRITE(1,4) I,TSTR(I),QAREA(I),TSPLINE(I), (NU(I,J), J=1,NC)
-4    FORMAT(X,I3,5X,2F10.4,X,E10.4,*(I3))
-
-  END DO
-!
-  WRITE(1,5)
-5  FORMAT(/,X,' Interaction energies gjj ',/,X,'(the functional form changes at high temperatures)',/)
-!
-  DO I=1,NG
-!
-    WRITE(1,6) I,I,GSTR(I), GDOT(I), GDDOT(I)
-6    FORMAT(X,' g(',I3,I3,') = ',F10.1,' * [ 1 + ',F10.4,' *(T/T* - 1) + ',F10.4, ' *LN(T/T*)] ',/)
-
-  END DO
-
-  WRITE(1,7)
- 7  FORMAT(/,X,' Binary parameters: [k*] ',/)
-
-  DO I=1,NG
-
-    WRITE(1,8) (RKIJ(I,J), J=1,NG)
-8    FORMAT(X,*(F10.4))
-
-  END DO
-!
-  WRITE(1,9)
-9  FORMAT(/,X,' Temperature dependence: [k`]',/)
-  DO I=1,NG
-
-    WRITE(1,8) (RKTIJ(I,J), J=1,NG)
-
-  END DO
-!
-  WRITE(1,10)
- 10  FORMAT(/,X,' Binary non-randomness parameters: [ALPHA]',/)
-  DO I=1,NG
-
-    WRITE(1,8) (ALFAIJ(I,J), J=1,NG)
-
-  END DO
-  WRITE(1,186) NGA
- 186  FORMAT(/,X,' Number of groups in the association contribution = ',I3)
-!
-  IF(NGA.GT.0) THEN
-
-    WRITE(1,"(/,X,' Association parameters ',/,23X,'Components',/,' Group 	  # Assoc sites',"//rep(NC,'I3')//"/)") (I, I=1,NC)
-
-    DO I=1,NGA
-
-      WRITE(1,12) I, MASSOC(I), (ONUASOC(I,J), J=1,NC)
-12      FORMAT(3X,I3,9X,I3,6X,*(f5.2))
-
-    END DO
-    WRITE(1,13)
-13     FORMAT(/,X,'Association energy parameters (K)  ',/)
-!
-    ! Association energies
-    DO J=1,NGA
-
-      IF(MASSOC(J).NE.0)then
-
-        DO L=1,NGA
-
-              IF(MASSOC(L).NE.0)then
-
-            DO I=1,MASSOC(J)
-
-              DO K=1,MASSOC(L)
-
-                WRITE(1,14) I,J,K,L,ENASS(I,J,K,L)
-14                FORMAT(X,' ENASS(',I2,I2,X,I2,I2,')  = ',F10.4)
-
-              END DO
-
-            END DO
-
-          endif
-
-        END DO
-
-      endif
-
-    END DO
-!
-    ! Association volume parameters (cm3/mol)
-    WRITE(1,15)
-15    FORMAT(/,X,'Association volume parameters (cm3/mol) ',/)
-    DO J=1,NGA
-
-      IF(MASSOC(J).NE.0)then
-
-        DO L=1,NGA
-
-          IF(MASSOC(L).NE.0)then
-
-            DO I=1,MASSOC(J)
-
-              DO K=1,MASSOC(L)
-
-                WRITE(1,16) I,J,K,L,RKASS(I,J,K,L)
-16                FORMAT(X,' RKASS(',I2,I2,X,I2,I2,') = ',F16.10)
-
-              END DO
-
-            END DO
-
-          endif
-
-        END DO
-
-      endif
-
-    END DO
-
-  endif
+&           X,'--------------------------------------------------')
+  call write_model_params(1, NC)
 !
 !
   ! Result of the dc fit

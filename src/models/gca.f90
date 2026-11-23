@@ -9,6 +9,19 @@
 !	    not present in the mixture).
 !	  - gfortran: run-time formats instead of <n> (Intel extension);
 !	    len_trim instead of the external function strlen.
+!	  - PARGR leaves in module pargr_export what paraest needs and is not in
+!	    a COMMON: database numbers of the groups, sites per associating
+!	    group, associating groups per component, energy and volume with 4
+!	    indices.
+!
+module pargr_export
+	implicit none
+	integer, parameter :: px_NCM = 30, px_NGM = 30, px_NGAM = 14, px_NSITE = 6
+	integer :: px_groupID(px_NGM) = 0, px_assocID(px_NGAM) = 0, px_sites(px_NGAM) = 0
+	integer :: px_nyAss(px_NCM,px_NGAM) = 0
+	double precision :: px_enAs(px_NSITE,px_NGAM,px_NSITE,px_NGAM) = 0
+	double precision :: px_volAs(px_NSITE,px_NGAM,px_NSITE,px_NGAM) = 0
+endmodule pargr_export
 !
 subroutine GCA_version (versGCA, thermo_name)
 
@@ -1200,6 +1213,7 @@ ENDsubroutine
 !
 !
 SUBROUTINE PARGR (NC, NG, NGA, NST, inputFile, outputFile)
+	use pargr_export
 !
 	IMPLICIT REAL*8(A-H,O-Z)
 	parameter (NCM = 30, NGM = 30, NGAM = 14, NSM = 24)
@@ -1536,6 +1550,10 @@ SUBROUTINE PARGR (NC, NG, NGA, NST, inputFile, outputFile)
 	endif
 !-----------------------------------------------------------------------
 !
+!	For paraest: database numbers of the attractive groups (IGROUP is
+!	reused below for the associating ones)
+	px_groupID = 0
+	px_groupID(:NG) = IGROUP(:NG)
 	NST = 0
 	if (NGA > 0) then
 	  
@@ -1699,6 +1717,21 @@ SUBROUTINE PARGR (NC, NG, NGA, NST, inputFile, outputFile)
 	    
 	  enddo
 
+!	For paraest: associating groups, their sites and parameters
+	  px_assocID = 0; px_sites = 0; px_nyAss = 0; px_enAs = 0; px_volAs = 0
+	  px_assocID(:NGA) = iGroup(:NGA)
+	  px_sites(:NGA) = MAssoc(:NGA)
+	  px_nyAss(:NC,:NGA) = nyAss(:NC,:NGA)
+	  do i = 1, NGA
+	    do j = 1, NGA
+	      do k = 1, min(MAssoc(i), px_NSITE)
+	        do l = 1, min(MAssoc(j), px_NSITE)
+	          px_enAs(k,i,l,j) = enAs(k,i,l,j)
+	          px_volAs(k,i,l,j) = volAs(k,i,l,j)
+	        enddo
+	      enddo
+	    enddo
+	  enddo
 !  Conversion de variables a notacion por sitio "m" (y no, por sitio
 !  "k" en el grupo "i")
 	  m1 = 0

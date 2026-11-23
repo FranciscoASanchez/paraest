@@ -15,7 +15,7 @@
 module gca_bridge
   implicit none
   private
-  public :: fakePARGR, fakePARMOL, negative_cohesion
+  public :: fakePARGR, fakePARMOL, negative_cohesion, load_from_pargr
 
 contains
 
@@ -265,5 +265,73 @@ logical function negative_cohesion(T, NC, NG)
     endif
   enddo
 endfunction negative_cohesion
+
+!---------------------------------------------------------------------------------------------------------
+!
+!  After PARGR of the GCA package has read the attractive and associative
+!  input (database FOR010-FOR015 plus the user's values), copies what it
+!  left in its COMMON blocks and in module pargr_export to paraest's own
+!  arrays (module gca_parameters), which the fit changes and fakePARGR puts
+!  back in the package at each evaluation.
+!
+subroutine load_from_pargr(NC)
+  use gca_parameters, only: NG, NGA, NU, MASSOC, ONUASOC, QAREA, TSTR, GSTR, GDOT, GDDOT, &
+                            RKIJ, RKTIJ, ALFAIJ, ENASS, RKASS, groupID, assocID, groupName, assocName
+  use pargr_export
+  implicit none
+  integer, parameter :: NCM=30, NGM=30, NGAM=14     ! must match the GCA package (v1.14)
+  integer, intent(in) :: NC
+  integer :: i, j, k, l, NY
+  double precision :: A, AKIJ, ALFA, DADT, EPX, G1, G2, GSTR_, Q, R, TSPL, TSTR_, XKIJ
+  character(10) :: CName, GName, GAName
+
+  COMMON/GROUP1/GSTR_(NGM),G1(NGM),G2(NGM),TSTR_(NGM),TSPL(NGM),XKIJ(NGM,NGM),      &
+&                AKIJ(NGM,NGM),EPX(NGM)
+  COMMON/GROUP2/Q(NGM),A(NGM,NGM),DADT(NGM,NGM),ALFA(NGM,NGM),R,NY(NCM,NGM)
+  common/NAME/CName(NCM), GName(NGM), GAName(NGAM)
+
+  do j = 1, NG
+    groupID(j) = px_groupID(j)
+    groupName(j) = GName(j)
+    QAREA(j) = Q(j)
+    TSTR(j) = TSTR_(j)
+    GSTR(j) = GSTR_(j)
+    GDOT(j) = G1(j)
+    GDDOT(j) = G2(j)
+    do i = 1, NC
+      NU(j,i) = NY(i,j)
+    enddo
+    do k = 1, NG
+      RKIJ(j,k) = XKIJ(j,k)
+      RKTIJ(j,k) = AKIJ(j,k)
+      ALFAIJ(j,k) = ALFA(j,k)
+    enddo
+  enddo
+  ! PARGR does not fill the diagonal of k' and alpha when there is only one
+  ! group; nor does it matter: PARAGC uses only i < j.
+  ENASS = 0D0
+  RKASS = 0D0
+  do i = 1, NGA
+    assocID(i) = px_assocID(i)
+    assocName(i) = GAName(i)
+    MASSOC(i) = px_sites(i)
+    if (MASSOC(i) > 2) then
+      write(*,'(A,I0,A)') ' Error: associating group ', assocID(i), &
+        ' has more than 2 sites (paraest supports up to 2)'
+      stop 1
+    endif
+    do j = 1, NC
+      ONUASOC(i,j) = px_nyAss(j,i)
+    enddo
+    do j = 1, NGA
+      do k = 1, MASSOC(i)
+        do l = 1, px_sites(j)
+          ENASS(k,i,l,j) = px_enAs(k,i,l,j)
+          RKASS(k,i,l,j) = px_volAs(k,i,l,j)
+        enddo
+      enddo
+    enddo
+  enddo
+endsubroutine load_from_pargr
 
 endmodule gca_bridge
