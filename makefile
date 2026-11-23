@@ -57,7 +57,7 @@ ifeq ($(FC),gfortran)
   MODS   = -J
 else
   OPT    = -O3
-  DEBUG  = -g -O0 -traceback -debug extended -fpe0 -check all,noarg_temp_created -warn
+  DEBUG  = -g -O0 -traceback -debug extended -fpe0 -check all,nouninit,noarg_temp_created -warn
   COMMON = -diag-disable=remark
   MODS   = -module
 endif
