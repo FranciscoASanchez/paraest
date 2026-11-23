@@ -193,7 +193,7 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
   use gca_parameters, only: NG, NU, QAREA, TSTR, GSTR, GDOT, GDDOT, RKIJ, RKTIJ, ALFAIJ, NGA, ONUASOC, MASSOC, &
 &                      ENASS, RKASS, NNP, NNQ, NALFA, NENASS, NRKASS, TSAT, PSAT, dc, IDG, ITEMP, NIDG, IDIDG, &
 &                      iDQ, IDALF, NIDALF, IDIDALF, IDENASS, NIDENASS, IDIDENASS, IDRKASS, NIDRKASS, &
-&                      IDIDRKASS, NUMDC, IDDC, numTc, idTc, local_group, local_assoc
+&                      IDIDRKASS, NUMDC, IDDC, numTc, idTc, check_group, check_assoc
   use gca_bridge, only: load_from_pargr
   use scaling, only: dc_mean, error_Dc
   use utilities, only: i2s, rep, check_limit
@@ -576,43 +576,35 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
 
   endif
 !
-  ! The fitted parameters refer to the groups by their database number:
-  ! from here on, their position in the system (1..NG, 1..NGA).
+  ! The fitted parameters refer to the groups by their position in the
+  ! system (column Pos of the parameter tables: groups in increasing order of
+  ! their database number), 1..NG for attractive groups and 1..NGA for
+  ! associating ones.
   do I = 1, NNP
-    IDG(I,1) = local_group(IDG(I,1), 'g/k')
-    IDG(I,2) = local_group(IDG(I,2), 'g/k')
+    call check_group(IDG(I,:), 'g/k')
   enddo
   do I = 1, sum(NIDG(:NNP))
-    IDIDG(I,1) = local_group(IDIDG(I,1), 'identical g/k')
-    IDIDG(I,2) = local_group(IDIDG(I,2), 'identical g/k')
+    call check_group(IDIDG(I,:), 'identical g/k')
   enddo
-  do I = 1, NNQ
-    IDQ(I) = local_group(IDQ(I), 'area')
-  enddo
+  if (NNQ > 0) call check_group(IDQ(:NNQ), 'area')
   do I = 1, NALFA
-    IDALF(I,1) = local_group(IDALF(I,1), 'alpha')
-    IDALF(I,2) = local_group(IDALF(I,2), 'alpha')
+    call check_group(IDALF(I,:), 'alpha')
   enddo
   do I = 1, sum(NIDALF(:NALFA))
-    IDIDALF(I,1) = local_group(IDIDALF(I,1), 'identical alpha')
-    IDIDALF(I,2) = local_group(IDIDALF(I,2), 'identical alpha')
+    call check_group(IDIDALF(I,:), 'identical alpha')
   enddo
   ! Association: (site, group, site, group)
   do I = 1, NENASS
-    IDENASS(I,2) = local_assoc(IDENASS(I,2), 'association energy')
-    IDENASS(I,4) = local_assoc(IDENASS(I,4), 'association energy')
+    call check_assoc(IDENASS(I,:), 'association energy')
   enddo
   do I = 1, sum(NIDENASS(:NENASS))
-    IDIDENASS(I,2) = local_assoc(IDIDENASS(I,2), 'identical association energy')
-    IDIDENASS(I,4) = local_assoc(IDIDENASS(I,4), 'identical association energy')
+    call check_assoc(IDIDENASS(I,:), 'identical association energy')
   enddo
   do I = 1, NRKASS
-    IDRKASS(I,2) = local_assoc(IDRKASS(I,2), 'association volume')
-    IDRKASS(I,4) = local_assoc(IDRKASS(I,4), 'association volume')
+    call check_assoc(IDRKASS(I,:), 'association volume')
   enddo
   do I = 1, sum(NIDRKASS(:NRKASS))
-    IDIDRKASS(I,2) = local_assoc(IDIDRKASS(I,2), 'identical association volume')
-    IDIDRKASS(I,4) = local_assoc(IDIDRKASS(I,4), 'identical association volume')
+    call check_assoc(IDIDRKASS(I,:), 'identical association volume')
   enddo
 !
   ! Number of parameters
@@ -653,7 +645,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
   use gca_parameters, only: NG, NU, QAREA, TSTR, GSTR, GDOT, GDDOT, RKIJ, RKTIJ, ALFAIJ, NGA, ONUASOC, MASSOC, &
 &                      ENASS, RKASS, NNP, NNQ, NALFA, NENASS, NRKASS, TSAT, PSAT, IDG, ITEMP, NIDG, IDIDG, &
 &                      IDQ, IDALF, NIDALF, IDIDALF, IDENASS, NIDENASS, IDIDENASS, IDRKASS, NIDRKASS, &
-&                      IDIDRKASS, DC, NUMDC, IDDC, TSPLINE, numtc, idtc, groupID, assocID
+&                      IDIDRKASS, DC, NUMDC, IDDC, TSPLINE, numtc, idtc
   use fit_data, only: DHfu, Tfu, DCpfu, DVfu, TtrSS, DHss, Pfu
   use model_output, only: write_model_params
   use utilities, only: i2s, rep
@@ -709,14 +701,14 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
   END DO
 !
   WRITE(1,201)
-201  FORMAT(/,X,' Parameters to estimate (groups by their database number)',/)
+201  FORMAT(/,X,' Parameters to estimate (groups by their position, column Pos of the tables)',/)
 !
   if(NNP.NE.0) then
 !
     WRITE(1,202)
 202    FORMAT(' Parameters gii or kij ')
 !
-    WRITE(1,203) (groupID(IDG(I,1)),groupID(IDG(I,2)),I=1,NNP)
+    WRITE(1,203) (IDG(I,1),IDG(I,2),I=1,NNP)
 203    FORMAT(X,*(I5))
 !
     WRITE(1,204) (ITEMP(I), I=1,NNP)
@@ -734,7 +726,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
       if(NIDG(L).ne.0) then
 !
-        WRITE(1,210) (groupID(IDIDG(J,1)), groupID(IDIDG(J,2)),J=(1+NSSS),(NIDG(L)+NSSS))
+        WRITE(1,210) (IDIDG(J,1), IDIDG(J,2),J=(1+NSSS),(NIDG(L)+NSSS))
 210        FORMAT(X,*(I5))
         NSSS = NSSS + NIDG(L)
 !
@@ -744,12 +736,12 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
   end if
 !
-  if(NNQ.NE.0) WRITE(1,211) (groupID(IDQ(I)), I=1,NNQ)
+  if(NNQ.NE.0) WRITE(1,211) (IDQ(I), I=1,NNQ)
 211  FORMAT(/,X,' Area parameters  ',/,X,*(I5))
 !
   if(NALFA.ne.0) then
 
-    WRITE(1,213) (groupID(IDALF(I,1)),groupID(IDALF(I,2)),I=1,NALFA)
+    WRITE(1,213) (IDALF(I,1),IDALF(I,2),I=1,NALFA)
 213    FORMAT(/,X,' Non-randomness parameters ',/,X,*(I5))
 !
     WRITE(1,215) (NIDALF(I),I=1,NALFA)
@@ -760,7 +752,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
           if(NIDALF(L).ne.0) then
 
-        WRITE(1,217) (groupID(IDIDALF(J,1)),groupID(IDIDALF(J,2)),J=(1+NSSA),(NIDALF(L)+NSSA))
+        WRITE(1,217) (IDIDALF(J,1),IDIDALF(J,2),J=(1+NSSA),(NIDALF(L)+NSSA))
 217        FORMAT(X,' Identical : ',*(I5))
         NSSA = NSSA + NIDALF(L)
 
@@ -777,7 +769,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 !
     DO I=1,NENASS
 
-      WRITE(1,221) IDENASS(I,1),assocID(IDENASS(I,2)),IDENASS(I,3),assocID(IDENASS(I,4))
+      WRITE(1,221) IDENASS(I,1),IDENASS(I,2),IDENASS(I,3),IDENASS(I,4)
 221      FORMAT(X,4I3)
 
     END DO
@@ -790,7 +782,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
         DO J=(1+NSSE),(NIDENASS(L)+NSSE)
 
-          WRITE(1,225) IDIDENASS(J,1), assocID(IDIDENASS(J,2)),IDIDENASS(J,3), assocID(IDIDENASS(J,4))
+          WRITE(1,225) IDIDENASS(J,1), IDIDENASS(J,2),IDIDENASS(J,3), IDIDENASS(J,4)
 225          FORMAT(' Identical: ',4I5)
 
         END DO
@@ -809,7 +801,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
     DO I=1,NRKASS
 
-      WRITE(1,229) IDRKASS(I,1),assocID(IDRKASS(I,2)),IDRKASS(I,3),assocID(IDRKASS(I,4))
+      WRITE(1,229) IDRKASS(I,1),IDRKASS(I,2),IDRKASS(I,3),IDRKASS(I,4)
 229      FORMAT(X,4I3)
 
     END DO
@@ -822,7 +814,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
         DO J=(1+NSSRK),(NIDRKASS(L)+NSSRK)
 
-          WRITE(1,232) IDIDRKASS(J,1), assocID(IDIDRKASS(J,2)),IDIDRKASS(J,3), assocID(IDIDRKASS(J,4))
+          WRITE(1,232) IDIDRKASS(J,1), IDIDRKASS(J,2),IDIDRKASS(J,3), IDIDRKASS(J,4)
 232          FORMAT(X,' Identical: ',4I3)
 
         END DO

@@ -49,39 +49,40 @@ contains
 
 !------------------------------------------------------------------------------------------------------------------------------------
 !
-!  Position (1..NG) of the attractive group with database number id, and of
-!  the associating group (1..NGA). Stops if the group is not in the system:
-!  the fitted parameters refer to groups by their database number.
+!  Stops if a fitted parameter refers to a group position outside 1..NG
+!  (attractive) or 1..NGA (associating; the sites must be 1..MASSOC).
 !
-integer function local_group(id, what)
-  integer, intent(in) :: id
+subroutine check_group(pos, what)
+  integer, intent(in) :: pos(:)
   character(*), intent(in) :: what
   integer :: i
-  do i = 1, NG
-    if (groupID(i) == id) then
-      local_group = i
-      return
+  do i = 1, size(pos)
+    if (pos(i) < 1 .or. pos(i) > NG) then
+      write(*,'(3A,I0,A,I0,A)') ' Error in the fitted parameters (', what, '): group position ', pos(i), &
+        ' is not between 1 and ', NG, ' (column Pos of the parameter tables in the output)'
+      stop 1
     endif
   enddo
-  write(*,'(3A,I0,A)') ' Error in the fitted parameters (', what, '): group ', id, &
-    ' is not one of the attractive groups of the system'
-  stop 1
-endfunction local_group
+endsubroutine check_group
 
-integer function local_assoc(id, what)
-  integer, intent(in) :: id
+! pos = (site, group, site, group)
+subroutine check_assoc(pos, what)
+  integer, intent(in) :: pos(4)
   character(*), intent(in) :: what
   integer :: i
-  do i = 1, NGA
-    if (assocID(i) == id) then
-      local_assoc = i
-      return
+  do i = 2, 4, 2
+    if (pos(i) < 1 .or. pos(i) > NGA) then
+      write(*,'(3A,I0,A,I0,A)') ' Error in the fitted parameters (', what, '): associating group position ', &
+        pos(i), ' is not between 1 and ', NGA, ' (column Pos of the parameter tables in the output)'
+      stop 1
+    endif
+    if (pos(i-1) < 1 .or. pos(i-1) > MASSOC(pos(i))) then
+      write(*,'(3A,I0,A,I0)') ' Error in the fitted parameters (', what, '): site ', pos(i-1), &
+        ' does not exist in associating group position ', pos(i)
+      stop 1
     endif
   enddo
-  write(*,'(3A,I0,A)') ' Error in the fitted parameters (', what, '): associating group ', id, &
-    ' is not one of the associating groups of the system'
-  stop 1
-endfunction local_assoc
+endsubroutine check_assoc
 
 !------------------------------------------------------------------------------------------------------------------------------------
 !

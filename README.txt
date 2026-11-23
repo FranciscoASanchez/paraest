@@ -44,9 +44,13 @@ system does not use and give all its values as own values. A group listed
 with 0 groups in a component is part of the system without being in it.
 
 The fitted parameters (the lines after the data sets) refer to the groups by
-their database number, and to the association parameters by (site, group,
-site, group) with associating-group numbers. k*, k', and the association
-energy and volume are symmetric: fitting (i,j) also sets (j,i).
+their position in the system, not by their database number: PARGR orders
+the groups by increasing database number, so position 1 is the group with
+the lowest number, and so on (attractive and associating groups separately).
+The parameter tables of paraest.out show it in column Pos, next to the
+database number (ID). The association parameters are (site, group position,
+site, group position). k*, k', and the association energy and volume are
+symmetric: fitting (i,j) also sets (j,i).
 
 Old files (all the parameters written out, groups numbered 1..NG) are
 converted with

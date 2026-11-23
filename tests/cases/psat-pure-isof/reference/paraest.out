@@ -24,60 +24,65 @@
  --------------------------------------------------
 
  Pure group attractive parameters:
-                                                                                                          Groups per component
-   No   Name        T*(K)      q       g*(atm cm6/mol2)       g'           g"          Ts(K)     exp    1    2    3    4
- -------------------------------------------------------------------------------------------------------------------------------
-    1  CH3         600.00   0.8480        316910.00      -0.927400     0.000000     1085.23  6.710    0    2    2    2
-    2  CH2         600.00   0.5400        356080.00      -0.875500     0.000000     1113.99  6.502    0    2    3    6
-  193  H2O         647.13   0.8660        699570.91      -0.502100     0.430900     2323.73  5.488    1    0    0    0
+                                                                                                               Groups per component
+  Pos   ID  Name        T*(K)      q       g*(atm cm6/mol2)       g'           g"          Ts(K)     exp    1    2    3    4
+ ------------------------------------------------------------------------------------------------------------------------------------
+    1    1  CH3         600.00   0.8480        316910.00      -0.927400     0.000000     1085.23  6.710    0    2    2    2
+    2    2  CH2         600.00   0.5400        356080.00      -0.875500     0.000000     1113.99  6.502    0    2    3    6
+    3  193  H2O         647.13   0.8660        699570.91      -0.502100     0.430900     2323.73  5.488    1    0    0    0
 
  Binary interaction parameter at T* matrix, [k*]
 
-                           1         2       193
-                         CH3       CH2       H2O
-    1  CH3       |  1.000000
-    2  CH2       |  1.000000  1.000000
-  193  H2O       |  1.000000  1.000000  1.000000
+                    Pos         1         2         3
+                    ID          1         2       193
+                              CH3       CH2       H2O
+    1    1  CH3       |  1.000000
+    2    2  CH2       |  1.000000  1.000000
+    3  193  H2O       |  1.000000  1.000000  1.000000
 
  Binary interaction parameter temperature dependence matrix, [k']
 
-                           1         2       193
-                         CH3       CH2       H2O
-    1  CH3       |  0.000000
-    2  CH2       |  0.000000  0.000000
-  193  H2O       |  0.000000  0.000000  0.000000
+                    Pos         1         2         3
+                    ID          1         2       193
+                              CH3       CH2       H2O
+    1    1  CH3       |  0.000000
+    2    2  CH2       |  0.000000  0.000000
+    3  193  H2O       |  0.000000  0.000000  0.000000
 
  Non-randomness parameters matrix, [alpha] (row i, column j: alpha_ij)
 
-                           1         2       193
-                         CH3       CH2       H2O
-    1  CH3       |   -------    0.0000    0.0000
-    2  CH2       |    0.0000   -------    0.0000
-  193  H2O       |    0.0000    0.0000   -------
+                    Pos         1         2         3
+                    ID          1         2       193
+                              CH3       CH2       H2O
+    1    1  CH3       |   -------    0.0000    0.0000
+    2    2  CH2       |    0.0000   -------    0.0000
+    3  193  H2O       |    0.0000    0.0000   -------
 
  Number of associating groups =  1
 
  Associating group configuration
-                                Groups per component
-   No   Name       Sites        1    2    3    4
- --------------------------------------------------
-    1  H2O          2          2    0    0    0
+                                     Groups per component
+  Pos   ID  Name       Sites        1    2    3    4
+ -------------------------------------------------------
+    1    1  H2O          2          2    0    0    0
 
  Association energy matrix, [epsilon/R] (K)
 
-                                1           1
-                              H2O         H2O
-                                1           2
-    1  H2O        1 |      0.0000
-    1  H2O        2 |   2350.0000      0.0000
+                       Pos           1           1
+                       ID            1           1
+                                   H2O         H2O
+                      Site           1           2
+    1    1  H2O        1 |      0.0000
+    1    1  H2O        2 |   2350.0000      0.0000
 
  Association volume matrix, [kappa] (cm3/mol)
 
-                                1           1
-                              H2O         H2O
-                                1           2
-    1  H2O        1 | 0.00000E+00
-    1  H2O        2 | 3.78700E-01 0.00000E+00
+                       Pos           1           1
+                       ID            1           1
+                                   H2O         H2O
+                      Site           1           2
+    1    1  H2O        1 | 0.00000E+00
+    1    1  H2O        2 | 3.78700E-01 0.00000E+00
 
  Pure-component data
 
@@ -89,10 +94,10 @@
   469.70      33.2590   309.20    1.000           4.6970          0.00    0.000            0.0        0.00    0.000        0.000        0.000    
   568.70      24.5740   398.84   0.9999           5.5375          0.00    0.000            0.0        0.00    0.000        0.000        0.000    
 
-  Parameters to estimate (groups by their database number)
+  Parameters to estimate (groups by their position, column Pos of the tables)
 
  Parameters gii or kij 
-   193  193
+     3    3
   Temperature dependence 
    2
   Number of identical par. 
@@ -118,60 +123,65 @@
  --------------------------------------------------
 
  Pure group attractive parameters:
-                                                                                                          Groups per component
-   No   Name        T*(K)      q       g*(atm cm6/mol2)       g'           g"          Ts(K)     exp    1    2    3    4
- -------------------------------------------------------------------------------------------------------------------------------
-    1  CH3         600.00   0.8480        316910.00      -0.927400     0.000000     1085.23  6.710    0    2    2    2
-    2  CH2         600.00   0.5400        356080.00      -0.875500     0.000000     1113.99  6.502    0    2    3    6
-  193  H2O         647.13   0.8660        964720.00      -1.065580     0.888376     1586.36  6.895    1    0    0    0
+                                                                                                               Groups per component
+  Pos   ID  Name        T*(K)      q       g*(atm cm6/mol2)       g'           g"          Ts(K)     exp    1    2    3    4
+ ------------------------------------------------------------------------------------------------------------------------------------
+    1    1  CH3         600.00   0.8480        316910.00      -0.927400     0.000000     1085.23  6.710    0    2    2    2
+    2    2  CH2         600.00   0.5400        356080.00      -0.875500     0.000000     1113.99  6.502    0    2    3    6
+    3  193  H2O         647.13   0.8660        964720.00      -1.065580     0.888376     1586.36  6.895    1    0    0    0
 
  Binary interaction parameter at T* matrix, [k*]
 
-                           1         2       193
-                         CH3       CH2       H2O
-    1  CH3       |  1.000000
-    2  CH2       |  1.000000  1.000000
-  193  H2O       |  1.000000  1.000000  1.000000
+                    Pos         1         2         3
+                    ID          1         2       193
+                              CH3       CH2       H2O
+    1    1  CH3       |  1.000000
+    2    2  CH2       |  1.000000  1.000000
+    3  193  H2O       |  1.000000  1.000000  1.000000
 
  Binary interaction parameter temperature dependence matrix, [k']
 
-                           1         2       193
-                         CH3       CH2       H2O
-    1  CH3       |  0.000000
-    2  CH2       |  0.000000  0.000000
-  193  H2O       |  0.000000  0.000000  0.000000
+                    Pos         1         2         3
+                    ID          1         2       193
+                              CH3       CH2       H2O
+    1    1  CH3       |  0.000000
+    2    2  CH2       |  0.000000  0.000000
+    3  193  H2O       |  0.000000  0.000000  0.000000
 
  Non-randomness parameters matrix, [alpha] (row i, column j: alpha_ij)
 
-                           1         2       193
-                         CH3       CH2       H2O
-    1  CH3       |   -------    0.0000    0.0000
-    2  CH2       |    0.0000   -------    0.0000
-  193  H2O       |    0.0000    0.0000   -------
+                    Pos         1         2         3
+                    ID          1         2       193
+                              CH3       CH2       H2O
+    1    1  CH3       |   -------    0.0000    0.0000
+    2    2  CH2       |    0.0000   -------    0.0000
+    3  193  H2O       |    0.0000    0.0000   -------
 
  Number of associating groups =  1
 
  Associating group configuration
-                                Groups per component
-   No   Name       Sites        1    2    3    4
- --------------------------------------------------
-    1  H2O          2          2    0    0    0
+                                     Groups per component
+  Pos   ID  Name       Sites        1    2    3    4
+ -------------------------------------------------------
+    1    1  H2O          2          2    0    0    0
 
  Association energy matrix, [epsilon/R] (K)
 
-                                1           1
-                              H2O         H2O
-                                1           2
-    1  H2O        1 |      0.0000
-    1  H2O        2 |   2350.0000      0.0000
+                       Pos           1           1
+                       ID            1           1
+                                   H2O         H2O
+                      Site           1           2
+    1    1  H2O        1 |      0.0000
+    1    1  H2O        2 |   2350.0000      0.0000
 
  Association volume matrix, [kappa] (cm3/mol)
 
-                                1           1
-                              H2O         H2O
-                                1           2
-    1  H2O        1 | 0.00000E+00
-    1  H2O        2 | 3.78700E-01 0.00000E+00
+                       Pos           1           1
+                       ID            1           1
+                                   H2O         H2O
+                      Site           1           2
+    1    1  H2O        1 | 0.00000E+00
+    1    1  H2O        2 | 3.78700E-01 0.00000E+00
 
   The hard-sphere diameter at the critical point of component No.  2 was fitted to 
   reproduce the point of the vapor pressure curve 

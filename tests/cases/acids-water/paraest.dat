@@ -567,14 +567,14 @@ H2.Oxa(8) + H2O(1), ESL, Apelblat & Manzurola, J. Chem. Thermodynamics 19 (1987)
 
 
 1 0 2 0 0 0 0    ! NNP NNQ NALFA NENASS NRKASS numTc NUMDC
-46 193    ! g/k (database numbers)
+4 7    ! g/k (group positions)
 1
 5
-193 46  47 193  193 47  48 193  193 48
-46 193  193 46    ! alpha
+7 4  5 7  7 5  6 7  7 6
+4 7  7 4    ! alpha
 2 2
-47 193  48 193
-193 47  193 48
+5 7  6 7
+7 5  7 6
 1.0705	-0.06	2.232	1.3059	bastante buenos, pero se pierde el aze. de C3OOH
 1.0184	-0.06	6	3.	ajuste 2015
 1.06	0	5	3

@@ -18,7 +18,9 @@ database are written as own values; binary values that differ from what
 PARGR would take from the database, too; and the association energies and
 volumes that differ from FOR015 (a pair missing from the database is 0).
 
-The fitted parameters are written with database numbers.
+The fitted parameters are written with the position of each group in the
+new system: groups in increasing order of their database number (column Pos
+of the parameter tables in paraest.out).
 
 The script reads the file as read_input did (list-directed reads: each READ
 starts at a new record and skips blank ones; the rest of the last record is
@@ -388,14 +390,15 @@ def convert(old, new, dbdir):
         out.extend(pairs)
 
     # ---------------------------------------------------------------------
-    # New fitted-parameter specification (database numbers)
+    # New fitted-parameter specification (positions in the new system)
     # ---------------------------------------------------------------------
-    G = lambda i: gid[i - 1]
-    GA = lambda i: aid[i - 1]
+    # position in the new system: PARGR sorts the groups by database number
+    G = lambda i: sorted(gid).index(gid[i - 1]) + 1
+    GA = lambda i: sorted(aid).index(aid[i - 1]) + 1
     spec = ['%d %d %d %d %d %d %d    ! NNP NNQ NALFA NENASS NRKASS numTc NUMDC'
             % (NNP, NNQ, NALFA, NENASS, NRKASS, numTc, NUMDC)]
     if NNP:
-        spec.append('  '.join('%d %d' % (G(a), G(b)) for a, b in IDG) + '    ! g/k (database numbers)')
+        spec.append('  '.join('%d %d' % (G(a), G(b)) for a, b in IDG) + '    ! g/k (group positions)')
         spec.append(' '.join(str(x) for x in ITEMP))
         spec.append(' '.join(str(x) for x in NIDG))
         for lst in IDIDG:
