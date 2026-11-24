@@ -41,6 +41,7 @@ MODELS       = src/models/gca_parameters.f90             \
 EQUILIBRIUM  = src/equilibrium/gc3_flash.f90             \
                src/equilibrium/isofugacity.f90           \
                src/equilibrium/gcdba.f90                 \
+               src/equilibrium/tpf_flash.f90             \
                src/equilibrium/gcxs.f90                  \
                src/equilibrium/gcsle.f90                 \
                src/equilibrium/pcrit_semi_implicit.f90
@@ -115,7 +116,7 @@ $(DBGDIR)/gca_bridge.o $(DBGDIR)/model_output.o: $(DBGDIR)/gca_parameters.o
 # gca.f90 holds module pargr_export
 $(OBJDIR)/gca_bridge.o: $(OBJDIR)/gca.o
 $(DBGDIR)/gca_bridge.o: $(DBGDIR)/gca.o
-RESDEPS = dimensions config fit_data gca_parameters gca_bridge scaling utilities
+RESDEPS = dimensions config fit_data gca_parameters gca_bridge scaling utilities tpf_flash
 $(OBJDIR)/residuals.o: $(call dep,$(OBJDIR),$(RESDEPS))
 $(DBGDIR)/residuals.o: $(call dep,$(DBGDIR),$(RESDEPS))
 

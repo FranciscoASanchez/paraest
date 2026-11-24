@@ -21,7 +21,8 @@ module residuals
   use fit_data
   use gca_parameters, PSATu => PSAT   ! PSAT is also a subroutine of the GCA package
   use gca_bridge, only: fakePARGR, fakePARMOL, negative_cohesion
-  use config, only: PENALIZ, PENALIZNAN
+  use config, only: PENALIZ, PENALIZNAN, bubble_solver
+  use tpf_flash, only: flash_beta
   implicit none
   private
   public :: FUNC, write_failed_points
@@ -394,6 +395,7 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
   double precision :: feed(NCMgca), zFrac(NCMgca,4), zVal(4)
   double precision :: xIsof(2), yIsof(2), apartIsof(2)
   double precision :: TEMP, PRESS, X1, Y1, X2, Y2, ZLL, ZVV, zLiquido, zVapor, ZLiq, ZVap, sq
+  double precision :: xBub(2), yBub(2)
   integer :: indF(4), iVap(1)
   integer :: i, n, nFailure, iErr, iOrder, iType
   logical :: badG
@@ -506,8 +508,19 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
         iErr = 0
         if (badG) then
           iErr = 1
-        else
+        elseif (bubble_solver == 'gcadb') then
           call GCADB(1, NCw, NG, NST, iType, TEMP, PRESS, X1, Y1, iErr, ZLiq, ZVap)
+        else
+          ! Flash at V/F = 0 (bubble point); T or P is the one that is given.
+          ! A component absent from the liquid gets a trace, as in GCADB.
+          feed(1) = max(X1, 1D-8)
+          feed(2) = max(1D0 - X1, 1D-8)
+          if (iType == 3) then
+            call flash_beta(2, NG, NST, 'T', 0D0, TEMP, PRESS, feed(:2), xBub, yBub, ZLiq, ZVap, iErr)
+          else
+            call flash_beta(2, NG, NST, 'P', 0D0, TEMP, PRESS, feed(:2), xBub, yBub, ZLiq, ZVap, iErr)
+          endif
+          Y1 = yBub(1)/sum(yBub)
         endif
         if (iErr == 0) then
           ZLCALC(n) = ZLiq

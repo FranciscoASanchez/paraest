@@ -102,6 +102,10 @@ Options (optional file paraest.cfg in the current directory, a namelist):
   range_gdd       g" (absolute values)  default -1.0, 1.0
   range_kappa     association volume    default 0.0, 20.0 (cm3/mol): bounds
                   for both PSO and Levenberg-Marquardt, not only the box
+  bubble_solver   bubble points of binary VLE data (IFL = 1, 2):
+                  'tpf'    Newton-Raphson in ln K and ln P (or ln T), adapted
+                           from TPfractionFlash v0.5.3 (default)
+                  'gcadb'  the old GCADB routine
   PSO compares two parameter sets first by the number of points that could
   not be calculated (beyond those that already fail at the initial values),
   then by SSQ: otherwise it finds sets where most points fail and SSQ is
@@ -126,7 +130,8 @@ Layout
     src/main/          main program, input/output, FUNC, scaling, statistics
     src/optimization/  optimizers (ZXSSQ: Levenberg-Marquardt)
     src/models/        thermodynamic model (GCA package) and its link with paraest
-    src/equilibrium/   equilibrium calculations (flash, bubble point, isofugacity...)
+    src/equilibrium/   equilibrium calculations (flash, bubble point, isofugacity...);
+                       tpf_flash.f90: flash at given V/F (bubble points)
     tests/             regression tests and reference outputs
     Archivos/          experimental data sets
     legacy/            old versions of the sources and makefiles

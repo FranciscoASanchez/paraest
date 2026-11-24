@@ -20,6 +20,7 @@ module config
   public :: optimizer, pso_particles, pso_iterations, pso_seed, pso_starts, pso_ssq_factor, pso_cluster_dist
   public :: range_gstr, range_kstr, range_alpha, range_gp, range_gdd, range_q, range_eps, range_tc
   public :: range_kappa
+  public :: bubble_solver
 
   ! --- Objective function ---------------------------------------------------
   ! With PENALIZ = 0 a point whose calculation fails adds nothing to the
@@ -68,10 +69,15 @@ module config
   ! (not only the PSO box: LM cannot leave them either)
   double precision :: range_kappa(2) = [0D0, 20D0]
 
+  ! --- Bubble points of binary VLE data ----------------------------------------
+  !   'tpf'    Newton-Raphson in ln K and ln P (or ln T), from TPfractionFlash
+  !   'gcadb'  the old GCADB routine
+  character(8) :: bubble_solver = 'tpf'
+
   namelist /options/ PENALIZ, PENALIZNAN, optimizer, pso_particles, pso_iterations, pso_seed, &
                      pso_starts, pso_ssq_factor, pso_cluster_dist, &
                      range_gstr, range_q, range_eps, range_tc, range_kstr, range_alpha, range_gp, range_gdd, &
-                     range_kappa
+                     range_kappa, bubble_solver
 
 contains
 
@@ -97,6 +103,10 @@ subroutine read_options()
     write(*,*) 'paraest.cfg: optimizer must be ''lm'', ''pso'' or ''pso+lm'', not ''', trim(optimizer), ''''
     stop 1
   endif
+  if (bubble_solver /= 'tpf' .and. bubble_solver /= 'gcadb') then
+    write(*,*) 'paraest.cfg: bubble_solver must be ''tpf'' or ''gcadb'', not ''', trim(bubble_solver), ''''
+    stop 1
+  endif
   if (pso_particles < 2 .or. pso_iterations < 1 .or. pso_seed <= 0) then
     write(*,*) 'paraest.cfg: pso_particles >= 2, pso_iterations >= 1 and pso_seed > 0 are required'
     stop 1
@@ -116,6 +126,7 @@ subroutine read_options()
     'Residual replacing NaN/Inf (PENALIZNAN): ', PENALIZNAN
   if (any(range_kappa /= [0D0, 20D0])) &
     write(1,'(X,A,2F10.4)') 'Bounds of the association volume (range_kappa):', range_kappa
+  if (bubble_solver /= 'tpf') write(1,'(X,2A)') 'Bubble points calculated with: ', trim(bubble_solver)
   if (optimizer /= 'lm') then
     write(1,'(X,2A)') 'Optimizer: ', trim(optimizer)
     write(1,'(X,A,I0,A,I0,A,I0)') 'PSO: particles = ', pso_particles, ', iterations = ', pso_iterations, &
