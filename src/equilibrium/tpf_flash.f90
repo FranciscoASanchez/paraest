@@ -18,9 +18,14 @@
 !  * no stop: every failure returns ierr /= 0 (T above the largest Tc with T
 !    specified, both phases missing at the start, no step reduction gives a
 !    good evaluation, no convergence in maxIt iterations, trivial solution);
-!  * a phase that is not found during the Newton iterations is a failure of
-!    that evaluation (v0.5.3 required both phases to fail): with a guess,
-!    GCEOS does not compute the lnPhi of a phase it does not find;
+!  * an evaluation fails when the model does not find a phase (v0.5.3: only
+!    when both were missing); a phase not found with a guess is tried again
+!    without it (with a guess, GCEOS does not compute that phase);
+!  * a liquid that ZMAX does not find because the fluid has a single root
+!    (its liquid and vapor searches reach the same root, zmax_ier(2) = 199,
+!    near a critical point) is accepted: that root is the liquid's;
+!  * trivial solution: equal compositions and Z within 0.1% at the end
+!    (v0.5.3: only |ZV - ZL| < 1e-6, which let trivial solutions through);
 !  * no permanent gases, heavy compounds or traces (paraest gives every
 !    component a positive amount), no log or result files.
 !
@@ -30,12 +35,15 @@
 !
 !--------------------------------------------------------------------------------------------------------------------------
 module tpf_flash
+  use zmax_status, only: zmax_ier
   implicit none
   private
   public :: flash_beta
 
   integer, parameter :: NCM = 30          ! must match the GCA package
   integer, parameter :: V = 1, L = 2
+  ! Bound of ln K: K up to 1e43, and sum(y) cannot overflow
+  double precision, parameter :: lnKmax = 100D0
 
 contains
 
@@ -51,7 +59,7 @@ contains
 !         2  neither phase found at the initial conditions
 !         3  no step reduction gives an evaluation with both phases
 !         4  not converged in maxIt iterations
-!         5  trivial solution (both phases equal)
+!         5  trivial solution (equal compositions and Z)
 !
 subroutine flash_beta(NC, NG, NST, spec, beta, T, P, feed, x, y, ZL, ZV, ierr)
   integer, intent(in) :: NC, NG, NST
@@ -119,6 +127,7 @@ subroutine flash_beta(NC, NG, NST, spec, beta, T, P, feed, x, y, ZL, ZV, ierr)
     do
       alphaIt = alphaIt + 1
       xiNew = xi + dxi*alpha
+      xiNew(:NC) = max(-lnKmax, min(lnKmax, xiNew(:NC)))
       K = exp(xiNew(:NC))
       Pold = P
       if (spec == 'T') then
@@ -149,7 +158,10 @@ subroutine flash_beta(NC, NG, NST, spec, beta, T, P, feed, x, y, ZL, ZV, ierr)
   enddo
   if (ierr /= 0) return
 
-  if (abs(Z(V) - Z(L)) < 1D-6) then
+  ! Trivial solution: both phases the same, in composition (|ln K| < 0.01)
+  ! and in Z (within 0.1%). An azeotrope has x = y but different Z; near a
+  ! critical point Z are close but the compositions differ.
+  if (maxval(abs(xi(:NC))) < 1D-2 .and. abs(Z(V) - Z(L)) <= 1D-3*max(Z(V), Z(L))) then
     ierr = 5
     return
   endif
@@ -181,6 +193,15 @@ subroutine func(NC, NG, NST, NDim, spec, beta, T, P, feed, K, xi, guess, w, Z, l
   call PARAGC(T, NC, NG, NST, 1)
   call GCEOS(NC, NG, NST, 2, 1, T, P, w(:,L), lnPhi(:,L), dLnPhi_dn(:,:,L), dLnPhi_dT(:,L), dLnPhi_dP(:,L), Z(L), &
              guess, 1, ic(L))
+  ! With a guess, GCEOS does not compute a phase it does not find: again
+  ! without guess
+  if (ic(L) /= 1 .and. guess /= 0) &
+    call GCEOS(NC, NG, NST, 2, 1, T, P, w(:,L), lnPhi(:,L), dLnPhi_dn(:,:,L), dLnPhi_dT(:,L), dLnPhi_dP(:,L), Z(L), &
+               0, 1, ic(L))
+  ! Liquid "not found" because the liquid and vapor searches reached the same
+  ! root: the fluid has a single root (near a critical point), and it is the
+  ! liquid's
+  if (ic(L) /= 1 .and. zmax_ier(2) == 199) ic(L) = 1
   call GCEOS(NC, NG, NST, 2, 1, T, P, w(:,V), lnPhi(:,V), dLnPhi_dn(:,:,V), dLnPhi_dT(:,V), dLnPhi_dP(:,V), Z(V), &
              guess, -1, ic(V))
   thermoOK = all(ic == 1) .and. abs(Z(V) - Z(L)) >= 1D-6
@@ -238,7 +259,7 @@ subroutine initialization(NC, NG, NST, spec, beta, T, P, feed, K, ierr)
   B = 0D0
   ref = 1
   do i = 1, NC
-    K(i) = exp(-log(P/Pc(i)) + 5.373D0*(1D0 + omega(i))*(1D0 - Tc(i)/T))
+    K(i) = exp(max(-lnKmax, min(lnKmax, -log(P/Pc(i)) + 5.373D0*(1D0 + omega(i))*(1D0 - Tc(i)/T))))
   enddo
   if (T > maxval(Tc(:NC))) then
     if (spec == 'T') then
@@ -279,7 +300,7 @@ subroutine initialization(NC, NG, NST, spec, beta, T, P, feed, K, ierr)
     ! Slope of ln K(ref) = A + B/T
     if (iteration < 3 .and. spec == 'P') B = -T*T*(dLnPhi_dT(ref,L) - dLnPhi_dT(ref,V))
     do i = 1, NC
-      K(i) = exp(max(-308D0, min(308D0, lnPhi(i,L) - lnPhi(i,V))))
+      K(i) = exp(max(-lnKmax, min(lnKmax, lnPhi(i,L) - lnPhi(i,V))))
     enddo
     call molar_fractions(NC, beta, K, feed, w, denom)
     sumV = log(sum(w(:NC,V)))

@@ -23,6 +23,14 @@ module pargr_export
 	double precision :: px_volAs(px_NSITE,px_NGAM,px_NSITE,px_NGAM) = 0
 endmodule pargr_export
 !
+!	paraest: error codes of the last ZMAX call, for each search (1: vapor,
+!	2: liquid). zmax_ier(2) = 199: both searches reached the same root (the
+!	fluid has a single root at that T, P and composition).
+module zmax_status
+	implicit none
+	integer :: zmax_ier(2) = 0
+endmodule zmax_status
+!
 subroutine GCA_version (versGCA, thermo_name)
 
 	character(20)  ::thermo_name, versGCA
@@ -2480,6 +2488,7 @@ SUBROUTINE ZMAX (Z, iTyp, T, P, XN, iGues, NC, NG, NST, iC)
 !	Gibbs
 !
 !-----------------------------------------------------------------------
+	use zmax_status, only: zmax_ier
 	IMPLICIT REAL*8 (A-H, O-Z)
 
 	parameter (NCM = 30, NGM = 30, NSM = 24)
@@ -3327,6 +3336,7 @@ SUBROUTINE ZMAX (Z, iTyp, T, P, XN, iGues, NC, NG, NST, iC)
 	if (IER1(1) /= 0 .AND. IOPT == -1) IC = -1
 	if (IER1(2) /= 0 .AND. IOPT == 1) IC = -1
 201	CONTINUE
+	zmax_ier = IER1
 ! 	if (NST > 0) then
 ! 
 ! 	  deallocate (Xs_aux, sm_aux, Delta_aux, H_aux, pivot_vector)

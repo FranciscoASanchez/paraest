@@ -116,6 +116,9 @@ $(DBGDIR)/gca_bridge.o $(DBGDIR)/model_output.o: $(DBGDIR)/gca_parameters.o
 # gca.f90 holds module pargr_export
 $(OBJDIR)/gca_bridge.o: $(OBJDIR)/gca.o
 $(DBGDIR)/gca_bridge.o: $(DBGDIR)/gca.o
+# gca.f90 also holds module zmax_status
+$(OBJDIR)/tpf_flash.o: $(OBJDIR)/gca.o
+$(DBGDIR)/tpf_flash.o: $(DBGDIR)/gca.o
 RESDEPS = dimensions config fit_data gca_parameters gca_bridge scaling utilities tpf_flash
 $(OBJDIR)/residuals.o: $(call dep,$(OBJDIR),$(RESDEPS))
 $(DBGDIR)/residuals.o: $(call dep,$(DBGDIR),$(RESDEPS))
