@@ -699,7 +699,7 @@ subroutine excess_property_residuals(ks, FCION, numExp)
       zLiCalc(n) = 0.
       prop_E_calc(n) = 0.
       FCAUX(n) = 0.
-      FCION(n) = PENALIZ*wEx(n)
+      FCION(n) = PENALIZ
       nFailed = nFailed + 1
     endif
     numExp = numExp + 1
@@ -760,7 +760,7 @@ subroutine sle_residuals(ks, NCw, FCION, numExp)
       XCALC(n) = 0
       YCALC(n) = 0
       nFailure = nFailure + 1
-      FCION(n) = PENALIZ*wEx(n)
+      FCION(n) = PENALIZ
       nFailed = nFailed + 1
       FCAUX(n) = 0
     endif
