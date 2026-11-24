@@ -52,7 +52,8 @@ module scaling
   double precision, parameter :: vMaxKp   = 9D0                      ! k' between -vMaxKp and vMaxKp
   double precision, parameter :: vMinGp   = -2D0, vMaxGp = 2D0       ! g' between -vMaxGp and -vMinGp
   double precision, parameter :: vMaxAlfa = 29D0                     ! alpha between -vMaxAlfa and vMaxAlfa
-  double precision, parameter :: vMaxRkass = 20D0                    ! assoc. volume between 0 and vMaxRkass
+  ! Association volume: between range_kappa(1) and range_kappa(2) (module
+  ! config, option of paraest.cfg; default 0 and 20), for LM and PSO.
 
   ! Minimum relative distance to the bounds: the logarithm never gets 0.
   double precision, parameter :: margin = 1D-10
@@ -73,6 +74,7 @@ contains
 !  next to the bounds (see fScld). 0 in prediction, 1e-3 in a fit.
 !
 subroutine XXSCAL(NPAR, XX, IDXX, boundFrac)
+  use config, only: range_kappa
   integer, intent(in) :: NPAR, IDXX(NPAR)
   double precision, intent(inout) :: XX(NPAR)
   double precision, intent(in) :: boundFrac
@@ -104,7 +106,7 @@ subroutine XXSCAL(NPAR, XX, IDXX, boundFrac)
         XX(i) = fEnAss*dlog(max(XX(i), tiny(1D0)))
       endif
     case (7)
-      XX(i) = fScld(XX(i), fRkass, 0D0, vMaxRkass, boundFrac)
+      XX(i) = fScld(XX(i), fRkass, range_kappa(1), range_kappa(2), boundFrac)
     case (8)
       XX(i) = fTc*XX(i)
     case (9)
@@ -121,6 +123,7 @@ endsubroutine XXSCAL
 !  changed: FUNC must not alter the values ZXSSQ passes to it.
 !
 subroutine XXUNSCAL(NPAR, XX, IDXX, XXAUX)
+  use config, only: range_kappa
   integer, intent(in) :: NPAR, IDXX(NPAR)
   double precision, intent(in) :: XX(NPAR)
   double precision, intent(out) :: XXAUX(NPAR)
@@ -147,9 +150,9 @@ subroutine XXUNSCAL(NPAR, XX, IDXX, XXAUX)
     case (6)
       XXAUX(i) = dexp(min(XX(i)/fEnAss, log(huge(1D0))))   ! min: exp does not overflow
     case (7)
-      XXAUX(i) = fUnscld(XX(i), fRkass, 0D0, vMaxRkass)
+      XXAUX(i) = fUnscld(XX(i), fRkass, range_kappa(1), range_kappa(2))
       ! Same as alpha: not left right on the upper bound.
-      if (dabs(vMaxRkass - XXAUX(i)) < 1D-8) XXAUX(i) = (1D0 - 1D-8)*vMaxRkass
+      if (dabs(range_kappa(2) - XXAUX(i)) < 1D-8*range_kappa(2)) XXAUX(i) = (1D0 - 1D-8)*range_kappa(2)
     case (8)
       XXAUX(i) = XX(i)/fTc
     case (9)
@@ -235,7 +238,7 @@ endfunction fUnscld
 !  limit of 1 K.
 !
 subroutine search_box(NPAR, IDXX, x0, boundFrac, lo, hi)
-  use config, only: range_gstr, range_kstr, range_alpha, range_gp, range_gdd, range_q, range_eps, range_tc
+  use config, only: range_gstr, range_kstr, range_alpha, range_gp, range_gdd, range_q, range_eps, range_tc, range_kappa
   integer, intent(in) :: NPAR, IDXX(NPAR)
   double precision, intent(in) :: x0(NPAR), boundFrac
   double precision, intent(out) :: lo(NPAR), hi(NPAR)
@@ -265,7 +268,7 @@ subroutine search_box(NPAR, IDXX, x0, boundFrac, lo, hi)
       lo(i) = max(lo(i), 1D0)
       hi(i) = max(hi(i), 1D0)
     case (7)
-      call between(0D0, vMaxRkass)
+      call between(range_kappa(1), range_kappa(2))
     case (8)
       call times(range_tc)
     case (9)

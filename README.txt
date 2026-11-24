@@ -100,6 +100,8 @@ Options (optional file paraest.cfg in the current directory, a namelist):
   range_alpha     alpha (absolute)      default -10.0, 10.0
   range_gp        g' (absolute values)  default -1.0, 1.0
   range_gdd       g" (absolute values)  default -1.0, 1.0
+  range_kappa     association volume    default 0.0, 20.0 (cm3/mol): bounds
+                  for both PSO and Levenberg-Marquardt, not only the box
   PSO compares two parameter sets first by the number of points that could
   not be calculated (beyond those that already fail at the initial values),
   then by SSQ: otherwise it finds sets where most points fail and SSQ is

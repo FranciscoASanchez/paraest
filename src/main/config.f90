@@ -19,6 +19,7 @@ module config
   public :: PENALIZ, PENALIZNAN
   public :: optimizer, pso_particles, pso_iterations, pso_seed, pso_starts, pso_ssq_factor, pso_cluster_dist
   public :: range_gstr, range_kstr, range_alpha, range_gp, range_gdd, range_q, range_eps, range_tc
+  public :: range_kappa
 
   ! --- Objective function ---------------------------------------------------
   ! With PENALIZ = 0 a point whose calculation fails adds nothing to the
@@ -63,9 +64,14 @@ module config
   double precision :: range_gp(2)   = [-1D0, 1D0]      ! g' (absolute)
   double precision :: range_gdd(2)  = [-1D0, 1D0]      ! g" (absolute)
 
+  ! --- Bounds of the association volume (kappa, cm3/mol), for LM and PSO -----
+  ! (not only the PSO box: LM cannot leave them either)
+  double precision :: range_kappa(2) = [0D0, 20D0]
+
   namelist /options/ PENALIZ, PENALIZNAN, optimizer, pso_particles, pso_iterations, pso_seed, &
                      pso_starts, pso_ssq_factor, pso_cluster_dist, &
-                     range_gstr, range_q, range_eps, range_tc, range_kstr, range_alpha, range_gp, range_gdd
+                     range_gstr, range_q, range_eps, range_tc, range_kstr, range_alpha, range_gp, range_gdd, &
+                     range_kappa
 
 contains
 
@@ -95,6 +101,10 @@ subroutine read_options()
     write(*,*) 'paraest.cfg: pso_particles >= 2, pso_iterations >= 1 and pso_seed > 0 are required'
     stop 1
   endif
+  if (range_kappa(1) < 0D0 .or. range_kappa(2) <= range_kappa(1)) then
+    write(*,*) 'paraest.cfg: range_kappa needs 0 <= minimum < maximum'
+    stop 1
+  endif
   if (pso_starts < 1 .or. pso_ssq_factor < 1D0 .or. pso_cluster_dist < 0D0) then
     write(*,*) 'paraest.cfg: pso_starts >= 1, pso_ssq_factor >= 1 and pso_cluster_dist >= 0 are required'
     stop 1
@@ -104,13 +114,15 @@ subroutine read_options()
   write(1,'(/,X,A,/,X,A,ES12.4,/,X,A,ES12.4)') 'Options read from paraest.cfg:', &
     'Residual of a failed point (PENALIZ):    ', PENALIZ, &
     'Residual replacing NaN/Inf (PENALIZNAN): ', PENALIZNAN
+  if (any(range_kappa /= [0D0, 20D0])) &
+    write(1,'(X,A,2F10.4)') 'Bounds of the association volume (range_kappa):', range_kappa
   if (optimizer /= 'lm') then
     write(1,'(X,2A)') 'Optimizer: ', trim(optimizer)
     write(1,'(X,A,I0,A,I0,A,I0)') 'PSO: particles = ', pso_particles, ', iterations = ', pso_iterations, &
       ', seed = ', pso_seed
     if (optimizer == 'pso+lm') write(1,'(X,A,I0,A,F6.2,A,F6.3)') 'LM starts: up to ', pso_starts, &
       ', SSQ <= ', pso_ssq_factor, ' x best, distance > ', pso_cluster_dist
-    write(1,'(X,A,8(/,X,A,2F10.4))') "PSO search box (k', association volume and dc: physical bounds):", &
+    write(1,'(X,A,8(/,X,A,2F10.4))') "PSO search box (k', association volume and dc: their bounds):", &
       '  g*  (times the initial value): ', range_gstr, &
       '  Q   (times the initial value): ', range_q, &
       '  eps (times the initial value): ', range_eps, &

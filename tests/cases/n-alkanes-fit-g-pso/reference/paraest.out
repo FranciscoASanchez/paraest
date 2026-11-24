@@ -125,7 +125,7 @@
  Optimizer: pso+lm
  PSO: particles = 20, iterations = 20, seed = 12345
  LM starts: up to 3, SSQ <= 100.00 x best, distance >  0.100
- PSO search box (k', association volume and dc: physical bounds):
+ PSO search box (k', association volume and dc: their bounds):
    g*  (times the initial value):     0.5000    1.5000
    Q   (times the initial value):     0.5000    2.0000
    eps (times the initial value):     0.5000    2.0000
