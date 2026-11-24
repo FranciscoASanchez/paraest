@@ -631,7 +631,7 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
         endselect
         FCION(n) = sqrt(sq)
       else
-        FCION(n) = PENALIZ*wBin(1,n)**2
+        FCION(n) = PENALIZ
         nFailed = nFailed + 1
         FCAUX2(n) = 0.D0
       endif
@@ -795,7 +795,7 @@ subroutine critical_point_residuals(ks, NCw, FCION, numExp)
     feed(2) = 1D0 - feed(1)
     if (negative_cohesion(Temp, NCw, NG)) then
       zLiCalc(n) = 0
-      FCION(n) = PENALIZ*wBin(1,n)**2
+      FCION(n) = PENALIZ
       nFailed = nFailed + 1
       FCAUX(n) = 0
       FCAUX2(n) = 0
