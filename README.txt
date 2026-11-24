@@ -69,11 +69,24 @@ Options (optional file paraest.cfg in the current directory, a namelist):
   penaliznan      residual that replaces a NaN/Inf residual (default 1)
   optimizer       'lm'     Levenberg-Marquardt (ZXSSQ), default
                   'pso'    particle swarm only (no parameter statistics)
-                  'pso+lm' particle swarm, then Levenberg-Marquardt from the
-                           best point found
+                  'pso+lm' particle swarm, then Levenberg-Marquardt from
+                           PSO points in distinct regions (see below)
   pso_particles   default 35     } pso_particles*(pso_iterations+1)
   pso_iterations  default 50     } evaluations
   pso_seed        default 12345  (same seed, same run, with any compiler)
+  With 'pso+lm', Levenberg-Marquardt starts from up to pso_starts PSO
+  points that are good and far from each other:
+  pso_starts       default 5    (1: only from the best point)
+  pso_ssq_factor   default 2.0  candidates: SSQ <= this times the best one,
+                                and at most one point lost more than it
+  pso_cluster_dist default 0.1  distance between two points: RMS of the
+                                differences divided by the width of the
+                                PSO box of each parameter
+  The candidates are taken from best to worst; one becomes a start if it is
+  farther than pso_cluster_dist from every start already chosen. The LM
+  results are grouped the same way (closer than pso_cluster_dist: the same
+  optimum) and listed in paraest.out, best first (fewest points lost, then
+  SSQ); the final parameters and statistics are those of the best.
   PSO search box: g*, Q, eps and Tc between multiples of the initial value;
   k*, alpha, g' and g" between absolute values, narrower than the bounds
   used by Levenberg-Marquardt (k* 0.2-30, alpha +-29, g' +-2), widened to

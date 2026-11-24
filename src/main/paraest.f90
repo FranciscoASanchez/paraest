@@ -20,7 +20,8 @@ program paraest
   use fit_data
   use gca_parameters
   use scaling, only: XXSCAL, XXUNSCAL, search_box
-  use config, only: read_options, optimizer, pso_particles, pso_iterations, pso_seed
+  use config, only: read_options, optimizer, pso_particles, pso_iterations, pso_seed, pso_starts, pso_ssq_factor, &
+                    pso_cluster_dist
   use pso_optimizer, only: PSO
   use residuals, only: FUNC, write_failed_points, nFailed, nNaN, nFailedFirst, nNaNFirst   ! residuals of the objective function, for ZXSSQ
   implicit none
@@ -39,6 +40,11 @@ program paraest
   DOUBLE PRECISION FCION(NDM)          ! residuals
   INTEGER iGr
   DOUBLE PRECISION epxOut               ! epx of spline_temperature (not used here)
+  ! PSO: search box and every evaluation (model units), for the LM starts
+  DOUBLE PRECISION boxLo(NPARM), boxHi(NPARM)
+  DOUBLE PRECISION, ALLOCATABLE :: archX(:,:), archF(:)
+  INTEGER, ALLOCATABLE :: archN(:)
+  INTEGER nArch
 !
   ! IDC(J,1): component whose experimental mole fractions are given in data set j.
   ! IDC(J,2): component whose mole fractions are NOT given.
@@ -98,8 +104,10 @@ program paraest
     ! Levenberg-Marquardt starts from the best point found (or from the
     ! initial values, with 'lm').
     IF(optimizer.NE.'lm') CALL run_pso()
-    IF(optimizer.NE.'pso') THEN
+    IF(optimizer.EQ.'lm') THEN
       CALL ZXSSQ(FUNC,NCXP,NPAR,NSIG,EPS,DELTAZ,MAXFN,IOPT,PARM,XX,SSQ,FCION,XJAC,IXJAC,XJTJ,WORK,INFER,IER)
+    ELSEIF(optimizer.EQ.'pso+lm') THEN
+      CALL multi_start_lm()
     ENDIF
 !
     ! One more evaluation at the final parameters: ZXSSQ's last one may be a
@@ -134,6 +142,11 @@ subroutine run_pso()
 
   CALL XXUNSCAL(NPAR, XX, IDXX, x0)
   CALL search_box(NPAR, IDXX, x0, boundFrac, lo, hi)
+  boxLo = lo
+  boxHi = hi
+  allocate(archX(NPAR, pso_particles*(pso_iterations + 1)), archF(pso_particles*(pso_iterations + 1)), &
+           archN(pso_particles*(pso_iterations + 1)))
+  nArch = 0
 
   OPEN(UNIT=1,STATUS='OLD',file='paraest.out',FORM='FORMATTED',POSITION='APPEND')
   WRITE(1,'(/,X,A,/,X,A)') 'PSO search box:', '  Param. Type      Minimum      Initial      Maximum'
@@ -175,7 +188,147 @@ subroutine pso_objective(n, x, ssqX, nLostX)
   CALL FUNC(xs, NCXP, n, f)
   ssqX = sum(f(:NCXP)**2)
   nLostX = max(0, nFailed + nNaN - nFailedFirst - nNaNFirst)
+  if (nArch < size(archF)) then
+    nArch = nArch + 1
+    archX(:,nArch) = x
+    archF(nArch) = ssqX
+    archN(nArch) = nLostX
+  endif
 endsubroutine pso_objective
+
+!------------------------------------------------------------------------------------------------------------------------------------
+!
+!  Distance between two points (model units): RMS of the differences divided
+!  by the width of the PSO box of each parameter (fixed parameters, with
+!  zero width, do not count).
+!
+double precision function box_distance(a, b)
+  double precision, intent(in) :: a(:), b(:)
+  integer :: j, m
+  box_distance = 0D0
+  m = 0
+  do j = 1, NPAR
+    if (boxHi(j) > boxLo(j)) then
+      box_distance = box_distance + ((a(j) - b(j))/(boxHi(j) - boxLo(j)))**2
+      m = m + 1
+    endif
+  enddo
+  if (m > 0) box_distance = sqrt(box_distance/m)
+endfunction box_distance
+
+!------------------------------------------------------------------------------------------------------------------------------------
+!
+!  Indices of the n values (f, nb) in increasing order of nb, then f (the
+!  order of the feasibility rule); a stable insertion sort.
+!
+subroutine rank(n, f, nb, idx)
+  integer, intent(in) :: n, nb(n)
+  double precision, intent(in) :: f(n)
+  integer, intent(out) :: idx(n)
+  integer :: i, j, t
+  idx = [(i, i = 1, n)]
+  do i = 2, n
+    t = idx(i)
+    j = i - 1
+    do while (j >= 1)
+      if (.not. (nb(t) < nb(idx(j)) .or. (nb(t) == nb(idx(j)) .and. f(t) < f(idx(j))))) exit
+      idx(j+1) = idx(j)
+      j = j - 1
+    enddo
+    idx(j+1) = t
+  enddo
+endsubroutine rank
+
+!------------------------------------------------------------------------------------------------------------------------------------
+!
+!  'pso+lm': Levenberg-Marquardt from up to pso_starts PSO points in distinct
+!  regions of the search box (see module config), and the best result
+!  (fewest points not calculated, then the lowest SSQ). All the distinct
+!  optima are reported in paraest.out. On exit XX, SSQ, XJAC, WORK, INFER and
+!  IER are those of the best one (LM is run again from it if it was not the
+!  last run, so that the statistics are its own).
+!
+subroutine multi_start_lm()
+  double precision :: f(nArch), fMax, xs(NPARM)
+  double precision, allocatable :: start(:,:), xEnd(:,:), ssqEnd(:)
+  integer, allocatable :: nEnd(:), inferEnd(:), ierEnd(:), same(:), order(:)
+  integer :: idx(nArch), nb(nArch), i, k, m, nS, nMin, best
+
+  ! Candidates, best first
+  f = archF(:nArch)
+  nb = archN(:nArch)
+  where (f /= f) f = huge(1D0)
+  call rank(nArch, f, nb, idx)
+  nMin = nb(idx(1))
+  fMax = pso_ssq_factor*f(idx(1))
+  allocate(start(NPAR, pso_starts))
+  nS = 0
+  do i = 1, nArch
+    k = idx(i)
+    if (nb(k) > nMin + 1 .or. f(k) > fMax) cycle
+    if (any([(box_distance(archX(:,k), start(:,m)) <= pso_cluster_dist, m = 1, nS)])) cycle
+    nS = nS + 1
+    start(:,nS) = archX(:,k)
+    if (nS == pso_starts) exit
+  enddo
+
+  allocate(xEnd(NPAR,nS), ssqEnd(nS), nEnd(nS), inferEnd(nS), ierEnd(nS), same(nS), order(nS))
+  do i = 1, nS
+    OPEN(UNIT=1,STATUS='OLD',file='paraest.out',FORM='FORMATTED',POSITION='APPEND')
+    WRITE(1,'(/,X,A,I0,A,I0,A,/,(X,5ES16.8))') 'Levenberg-Marquardt from PSO point ', i, ' of ', nS, ':', start(:,i)
+    CLOSE(UNIT=1)
+    XX(:NPAR) = start(:,i)
+    CALL XXSCAL(NPAR, XX, IDXX, boundFrac)
+    CALL ZXSSQ(FUNC,NCXP,NPAR,NSIG,EPS,DELTAZ,MAXFN,IOPT,PARM,XX,SSQ,FCION,XJAC,IXJAC,XJTJ,WORK,INFER,IER)
+    ! Evaluation at the result: SSQ and points not calculated
+    CALL FUNC(XX,NCXP,NPAR,FCION)
+    ssqEnd(i) = sum(FCION(:NCXP)**2)
+    nEnd(i) = nFailed + nNaN
+    inferEnd(i) = INFER
+    ierEnd(i) = IER
+    CALL XXUNSCAL(NPAR, XX, IDXX, xs)
+    xEnd(:,i) = xs(:NPAR)
+  enddo
+
+  ! Distinct optima: in order of quality, a result is the same optimum as a
+  ! better one closer than pso_cluster_dist
+  call rank(nS, ssqEnd, nEnd, order)
+  same = 0
+  do i = 2, nS
+    do m = 1, i - 1
+      if (same(order(m)) == 0 .and. box_distance(xEnd(:,order(i)), xEnd(:,order(m))) <= pso_cluster_dist) then
+        same(order(i)) = order(m)
+        exit
+      endif
+    enddo
+  enddo
+  best = order(1)
+
+  OPEN(UNIT=1,STATUS='OLD',file='paraest.out',FORM='FORMATTED',POSITION='APPEND')
+  WRITE(1,'(/,X,A,I0,A,I0,A)') 'Results of Levenberg-Marquardt from ', nS, ' PSO points (', &
+    count(same(:nS) == 0), ' distinct optima), best first:'
+  WRITE(1,'(X,A)') ' Start  Lost        SSQ       INFER   IER  Same as  Parameters'
+  do m = 1, nS
+    i = order(m)
+    if (same(i) == 0) then
+      WRITE(1,'(X,I6,I6,ES16.8,2I6,9X,*(ES15.7))') i, nEnd(i), ssqEnd(i), inferEnd(i), ierEnd(i), xEnd(:,i)
+    else
+      WRITE(1,'(X,I6,I6,ES16.8,2I6,I9,*(ES15.7))') i, nEnd(i), ssqEnd(i), inferEnd(i), ierEnd(i), same(i), xEnd(:,i)
+    endif
+  enddo
+  WRITE(1,'(X,A,I0)') 'Final parameters: those of start ', best
+  CLOSE(UNIT=1)
+
+  ! XX and the statistics of the best result
+  if (best /= nS) then
+    OPEN(UNIT=1,STATUS='OLD',file='paraest.out',FORM='FORMATTED',POSITION='APPEND')
+    WRITE(1,'(/,X,A,I0,A)') 'Levenberg-Marquardt again from the result of start ', best, ' (for its statistics):'
+    CLOSE(UNIT=1)
+    XX(:NPAR) = xEnd(:,best)
+    CALL XXSCAL(NPAR, XX, IDXX, boundFrac)
+    CALL ZXSSQ(FUNC,NCXP,NPAR,NSIG,EPS,DELTAZ,MAXFN,IOPT,PARM,XX,SSQ,FCION,XJAC,IXJAC,XJTJ,WORK,INFER,IER)
+  endif
+endsubroutine multi_start_lm
 
 endprogram paraest
 !

@@ -17,7 +17,7 @@ module config
   private
   public :: read_options
   public :: PENALIZ, PENALIZNAN
-  public :: optimizer, pso_particles, pso_iterations, pso_seed
+  public :: optimizer, pso_particles, pso_iterations, pso_seed, pso_starts, pso_ssq_factor, pso_cluster_dist
   public :: range_gstr, range_kstr, range_alpha, range_gp, range_gdd, range_q, range_eps, range_tc
 
   ! --- Objective function ---------------------------------------------------
@@ -36,6 +36,16 @@ module config
   integer :: pso_particles = 35
   integer :: pso_iterations = 50
   integer :: pso_seed = 12345            ! same seed, same run
+  ! 'pso+lm': Levenberg-Marquardt from up to pso_starts points of the PSO in
+  ! distinct regions of the box. Candidates: the evaluations with at most one
+  ! point lost more than the best, and SSQ <= pso_ssq_factor times the best.
+  ! Taken from best to worst, a candidate starts LM if its distance to every
+  ! start already chosen is larger than pso_cluster_dist (RMS of the
+  ! differences divided by the width of the box of each parameter). The LM
+  ! results closer than that are the same optimum.
+  integer :: pso_starts = 5
+  double precision :: pso_ssq_factor = 2D0
+  double precision :: pso_cluster_dist = 0.1D0
 
   ! --- PSO search box ---------------------------------------------------------
   ! g*, Q, eps and Tc: between these multiples of the initial value given
@@ -54,6 +64,7 @@ module config
   double precision :: range_gdd(2)  = [-1D0, 1D0]      ! g" (absolute)
 
   namelist /options/ PENALIZ, PENALIZNAN, optimizer, pso_particles, pso_iterations, pso_seed, &
+                     pso_starts, pso_ssq_factor, pso_cluster_dist, &
                      range_gstr, range_q, range_eps, range_tc, range_kstr, range_alpha, range_gp, range_gdd
 
 contains
@@ -84,6 +95,10 @@ subroutine read_options()
     write(*,*) 'paraest.cfg: pso_particles >= 2, pso_iterations >= 1 and pso_seed > 0 are required'
     stop 1
   endif
+  if (pso_starts < 1 .or. pso_ssq_factor < 1D0 .or. pso_cluster_dist < 0D0) then
+    write(*,*) 'paraest.cfg: pso_starts >= 1, pso_ssq_factor >= 1 and pso_cluster_dist >= 0 are required'
+    stop 1
+  endif
 
   open(unit=1, status='OLD', file='paraest.out', form='FORMATTED', position='APPEND')
   write(1,'(/,X,A,/,X,A,ES12.4,/,X,A,ES12.4)') 'Options read from paraest.cfg:', &
@@ -93,6 +108,8 @@ subroutine read_options()
     write(1,'(X,2A)') 'Optimizer: ', trim(optimizer)
     write(1,'(X,A,I0,A,I0,A,I0)') 'PSO: particles = ', pso_particles, ', iterations = ', pso_iterations, &
       ', seed = ', pso_seed
+    if (optimizer == 'pso+lm') write(1,'(X,A,I0,A,F6.2,A,F6.3)') 'LM starts: up to ', pso_starts, &
+      ', SSQ <= ', pso_ssq_factor, ' x best, distance > ', pso_cluster_dist
     write(1,'(X,A,8(/,X,A,2F10.4))') "PSO search box (k', association volume and dc: physical bounds):", &
       '  g*  (times the initial value): ', range_gstr, &
       '  Q   (times the initial value): ', range_q, &
