@@ -250,7 +250,7 @@ endsubroutine rank
 !
 subroutine multi_start_lm()
   double precision :: f(nArch), fMax, xs(NPARM)
-  double precision, allocatable :: start(:,:), xEnd(:,:), ssqEnd(:)
+  double precision, allocatable :: start(:,:), xEnd(:,:), xEndS(:,:), ssqEnd(:)
   integer, allocatable :: nEnd(:), inferEnd(:), ierEnd(:), same(:), order(:)
   integer :: idx(nArch), nb(nArch), i, k, m, nS, nMin, best
 
@@ -272,7 +272,7 @@ subroutine multi_start_lm()
     if (nS == pso_starts) exit
   enddo
 
-  allocate(xEnd(NPAR,nS), ssqEnd(nS), nEnd(nS), inferEnd(nS), ierEnd(nS), same(nS), order(nS))
+  allocate(xEnd(NPAR,nS), xEndS(NPAR,nS), ssqEnd(nS), nEnd(nS), inferEnd(nS), ierEnd(nS), same(nS), order(nS))
   do i = 1, nS
     OPEN(UNIT=1,STATUS='OLD',file='paraest.out',FORM='FORMATTED',POSITION='APPEND')
     WRITE(1,'(/,X,A,I0,A,I0,A,/,(X,5ES16.8))') 'Levenberg-Marquardt from PSO point ', i, ' of ', nS, ':', start(:,i)
@@ -288,6 +288,7 @@ subroutine multi_start_lm()
     ierEnd(i) = IER
     CALL XXUNSCAL(NPAR, XX, IDXX, xs)
     xEnd(:,i) = xs(:NPAR)
+    xEndS(:,i) = XX(:NPAR)            ! scaled: LM is run again from it exactly
   enddo
 
   ! Distinct optima: in order of quality, a result is the same optimum as a
@@ -324,8 +325,7 @@ subroutine multi_start_lm()
     OPEN(UNIT=1,STATUS='OLD',file='paraest.out',FORM='FORMATTED',POSITION='APPEND')
     WRITE(1,'(/,X,A,I0,A)') 'Levenberg-Marquardt again from the result of start ', best, ' (for its statistics):'
     CLOSE(UNIT=1)
-    XX(:NPAR) = xEnd(:,best)
-    CALL XXSCAL(NPAR, XX, IDXX, boundFrac)
+    XX(:NPAR) = xEndS(:,best)
     CALL ZXSSQ(FUNC,NCXP,NPAR,NSIG,EPS,DELTAZ,MAXFN,IOPT,PARM,XX,SSQ,FCION,XJAC,IXJAC,XJTJ,WORK,INFER,IER)
   endif
 endsubroutine multi_start_lm
