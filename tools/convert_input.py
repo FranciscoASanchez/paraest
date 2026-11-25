@@ -18,6 +18,13 @@ database are written as own values; binary values that differ from what
 PARGR would take from the database, too; and the association energies and
 volumes that differ from FOR015 (a pair missing from the database is 0).
 
+Each associating group is identified by the name in the comment of its
+composition line ("!asoc AOH", against the short name or the description of
+FOR014), else by its association energies and volumes (with itself and
+with the groups already identified) against FOR015; a group found neither
+way takes a free number, with its sites, name and parameters written as own
+values.
+
 The fitted parameters are written with the position of each group in the
 new system: groups in increasing order of their database number (column Pos
 of the parameter tables in paraest.out).
@@ -109,7 +116,7 @@ def read_database(d):
         for i, line in enumerate(open(f14, encoding='latin-1'), 1):
             t = line.split()
             if len(t) >= 2:
-                assoc[i] = (int(t[0]), t[1])
+                assoc[i] = (int(t[0]), t[1], ' '.join(t[3:]))   # sites, short name, description
     # FOR015, in the order PARGR reads it: for each group a and site k, the
     # groups b >= a and their sites l (l >= k when b = a). 88.888 = missing,
     # taken as 0 (as PARGR does).
@@ -152,6 +159,78 @@ def differ(a, b):
 
 def fmt(x):
     return repr(float(x)) if x != int(x) or abs(x) >= 1e15 else '%.1f' % x
+
+
+def norm(name):
+    """Name without case, '-', '_', spaces...: 'o-AO-' -> 'oao'."""
+    return re.sub(r'[^0-9a-z]', '', name.lower())
+
+
+ALIASES = {'ar': 'aring'}
+
+
+def assoc_ids(NGA, M, E, V, onuName, dbAssoc, dbPair):
+    """Database numbers of the associating groups of the old file.
+
+    1. By name: the comment of the composition line ("!asoc AOH") against the
+       short name or the description of FOR014.
+    2. By value: the association energies and volumes of the group with
+       itself and with the groups already identified, against FOR015;
+       repeated while it identifies groups (the unique candidate with the
+       most coincident nonzero pairs).
+    3. The rest take the highest free numbers, with own values.
+    Returns the numbers and how each one was found ('name', 'value', 'own').
+    """
+    aid, how = [None] * NGA, [None] * NGA
+    names = {}
+    for n, (_, short, desc) in dbAssoc.items():
+        for x in (short, desc):
+            names.setdefault(norm(x), set()).add(n)
+    used = set()
+    for i in range(NGA):
+        key = ALIASES.get(norm(onuName[i]), norm(onuName[i]))
+        cands = names.get(key, set()) - used if key else set()
+        if len(cands) == 1:
+            aid[i], how[i] = cands.pop(), 'name'
+            used.add(aid[i])
+
+    def close(a, b):
+        return abs(a - b) <= 1e-6 * max(1.0, abs(a), abs(b))
+
+    def score(i, n):
+        hits = 0
+        for j in range(NGA):
+            m = n if j == i else aid[j]
+            if m is None:
+                continue
+            for k in range(M[i]):
+                for l in range(M[j]):
+                    de, dv = dbPair.get((k + 1, n, l + 1, m), (0.0, 0.0))
+                    if (de or dv) and close(E.get((k, i, l, j), 0.0), de) and close(V.get((k, i, l, j), 0.0), dv):
+                        hits += 1
+        return hits
+    while True:
+        best = []
+        for i in range(NGA):
+            if aid[i] is not None:
+                continue
+            for n in dbAssoc:
+                if n not in used and dbAssoc[n][0] == M[i]:
+                    h = score(i, n)
+                    if h:
+                        best.append((h, i, n))
+        if not best:
+            break
+        h, i, n = max(best)
+        if sum(1 for b in best if b[0] == h and (b[1] == i or b[2] == n)) > 1:
+            break                              # ambiguous: left for step 3
+        aid[i], how[i] = n, 'value'
+        used.add(n)
+    free = sorted(set(dbAssoc) - used, reverse=True)
+    for i in range(NGA):
+        if aid[i] is None:
+            aid[i], how[i] = free.pop(0), 'own'
+    return aid, how
 
 
 # --------------------------------------------------------------------------
@@ -211,7 +290,13 @@ def convert(old, new, dbdir):
     # ---- group composition (removed: it goes into the new block)
     nuStart = R.skip_blank()
     NU = [R.read(NC, int) for _ in range(NG)]                 # NU[group][comp]
-    ONU = [R.read(NC, int) for _ in range(NGA)]
+    ONU, onuName = [], []
+    for _ in range(NGA):
+        ONU.append(R.read(NC, int))
+        # the name of the group, if the line ends with a comment ("!asoc AOH")
+        c = lines[R.pos - 1].split('!', 1)
+        name = c[1].split()[-1] if len(c) > 1 and c[1].split() else ''
+        onuName.append(name if name.isascii() and norm(name) else '')
     nuEnd = R.pos
 
     # ---- data sets (kept)
@@ -316,18 +401,14 @@ def convert(old, new, dbdir):
     for i in range(NG):
         name[i] = groups[gid[i]][5][:10] if (i + 1) not in unmatched else 'G%d' % (i + 1)
 
-    # Associating groups: a free number among those with the same sites
-    aid = [None] * NGA
-    usedA = set()
+    aid, how = assoc_ids(NGA, M, E, V, onuName, dbAssoc, dbPair)
     for i in range(NGA):
-        cands = [n for n, (s, _) in sorted(dbAssoc.items()) if s == M[i] and n not in usedA]
-        if not cands:
-            cands = [n for n in sorted(dbAssoc) if n not in usedA]
-        aid[i] = cands[0]
-        usedA.add(aid[i])
-    if NGA:
-        warnings.append('associating groups: database numbers %s chosen only by their number of '
-                        'sites (their names are the database ones)' % aid)
+        if how[i] == 'own':
+            warnings.append('associating group %d (%s, %d sites) is not in the database: it takes number %d '
+                            'with own sites and association parameters' % (i + 1, onuName[i] or '?', M[i], aid[i]))
+        elif how[i] == 'name' and dbAssoc[aid[i]][0] != M[i]:
+            warnings.append('associating group %d (%s): %d sites, %d in the database (own sites written)'
+                            % (i + 1, onuName[i], M[i], dbAssoc[aid[i]][0]))
 
     # ---------------------------------------------------------------------
     # New block
@@ -361,8 +442,8 @@ def convert(old, new, dbdir):
     out.extend(binary)
     if NGA > 0:
         # own sites only when the database has another number of sites
-        sites = ['%d  %d  A%d' % (aid[i], M[i], i + 1) for i in range(NGA)
-                 if dbAssoc.get(aid[i], (None,))[0] != M[i]]
+        sites = ['%d  %d  %s' % (aid[i], M[i], (onuName[i] or 'A%d' % (i + 1))[:10]) for i in range(NGA)
+                 if how[i] == 'own' or dbAssoc.get(aid[i], (None,))[0] != M[i]]
         pairs = []
         for i in range(NGA):
             for j in range(i, NGA):

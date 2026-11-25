@@ -55,8 +55,11 @@ symmetric: fitting (i,j) also sets (j,i).
 Old files (all the parameters written out, groups numbered 1..NG) are
 converted with
     tools/convert_input.py old.dat new.dat [directory with FOR010-FOR015]
-It finds each group in FOR010 by (Q, T*), writes as own values what differs
-from the database, and tells which groups it could not find.
+It finds each group in FOR010 by (Q, T*), and each associating group by the
+name in the comment of its composition line ("!asoc AOH": short name or
+description in FOR014) or else by its association energies and volumes in
+FOR015; it writes as own values what differs from the database, and tells
+which groups it could not find (they take free numbers, with own values).
 
 Options (optional file paraest.cfg in the current directory, a namelist):
     &options
