@@ -22,16 +22,13 @@
  --------------------------------------------------
  --------------- INITIAL PARAMETERS ---------------
  --------------------------------------------------
- Binary interaction parameters of groups   1 (CH3)  and 209 (G2) are not available in the database.
+ Binary interaction parameters of the following pairs of groups are not available in the database.
  Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups   2 (CH2)  and 209 (G2) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups 194 (CH4)  and 208 (G3) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups 194 (CH4)  and 209 (G2) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups 208 (G3)  and 209 (G2) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
+     1 (CH3)  and 209 (G2)
+     2 (CH2)  and 209 (G2)
+   194 (CH4)  and 208 (G3)
+   194 (CH4)  and 209 (G2)
+   208 (G3)  and 209 (G2)
 
  Pure group attractive parameters:
                                                                                                                Groups per component

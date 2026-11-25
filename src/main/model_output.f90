@@ -117,7 +117,8 @@ endsubroutine write_model_params
 !------------------------------------------------------------------------------------------------------------------------------------
 !
 !  Keeps the warnings that PARGR wrote to unit u (binary parameters not found
-!  in the database: the line and the one that follows it) and closes u, so
+!  in the database: the two lines of the notice and the list of pairs of
+!  groups) and closes u, so
 !  that the scratch file does not stay behind if the program stops later.
 !
 subroutine keep_pargr_warnings(u)
@@ -130,11 +131,8 @@ subroutine keep_pargr_warnings(u)
     do
       read(u,'(A)',iostat=ios) line
       if (ios /= 0) exit
-      if (index(line, 'not available in the database') > 0) then
-        n = n + 1
-        if (pass == 2) pargrWarning(n) = line
-        read(u,'(A)',iostat=ios) line
-        if (ios /= 0) exit
+      if (index(line, 'not available in the database') > 0 .or. index(line, 'Standard (predictive)') > 0 &
+          .or. index(line, ')  and ') > 0) then
         n = n + 1
         if (pass == 2) pargrWarning(n) = line
       endif

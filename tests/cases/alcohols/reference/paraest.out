@@ -22,12 +22,11 @@
  --------------------------------------------------
  --------------- INITIAL PARAMETERS ---------------
  --------------------------------------------------
- Binary interaction parameters of groups  21 (CH3OH)  and  22 (C2H5OH) are not available in the database.
+ Binary interaction parameters of the following pairs of groups are not available in the database.
  Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups  21 (CH3OH)  and  23 (CH2OH) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups  22 (C2H5OH)  and  23 (CH2OH) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
+    21 (CH3OH)  and  22 (C2H5OH)
+    21 (CH3OH)  and  23 (CH2OH)
+    22 (C2H5OH)  and  23 (CH2OH)
 
  Pure group attractive parameters:
                                                                                                                Groups per component

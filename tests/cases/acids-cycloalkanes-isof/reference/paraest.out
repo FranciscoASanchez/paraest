@@ -22,14 +22,12 @@
  --------------------------------------------------
  --------------- INITIAL PARAMETERS ---------------
  --------------------------------------------------
- Binary interaction parameters of groups   5 ((B)CH3)  and  45 (CH3COOH) are not available in the database.
+ Binary interaction parameters of the following pairs of groups are not available in the database.
  Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups   5 ((B)CH3)  and  46 (CH2COOH) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups   5 ((B)CH3)  and  47 (CHCOOH) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups   5 ((B)CH3)  and  48 (C(B)COOH) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
+     5 ((B)CH3)  and  45 (CH3COOH)
+     5 ((B)CH3)  and  46 (CH2COOH)
+     5 ((B)CH3)  and  47 (CHCOOH)
+     5 ((B)CH3)  and  48 (C(B)COOH)
 
  Pure group attractive parameters:
                                                                                                                Groups per component

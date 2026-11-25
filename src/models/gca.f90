@@ -1244,6 +1244,7 @@ SUBROUTINE PARGR (NC, NG, NGA, NST, inputFile, outputFile)
 	dimension enAs(NSM,NGAM,NSM,NGAM),volAs(NSM,NGAM,NSM,NGAM),        &
      &          nyAss(NCM,NGAM)
 	integer sigma, outputFile
+	logical missingKij	! paraest: the header of the missing k*ij list is written once
 	real(8) kappa
 	
 	character(10) :: CName, GName, GAName, string
@@ -1440,6 +1441,7 @@ SUBROUTINE PARGR (NC, NG, NGA, NST, inputFile, outputFile)
 !	Lectura parametros de interaccion binaria grupales atractivos del banco de datos
 	if (NG > 1) then
 
+	  missingKij = .false.
 	  I=0
 	  J=0
 !       
@@ -1490,9 +1492,12 @@ SUBROUTINE PARGR (NC, NG, NGA, NST, inputFile, outputFile)
 	    IF (CABS > 1.D-3) GOTO 400
 	    XKIJ(J,L)=1.D0
 	    AKIJ(J,L)=0.D0
+	    if (.not. missingKij) write (outputFile, 129)
+	    missingKij = .true.
 	    write (outputFile, 130) IGROUP(J), GName(j)(:spaces(j)), IGROUP(L), GName(l)(:spaces(l))
-130	    FORMAT(/, ' Binary interaction parameters of groups ',I3,' (', A, ")  and ", I3,' (', A, ') are not available in the database.',/ &
-&	            , ' Standard (predictive) values will be used unless they are specified by the user.')	  
+129	    FORMAT(/, ' Binary interaction parameters of the following pairs of groups are not available in the database.', / &
+&	            , ' Standard (predictive) values will be used unless they are specified by the user.')
+130	    FORMAT(3X, I3, ' (', A, ')  and ', I3, ' (', A, ')')
 ! 130	    FORMAT(/, ' Los parámetros de interacción binaria entre los grupos ',I3,' (', A, ")  y ", I3,' (', A, ') no están disponibles.',/ &
 ! &	            , ' Se usarán valores estándar a menos que estos sean ingresador por el usuario')	  
 	    GOTO 401

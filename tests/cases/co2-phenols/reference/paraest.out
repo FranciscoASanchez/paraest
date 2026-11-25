@@ -22,38 +22,24 @@
  --------------------------------------------------
  --------------- INITIAL PARAMETERS ---------------
  --------------------------------------------------
- Binary interaction parameters of groups   1 (CH3)  and 209 (G4) are not available in the database.
+ Binary interaction parameters of the following pairs of groups are not available in the database.
  Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups   2 (CH2)  and 209 (G4) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups 163 (ACH)  and 209 (G4) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups 164 (AC-fused)  and 200 (CO2) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups 164 (AC-fused)  and 209 (G4) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups 166 (ACCH3)  and 209 (G4) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups 167 (ACCH2)  and 209 (G4) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups 170 (ACOH)  and 200 (CO2) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups 170 (ACOH)  and 209 (G4) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups 171 (ACOCH3)  and 200 (CO2) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups 171 (ACOCH3)  and 209 (G4) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups 200 (CO2)  and 209 (G4) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups   1 (H2O)  and   8 (-CHO) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups   6 (-COOH)  and   7 (-O-) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups   6 (-COOH)  and   8 (-CHO) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups   6 (-COOH)  and  10 (-COO-) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
+     1 (CH3)  and 209 (G4)
+     2 (CH2)  and 209 (G4)
+   163 (ACH)  and 209 (G4)
+   164 (AC-fused)  and 200 (CO2)
+   164 (AC-fused)  and 209 (G4)
+   166 (ACCH3)  and 209 (G4)
+   167 (ACCH2)  and 209 (G4)
+   170 (ACOH)  and 200 (CO2)
+   170 (ACOH)  and 209 (G4)
+   171 (ACOCH3)  and 200 (CO2)
+   171 (ACOCH3)  and 209 (G4)
+   200 (CO2)  and 209 (G4)
+     1 (H2O)  and   8 (-CHO)
+     6 (-COOH)  and   7 (-O-)
+     6 (-COOH)  and   8 (-CHO)
+     6 (-COOH)  and  10 (-COO-)
 
  Pure group attractive parameters:
                                                                                                                Groups per component

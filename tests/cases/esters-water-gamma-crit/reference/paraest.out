@@ -22,28 +22,19 @@
  --------------------------------------------------
  --------------- INITIAL PARAMETERS ---------------
  --------------------------------------------------
- Binary interaction parameters of groups  22 (C2H5OH)  and  23 (CH2OH) are not available in the database.
+ Binary interaction parameters of the following pairs of groups are not available in the database.
  Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups  22 (C2H5OH)  and  49 (CH3COOCH3) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups  22 (C2H5OH)  and  50 (CH3COOCH2) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups  22 (C2H5OH)  and  51 (CH3COOCH) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups  22 (C2H5OH)  and  53 (CH2COOCH3) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups  22 (C2H5OH)  and  54 (CH2COOCH2) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups  49 (CH3COOCH3)  and 193 (H2O) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups  50 (CH3COOCH2)  and 193 (H2O) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups  51 (CH3COOCH)  and 193 (H2O) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups  53 (CH2COOCH3)  and 193 (H2O) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
- Binary interaction parameters of groups  54 (CH2COOCH2)  and 193 (H2O) are not available in the database.
- Standard (predictive) values will be used unless they are specified by the user.
+    22 (C2H5OH)  and  23 (CH2OH)
+    22 (C2H5OH)  and  49 (CH3COOCH3)
+    22 (C2H5OH)  and  50 (CH3COOCH2)
+    22 (C2H5OH)  and  51 (CH3COOCH)
+    22 (C2H5OH)  and  53 (CH2COOCH3)
+    22 (C2H5OH)  and  54 (CH2COOCH2)
+    49 (CH3COOCH3)  and 193 (H2O)
+    50 (CH3COOCH2)  and 193 (H2O)
+    51 (CH3COOCH)  and 193 (H2O)
+    53 (CH2COOCH3)  and 193 (H2O)
+    54 (CH2COOCH2)  and 193 (H2O)
 
  Pure group attractive parameters:
                                                                                                                Groups per component
