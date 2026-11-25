@@ -289,14 +289,19 @@ def convert(old, new, dbdir):
         R.read(12)
     # ---- group composition (removed: it goes into the new block)
     nuStart = R.skip_blank()
-    NU = [R.read(NC, int) for _ in range(NG)]                 # NU[group][comp]
-    ONU, onuName = [], []
-    for _ in range(NGA):
-        ONU.append(R.read(NC, int))
+    def comment_name():
         # the name of the group, if the line ends with a comment ("!asoc AOH")
         c = lines[R.pos - 1].split('!', 1)
         name = c[1].split()[-1] if len(c) > 1 and c[1].split() else ''
-        onuName.append(name if name.isascii() and norm(name) else '')
+        return name if name.isascii() and norm(name) else ''
+    NU, nuName = [], []                                       # NU[group][comp]
+    for _ in range(NG):
+        NU.append(R.read(NC, int))
+        nuName.append(comment_name())
+    ONU, onuName = [], []
+    for _ in range(NGA):
+        ONU.append(R.read(NC, int))
+        onuName.append(comment_name())
     nuEnd = R.pos
 
     # ---- data sets (kept)
@@ -399,7 +404,7 @@ def convert(old, new, dbdir):
                             'with own values' % (i + 1, Q[i], Ts[i], gid[i]))
     name = {}
     for i in range(NG):
-        name[i] = groups[gid[i]][5][:10] if (i + 1) not in unmatched else 'G%d' % (i + 1)
+        name[i] = groups[gid[i]][5][:10] if (i + 1) not in unmatched else (nuName[i] or 'G%d' % (i + 1))[:10]
 
     aid, how = assoc_ids(NGA, M, E, V, onuName, dbAssoc, dbPair)
     for i in range(NGA):
@@ -419,7 +424,8 @@ def convert(old, new, dbdir):
         g = groups[gid[i]]
         vals = (Q[i], Ts[i], gs[i], g1[i], g2[i])
         if any(differ(a, b) for a, b in zip(vals, g[:5])):
-            pure.append('%d  %s  %s  %s  %s  %s  %s' % ((gid[i],) + tuple(fmt(x) for x in vals) + (name[i],)))
+            pure.append('%d  %s  %s  %s  %s  %s  %s' % ((gid[i],) + tuple(fmt(x) for x in vals) + (name[i],))
+                        + ('    ! not in the database (old group %d)' % (i + 1) if (i + 1) in unmatched else ''))
     binary = []
     for i in range(NG):
         for j in range(i, NG):
@@ -442,8 +448,9 @@ def convert(old, new, dbdir):
     out.extend(binary)
     if NGA > 0:
         # own sites only when the database has another number of sites
-        sites = ['%d  %d  %s' % (aid[i], M[i], (onuName[i] or 'A%d' % (i + 1))[:10]) for i in range(NGA)
-                 if how[i] == 'own' or dbAssoc.get(aid[i], (None,))[0] != M[i]]
+        sites = ['%d  %d  %s' % (aid[i], M[i], (onuName[i] or 'A%d' % (i + 1))[:10])
+                 + ('    ! not in the database (old associating group %d)' % (i + 1) if how[i] == 'own' else '')
+                 for i in range(NGA) if how[i] == 'own' or dbAssoc.get(aid[i], (None,))[0] != M[i]]
         pairs = []
         for i in range(NGA):
             for j in range(i, NGA):
