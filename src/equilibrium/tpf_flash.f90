@@ -13,15 +13,15 @@
 !  equation and four direct-substitution steps.
 !
 !  Changes with respect to TPfractionFlash v0.5.3:
-!  * the model is called directly (PARAGC + GCEOS of the GCA package), not
-!    through THERMO;
+!  * the model is called through THERMO (thermopack), as in v0.5.3; until
+!    2026-11-25 paraest called PARAGC + GCEOS of the GCA package directly;
 !  * no stop: every failure returns ierr /= 0 (T above the largest Tc with T
 !    specified, both phases missing at the start, no step reduction gives a
 !    good evaluation, no convergence in maxIt iterations, trivial solution);
 !  * an evaluation fails when the model does not find a phase (v0.5.3: only
 !    when both were missing); a phase not found with a guess is tried again
 !    without it (with a guess, GCEOS does not compute that phase);
-!  * a liquid that ZMAX does not find because the fluid has a single root
+!  * GCA only: a liquid that ZMAX does not find because the fluid has a single root
 !    (its liquid and vapor searches reach the same root, zmax_ier(2) = 199,
 !    near a critical point) is accepted: that root is the liquid's;
 !  * trivial solution: equal compositions and Z within 0.1% at the end
@@ -36,11 +36,12 @@
 !--------------------------------------------------------------------------------------------------------------------------
 module tpf_flash
   use zmax_status, only: zmax_ier
+  use thermo_model, only: model
   implicit none
   private
   public :: flash_beta
 
-  integer, parameter :: NCM = 30          ! must match the GCA package
+  integer, parameter :: NCM = 30          ! must match thermopack
   integer, parameter :: V = 1, L = 2
   ! Bound of ln K: K up to 1e43, and sum(y) cannot overflow
   double precision, parameter :: lnKmax = 100D0
@@ -187,23 +188,24 @@ subroutine func(NC, NG, NST, NDim, spec, beta, T, P, feed, K, xi, guess, w, Z, l
   logical, intent(out) :: thermoOK
 
   double precision :: dLnPhi_dn(NCM,NCM,2), dLnPhi_dT(NCM,2), dLnPhi_dP(NCM,2), denom(NC), dxdxi(NC), dydxi(NC)
+  double precision :: H, dH_dn(NCM), Cp, B
   integer :: ic(2), i, j
 
   call molar_fractions(NC, beta, K, feed, w, denom)
-  call PARAGC(T, NC, NG, NST, 1)
-  call GCEOS(NC, NG, NST, 2, 1, T, P, w(:,L), lnPhi(:,L), dLnPhi_dn(:,:,L), dLnPhi_dT(:,L), dLnPhi_dP(:,L), Z(L), &
-             guess, 1, ic(L))
+  ! calc = 6: ln phi and its derivatives with T, P and n
+  call THERMO(model, NC, 1, 6, guess, T, P, w(:,L), Z(L), lnPhi(:,L), dLnPhi_dn(:,:,L), dLnPhi_dT(:,L), &
+              dLnPhi_dP(:,L), H, dH_dn, Cp, B, ic(L))
   ! With a guess, GCEOS does not compute a phase it does not find: again
   ! without guess
   if (ic(L) /= 1 .and. guess /= 0) &
-    call GCEOS(NC, NG, NST, 2, 1, T, P, w(:,L), lnPhi(:,L), dLnPhi_dn(:,:,L), dLnPhi_dT(:,L), dLnPhi_dP(:,L), Z(L), &
-               0, 1, ic(L))
-  ! Liquid "not found" because the liquid and vapor searches reached the same
-  ! root: the fluid has a single root (near a critical point), and it is the
-  ! liquid's
-  if (ic(L) /= 1 .and. zmax_ier(2) == 199) ic(L) = 1
-  call GCEOS(NC, NG, NST, 2, 1, T, P, w(:,V), lnPhi(:,V), dLnPhi_dn(:,:,V), dLnPhi_dT(:,V), dLnPhi_dP(:,V), Z(V), &
-             guess, -1, ic(V))
+    call THERMO(model, NC, 1, 6, 0, T, P, w(:,L), Z(L), lnPhi(:,L), dLnPhi_dn(:,:,L), dLnPhi_dT(:,L), &
+                dLnPhi_dP(:,L), H, dH_dn, Cp, B, ic(L))
+  ! GCA: liquid "not found" because the liquid and vapor searches reached the
+  ! same root: the fluid has a single root (near a critical point), and it is
+  ! the liquid's
+  if (model == 1 .and. ic(L) /= 1 .and. zmax_ier(2) == 199) ic(L) = 1
+  call THERMO(model, NC, -1, 6, guess, T, P, w(:,V), Z(V), lnPhi(:,V), dLnPhi_dn(:,:,V), dLnPhi_dT(:,V), &
+              dLnPhi_dP(:,V), H, dH_dn, Cp, B, ic(V))
   thermoOK = all(ic == 1) .and. abs(Z(V) - Z(L)) >= 1D-6
   if (.not. thermoOK) then
     F = 0D0
@@ -252,6 +254,7 @@ subroutine initialization(NC, NG, NST, spec, beta, T, P, feed, K, ierr)
   common /CRIT/ Tc, Pc, omega
 
   double precision :: w(NCM,2), Z(2), lnPhi(NCM,2), dLnPhi_dn(NCM,NCM), dLnPhi_dT(NCM,2), dLnPhi_dP(NCM)
+  double precision :: H, dH_dn(NCM), Cp, Bvir
   double precision :: denom(NC), A, B, lnKR, best, sumL, sumV
   integer :: ic(2), i, iteration, ref
 
@@ -288,9 +291,11 @@ subroutine initialization(NC, NG, NST, spec, beta, T, P, feed, K, ierr)
   Z = 0D0
   call molar_fractions(NC, beta, K, feed, w, denom)
   do iteration = 1, 4
-    call PARAGC(T, NC, NG, NST, 1)
-    call GCEOS(NC, NG, NST, 1, 1, T, P, w(:,L), lnPhi(:,L), dLnPhi_dn, dLnPhi_dT(:,L), dLnPhi_dP, Z(L), 0, 1, ic(L))
-    call GCEOS(NC, NG, NST, 1, 1, T, P, w(:,V), lnPhi(:,V), dLnPhi_dn, dLnPhi_dT(:,V), dLnPhi_dP, Z(V), 0, -1, ic(V))
+    ! calc = 4: ln phi and its derivatives with T and P
+    call THERMO(model, NC, 1, 4, 0, T, P, w(:,L), Z(L), lnPhi(:,L), dLnPhi_dn, dLnPhi_dT(:,L), dLnPhi_dP, &
+                H, dH_dn, Cp, Bvir, ic(L))
+    call THERMO(model, NC, -1, 4, 0, T, P, w(:,V), Z(V), lnPhi(:,V), dLnPhi_dn, dLnPhi_dT(:,V), dLnPhi_dP, &
+                H, dH_dn, Cp, Bvir, ic(V))
     if (ic(L) < 0 .and. ic(V) < 0) then
       ierr = 2
       return

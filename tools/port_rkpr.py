@@ -99,6 +99,15 @@ for m in ("SRKPR_EoS", "PCSAFT_EoS", "SanchezLacombe_EoS", "MTC_EoS", "gamma_phi
         sys.exit(f"port_rkpr: {m} left in THERMO")
 parts["THERMO"] = t
 
+# GCA_EoS: n_deriv and temp_deriv are initialized in their declaration
+# (implicit SAVE), so after one call with calc = 5/6/9 (or 4/6/7/8/9) every
+# later call computed second (or temperature) derivatives too. Reset them at
+# each call, as RKPR_EoS does.
+g = parts["GCA_EoS"]
+g = replace(g, "\tcommon /GCA/                    NG, NGA, NST\n!\n",
+            "\tcommon /GCA/                    NG, NGA, NST\n!\n\tn_deriv = 1\n\ttemp_deriv = 0\n")
+parts["GCA_EoS"] = g
+
 # ReadParameters: models 1 and 4 only. The COMMON /cubicEq/ with initialized
 # variables is not valid outside BLOCK DATA (gfortran) and only served SRK/PR.
 r = parts["ReadParameters"]
@@ -142,5 +151,7 @@ write(ROOT / "src/models/thermopack.f90", f"""!
 !	  - ReadParameters: COMMON /cubicEq/ removed (initialized variables in a
 !	    COMMON outside BLOCK DATA; it only served SRK/PR).
 !	  - Bcalc: COMMON /MOL/ with NCM components instead of 2.
+!	  - GCA_EoS: n_deriv and temp_deriv reset at each call (initialized in
+!	    the declaration, they kept the value of a previous call).
 !
 """, body)

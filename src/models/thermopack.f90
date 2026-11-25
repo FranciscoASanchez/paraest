@@ -10,6 +10,8 @@
 !	  - ReadParameters: COMMON /cubicEq/ removed (initialized variables in a
 !	    COMMON outside BLOCK DATA; it only served SRK/PR).
 !	  - Bcalc: COMMON /MOL/ with NCM components instead of 2.
+!	  - GCA_EoS: n_deriv and temp_deriv reset at each call (initialized in
+!	    the declaration, they kept the value of a previous call).
 !
 
 !------------------------------------------------------------------------------------------
@@ -139,6 +141,8 @@ SUBROUTINE GCA_EoS (calc, phase_type, guess, NC, T, P, n, lnPhi, DLnPhi_N, DLnPh
 
 	common /GCA/                    NG, NGA, NST
 !
+	n_deriv = 1
+	temp_deriv = 0
 	if ((calc /= 0) .OR. (calc /= 3) .OR. calc /= 10) then
 	  
 !  Cálculo de coeficiente de fugacidad
