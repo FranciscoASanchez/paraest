@@ -41,6 +41,8 @@ subroutine fakePARGR(NC,NG,NGA,NST,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ
 !
   ! Association energy and volume with 4 indices: only in this subroutine.
   integer :: MAssoc(NGA)
+  integer :: GCA_NG, GCA_NGA, GCA_NST
+  common /GCA/ GCA_NG, GCA_NGA, GCA_NST
   double precision :: enAss(2,NGA,2,NGA), rkAss(2,NGA,2,NGA), onuAsocWW(NGA,NC)
   integer :: sigma
   double precision :: kappa
@@ -159,6 +161,10 @@ subroutine fakePARGR(NC,NG,NGA,NST,NUWW,QAREA,TS,GS,GDOT,GDDOT,RKIJ,RKTIJ,ALFAIJ
     enddo
 !
   endif
+  ! thermopack's GCA_EoS takes the structure from COMMON /GCA/
+  GCA_NG = NG
+  GCA_NGA = NGA
+  GCA_NST = NST
 
   return
 endsubroutine fakePARGR

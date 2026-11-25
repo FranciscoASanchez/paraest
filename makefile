@@ -31,8 +31,11 @@ MAIN         = src/main/dimensions.f90                   \
 OPTIMIZATION = src/optimization/zxssq.f90                 \
                src/optimization/pso.f90
 
-MODELS       = src/models/gca_parameters.f90             \
+MODELS       = src/models/thermo_model.f90               \
+               src/models/gca_parameters.f90             \
                src/models/gca.f90                        \
+               src/models/rkpr.f90                       \
+               src/models/thermopack.f90                 \
                src/models/spline_temperature.f90         \
                src/models/gca_bridge.f90                 \
                src/models/fugacity.f90                   \
@@ -119,6 +122,8 @@ $(DBGDIR)/gca_bridge.o: $(DBGDIR)/gca.o
 # gca.f90 also holds module zmax_status
 $(OBJDIR)/tpf_flash.o: $(OBJDIR)/gca.o
 $(DBGDIR)/tpf_flash.o: $(DBGDIR)/gca.o
+$(OBJDIR)/fugacity.o: $(OBJDIR)/thermo_model.o
+$(DBGDIR)/fugacity.o: $(DBGDIR)/thermo_model.o
 RESDEPS = dimensions config fit_data gca_parameters gca_bridge scaling utilities tpf_flash
 $(OBJDIR)/residuals.o: $(call dep,$(OBJDIR),$(RESDEPS))
 $(DBGDIR)/residuals.o: $(call dep,$(DBGDIR),$(RESDEPS))
