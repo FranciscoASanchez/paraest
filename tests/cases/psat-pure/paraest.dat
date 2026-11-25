@@ -43,10 +43,24 @@
 
 
 
-647.13	220.56	0.0000	0.0000	2.5800	273.15	6000.0	0.0000	0.0000	0.0000	0.0000	0.0000	!H2O
-425.12	37.464	273.15	1.0200	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!C4
-469.70	33.259	309.20	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!C5
-568.70	24.574	398.84	0.9999	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!C8
+1    ! PARMOL: units (1: atm)
+comp1    !H2O
+647.13  220.56  0.0  0.0  0.0  2.58    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp2    !C4
+425.12  37.464  0.0  273.15  1.02  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp3    !C5
+469.7  33.259  0.0  309.2  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp4    !C8
+568.7  24.574  0.0  398.84  0.9999  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+
+273.15  0.0  6000.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp1)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp2)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp3)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp4)
 
 
 

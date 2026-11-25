@@ -101,35 +101,108 @@
 
 
 
-304.21	72.882	0.0000	0.0000	3.1287	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!1: DIOXIDO DE CARBONO
+1    ! PARMOL: units (1: atm)
+comp1    !1: DIOXIDO DE CARBONO
+304.21  72.882  0.0  0.0  0.0  3.1287    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp2    !2: C6H6
+562.05  48.95  0.0  0.0  0.0  4.3813    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp3    !3: MePh
+591.75  41.08  0.0  0.0  0.0  4.7739    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp4    !4: EtPh
+617.15  36.09  0.0  0.0  0.0  4.998    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp5    !5: n-PrPh
+638.35  31.582  0.0  432.39  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp6    !6: n-BuPh
+660.5  28.522  0.0  456.45  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp7    !7: n-PePh
+679.9  25.699  0.0  478.61  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp8    !8: n-HxPh
+698.0  23.489  0.0  499.26  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp9    !9: n-HePh
+714.0  21.515  0.0  519.26  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp10    !10: n-OcPh
+729.0  19.936  0.0  537.55  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp11    !11	PhOH		314.19	0.00185
+694.2  60.623  0.0  0.0  0.0  4.3799    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp12    !12	1,2-Ph(OH)2
+800.0  61.58  0.0  518.65  1.0  4.664    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp13    !13	o-MePhOH	464.30	1.0000
+697.55  49.92  0.0  356.64  0.01864  4.8387    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp14    !14	p-MePhOH
+704.65  50.83  0.0  360.83  0.01241  4.7663    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp15    !15	2,4-Me2PhOH
+707.65  43.79  0.0  489.0  1.14  5.1828    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp16    !16	2,6-Me2PhOH
+701.05  40.0  0.0  471.68  0.9387  5.2531    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp17    !17	PhOMe		315.87	0.0136
+645.6  41.845  0.0  368.15  0.1535  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp18    !18	1,2-Ph(OMe)2		479.00	1.0000	!433.15	0.2369  !332.30	2.02E-3
+697.4  33.95  0.0  332.3  0.00202  5.2779632    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp19    !19	2-MeOPhOH	433.15	0.2596	!478.15	1.0000	!	310.90	6.83E-04
+700.1  48.457  0.0  323.2  0.00156  4.9782    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp20    !20	2-MePhOMe	444.20	1.0000
+662.0  34.5914  0.0  336.65  0.01842  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp21    !21	3-MePhOMe	448.70	1.0000
+665.3  34.5914  0.0  339.15  0.01842  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp22    !22	4-MePhOMe	447.20	1.0000
+666.7  34.5914  0.0  339.65  0.01974  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp23    !23	3-MePhOH	475.20	1.0000
+705.85  47.63  0.0  341.45  0.004254  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp24    !24	PhCHO
+697.0  46.0  0.0  366.0  0.0578  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp25    !25	vanillin
+777.0  40.1  0.0  355.1  0.000206  5.52    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
 
-562.05	48.950	0.0000	0.0000	4.3813	278.68	9866.0	0.0000	0.0000	0.0000	0.0000	0.0000	!2: C6H6
-591.75	41.080	0.0000	0.0000	4.7739	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!3: MePh
-617.15	36.090	0.0000	0.0000	4.9980	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!4: EtPh
-638.35	31.582	432.39	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!5: n-PrPh
-660.50	28.522	456.45	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!6: n-BuPh
-679.90	25.699	478.61	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!7: n-PePh
-698.00	23.489	499.26	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!8: n-HxPh
-714.00	21.515	519.26	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!9: n-HePh
-729.00	19.936	537.55	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!10: n-OcPh
-
-694.20 	60.623	0.0000	0.0000	4.3799	314.06	11510.	0.0000	0.0000	0.0000	5.9000	0.00185	!11	PhOH		314.19	0.00185
-800.00	61.580	518.65	1.0000 	4.6640	377.60	22760.	0.0000	0.0000	0.0000	0.0000	0.0000	!12	1,2-Ph(OH)2
-697.550	49.920	356.64	1.864E-02	4.8387	304.19	15820.	0.0000	0.0000	0.0000	0.0000	0.0000	!13	o-MePhOH	464.30	1.0000
-704.650	50.830	360.83	1.241E-02	4.7663	307.93	12707.	0.0000	0.0000	0.0000	0.0000	0.0000	!14	p-MePhOH
-707.65	43.790	489.00	1.1400	5.1828	297.68	12840.	0.0000	0.0000	0.0000	0.0000	0.0000	!15	2,4-Me2PhOH
-701.05	40.000	471.68	0.9387	5.2531	318.76	18900.	0.0000	0.0000	0.0000	0.0000	0.0000	!16	2,6-Me2PhOH
-
-645.60	41.845	368.15	0.1535	0.0000	237.00	11660.	0.0000	0.0000	0.0000	0.0000	0.0000	!17	PhOMe		315.87	0.0136
-697.40	33.950	332.30	2.02E-3	5.2779632	295.70	12600.	0.0000	0.0000	0.0000	0.0000	0.0000	!18	1,2-Ph(OMe)2		479.00	1.0000	!433.15	0.2369  !332.30	2.02E-3
-700.10	48.457	323.20	1.560E-03	4.9782	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!19	2-MeOPhOH	433.15	0.2596	!478.15	1.0000	!	310.90	6.83E-04
-662.00	34.5914	336.65	1.842E-2	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!20	2-MePhOMe	444.20	1.0000
-665.30	34.5914	339.15	1.842E-2	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!21	3-MePhOMe	448.70	1.0000
-666.70	34.5914	339.65	1.974E-2	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!22	4-MePhOMe	447.20	1.0000
-
-705.85	47.630	341.45	4.254E-03	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!23	3-MePhOH	475.20	1.0000
-697.00	46.0000	366.00	0.05780	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!24	PhCHO
-777.00	40.100	355.10	0.000206	5.5200	355.10	22400.	48.000	0.0000	0.0000	0.0000	0.0000	!25	vanillin
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp1)
+278.68  0.0  9866.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp2)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp3)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp4)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp5)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp6)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp7)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp8)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp9)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp10)
+314.06  0.00185  11510.0  5.9  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp11)
+377.6  0.0  22760.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp12)
+304.19  0.0  15820.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp13)
+307.93  0.0  12707.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp14)
+297.68  0.0  12840.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp15)
+318.76  0.0  18900.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp16)
+237.0  0.0  11660.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp17)
+295.7  0.0  12600.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp18)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp19)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp20)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp21)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp22)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp23)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp24)
+355.1  0.0  22400.0  0.0  48.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp25)
 
 
 

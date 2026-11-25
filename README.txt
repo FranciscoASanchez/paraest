@@ -61,6 +61,32 @@ description in FOR014) or else by its association energies and volumes in
 FOR015; it writes as own values what differs from the database, and tells
 which groups it could not find (they take free numbers, with own values).
 
+Pure-component properties (since 2026-11-25) are read by PARMOL of the GCA
+package, right after the PARGR block, and are followed by the melting block
+(independent of the model):
+
+    nUnit                               1: pressures in atm, 0: in MPa
+  for each component:
+    name
+    Tc  Pc  omega  Tsat  Psat  dc       dc = 0: estimated from Tc, Pc; Tsat > 0:
+                                        dc is fitted to (Tsat, Psat) at every
+                                        evaluation (unless dc is a fitted
+                                        parameter); Tsat = 0 and omega > 0:
+                                        PARMOL fits it to a point from omega
+    M  c  A  B  C  D  E  F  G           molar mass, Peneloux, Passut-Danner
+  melting block, for each component:
+    Tfus  Pfus  DHfus  DVfus  ACpfus  BCpfus  NTSS
+                                        K, atm, J/mol, cm3/mol, J/(mol K),
+                                        J/(mol K2); DCpfus = ACpfus + BCpfus*T
+    Ttr  DHtr                           NTSS lines (solid-solid transitions)
+  For now paraest uses DCpfus = ACpfus and only the first transition (it
+  warns otherwise).
+
+Files with the earlier component line "Tc Pc Tsat Psat dc Tfu DHfu DCpfu
+TtrSS DHss DVfu Pfu" are converted with
+    tools/convert_input.py --components file.dat new.dat
+(tools/convert_input.py old.dat new.dat already writes the new format).
+
 Options (optional file paraest.cfg in the current directory, a namelist):
     &options
       optimizer = 'pso+lm'

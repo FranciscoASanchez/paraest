@@ -13,6 +13,14 @@
 !	    a COMMON: database numbers of the groups, sites per associating
 !	    group, associating groups per component, energy and volume with 4
 !	    indices.
+!	  - PARMOL leaves in module parmol_export the vapor-pressure point of
+!	    each component (TSAT, PS: local variables of PARMOL), in atm, and
+!	    dc as read (or estimated from Tc, Pc when 0), before its fit.
+!
+module parmol_export
+	implicit none
+	double precision :: pm_Tsat(30) = 0, pm_Psat(30) = 0, pm_dcIn(30) = 0
+endmodule parmol_export
 !
 module pargr_export
 	implicit none
@@ -1965,6 +1973,7 @@ endsubroutine group_reading
 !
 SUBROUTINE PARMOL (NC, NG, NST, inputFile, outputFile)
 !
+	use parmol_export, only: pm_Tsat, pm_Psat, pm_dcIn
 	IMPLICIT REAL*8 (A-H, O-Z)
 	parameter (NCM = 30, NGM = 30, NGAM = 14, NSM = 24)
 	character*10 :: CName, GName, GAName
@@ -2024,6 +2033,9 @@ SUBROUTINE PARMOL (NC, NG, NST, inputFile, outputFile)
 !	  write (outputFile, *) CName(i),' dc = ',dc(i),'cm/mol^(1/3)'
 
 	enddo
+	pm_Tsat(:NC) = TSAT(:NC)
+	pm_Psat(:NC) = PS(:NC)
+	pm_dcIn(:NC) = DC(:NC)
 1	continue
 !
 !  Guarda la información del componente "1", porque para ajustar el dc(i)

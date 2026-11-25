@@ -73,26 +73,88 @@
 
 
 
-647.13	217.56	0.0000	0.0000	2.5800	273.15	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!1  H2O   !Tc(K),Pc(atm),Tsat(K),Psat(atm),dc(cm/mol1/3),Tt(K),DHfus(J/mol),Ttr(K),DHtr(J/mol),DVfus(cm3/mol),Pt(atm)
-514.00	60.400	0.0000	0.0000	3.5873	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!2  EtOH
-506.55	46.879	330.09	1.0000	0.0000	0.0000	0.0000 	0.0000 	0.0000 	0.0000 	0.0000 	0.0000 	!3  MeAc	0.0000		330.09	1.0000	0.0000	0.0000	0.0000	3
-523.30	38.290	350.21	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!4  EtAc
-532.00	32.470	361.65	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!5  iPrAc
-549.73	33.161	374.65	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!6  nPrAc
-561.00	31.285	385.15	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!7  sBuAc
-575.40	30.496	308.15	2.621E-2	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!8  nBuAC	347.83	0.1867
-546.00	33.180	372.25	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!9  EtPrOO
-586.65	30.200	395.65	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!10 nPrPrOO
-469.70	33.259	309.22	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!11 nC5
-540.20	27.042	371.58	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!12 nC7
-704.00	22.798	319.93	2.855E-5	6.3803	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!13 Pr.Ac3	360.90	0.0007681964	6.3084
-571.00	29.114	394.65	1.0000	0.0000	175.15	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!14 Et.nBuOO
-712.00	17.172	320.00	4.677E-5 	0.0000	278.15	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!15 Me.DoOO !540.00	1.0000
-640.00	44.100	448.78	7.184E-1	4.6863	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!16 Eg.Ac
-563.05	42.830	313.15	0.0249	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!17 1-BuOH390.81	1.0000	0.0000	4.4000	0.0000
-657.00	32.371	310.20	7.585E-4	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!18 Me2.Scc,	p^vap = Verevkin(2009)
-663.00	24.969	490.15	1.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!19 Et2.Scc
-649.40	30.480	310.70	1.04E-3	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	!20 Et.Ac2,	p^vap = Verevkin(2009)
+1    ! PARMOL: units (1: atm)
+comp1    !1  H2O   !Tc(K),Pc(atm),Tsat(K),Psat(atm),dc(cm/mol1/3),Tt(K),DHfus(J/mol),Ttr(K),DHtr(J/mol),DVfus(cm3/mol),Pt(atm)
+647.13  217.56  0.0  0.0  0.0  2.58    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp2    !2  EtOH
+514.0  60.4  0.0  0.0  0.0  3.5873    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp3    !3  MeAc	0.0000		330.09	1.0000	0.0000	0.0000	0.0000	3
+506.55  46.879  0.0  330.09  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp4    !4  EtAc
+523.3  38.29  0.0  350.21  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp5    !5  iPrAc
+532.0  32.47  0.0  361.65  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp6    !6  nPrAc
+549.73  33.161  0.0  374.65  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp7    !7  sBuAc
+561.0  31.285  0.0  385.15  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp8    !8  nBuAC	347.83	0.1867
+575.4  30.496  0.0  308.15  0.02621  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp9    !9  EtPrOO
+546.0  33.18  0.0  372.25  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp10    !10 nPrPrOO
+586.65  30.2  0.0  395.65  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp11    !11 nC5
+469.7  33.259  0.0  309.22  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp12    !12 nC7
+540.2  27.042  0.0  371.58  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp13    !13 Pr.Ac3	360.90	0.0007681964	6.3084
+704.0  22.798  0.0  319.93  2.855e-05  6.3803    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp14    !14 Et.nBuOO
+571.0  29.114  0.0  394.65  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp15    !15 Me.DoOO !540.00	1.0000
+712.0  17.172  0.0  320.0  4.677e-05  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp16    !16 Eg.Ac
+640.0  44.1  0.0  448.78  0.7184  4.6863    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp17    !17 1-BuOH390.81	1.0000	0.0000	4.4000	0.0000
+563.05  42.83  0.0  313.15  0.0249  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp18    !18 Me2.Scc,	p^vap = Verevkin(2009)
+657.0  32.371  0.0  310.2  0.0007585  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp19    !19 Et2.Scc
+663.0  24.969  0.0  490.15  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp20    !20 Et.Ac2,	p^vap = Verevkin(2009)
+649.4  30.48  0.0  310.7  0.00104  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+
+273.15  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp1)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp2)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp3)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp4)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp5)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp6)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp7)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp8)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp9)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp10)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp11)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp12)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp13)
+175.15  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp14)
+278.15  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp15)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp16)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp17)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp18)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp19)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp20)
 
 
 

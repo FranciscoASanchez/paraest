@@ -100,12 +100,32 @@
 
 
 
-512.600	119.97	0.0000	0.00	0	0	0	0	0	0	0	0	! 1	MeOH
-514.000	81.700	0.0000	0.00	0	0	0	0	0	0	0	0	! 2	EtOH
-536.800	51.020	370.35	1.00	0	0	0	0	0	0	0	0	! 3	1-PrOH
-563.000	43.570	390.81	1.00	0	0	0	0	0	0	0	0	! 4	1-BuOH
-588.100	38.470	410.95	1.00	0	0	0	0	0	0	0	0	! 5	1-PeOH
-687.300	22.850	504.07	1.01	0	0	0	0	0	0	0	0	! 6	1-DeOH
+1    ! PARMOL: units (1: atm)
+comp1    ! 1	MeOH
+512.6  119.97  0.0  0.0  0.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp2    ! 2	EtOH
+514.0  81.7  0.0  0.0  0.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp3    ! 3	1-PrOH
+536.8  51.02  0.0  370.35  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp4    ! 4	1-BuOH
+563.0  43.57  0.0  390.81  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp5    ! 5	1-PeOH
+588.1  38.47  0.0  410.95  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp6    ! 6	1-DeOH
+687.3  22.85  0.0  504.07  1.01  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp1)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp2)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp3)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp4)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp5)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp6)
 
 
 0 0 0 0 0 0 0    ! NNP NNQ NALFA NENASS NRKASS numTc NUMDC

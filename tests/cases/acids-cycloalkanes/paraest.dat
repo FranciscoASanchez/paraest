@@ -46,16 +46,40 @@
 
 
 
-591.90	57.047	0.0000	0.0000	3.6545	289.81 	11730.	0	0	0	0	1	EtOOH  	H.Ac		3.6545
-600.81	45.566	0.0000	0.0000	4.0300	252.45	10660.	0	0	0	0	2	PrOOH  	H.Pr	414.32	1.0000	4.0750	
-660.20	32.647	478.85	1.0000	5.0325	269.25	0000.0	0	0	0	0	3	nHxOOH	H.nHx
-                                                                              	
-511.70	44.000	322.40	1.0000	0.0000	179.28	0.0000	0	0	0	0	4	cyC5
-553.80	40.000	350.00	0.8781	0.0000	279.69	2674.8	0	0 	0 	0 	5	cyC6	353.87	1.0000
-                                                                              	
-605.00	36.516	417.02	7.235E-1	4.4650	227.15	00000.	0	0	0	0	4	iBuOOH	H.iBu318.15	0.0097	4.4	
-632.00	38.500	436.88	1.000E+0	4.7600	309.08	00000.	0	0	0	0	7	neoPeOOH	H.neoPe
-615.70	40.108	425.92	7.108E-1	4.3830	267.95	11590.	0	0	0	0	8	nBuOOH	H.nBu	436.42	1.0000
+1    ! PARMOL: units (1: atm)
+comp1
+591.9  57.047  0.0  0.0  0.0  3.6545    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp2
+600.81  45.566  0.0  0.0  0.0  4.03    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp3
+660.2  32.647  0.0  478.85  1.0  5.0325    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp4
+511.7  44.0  0.0  322.4  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp5
+553.8  40.0  0.0  350.0  0.8781  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp6
+605.0  36.516  0.0  417.02  0.7235  4.465    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp7
+632.0  38.5  0.0  436.88  1.0  4.76    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp8
+615.7  40.108  0.0  425.92  0.7108  4.383    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+
+289.81  1.0  11730.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp1)
+252.45  2.0  10660.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp2)
+269.25  3.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp3)
+179.28  4.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp4)
+279.69  5.0  2674.8  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp5)
+227.15  4.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp6)
+309.08  7.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp7)
+267.95  8.0  11590.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp8)
 
 
 

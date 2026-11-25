@@ -15,7 +15,7 @@
 module gca_bridge
   implicit none
   private
-  public :: fakePARGR, fakePARMOL, negative_cohesion, load_from_pargr
+  public :: fakePARGR, fakePARMOL, negative_cohesion, load_from_pargr, load_from_parmol
 
 contains
 
@@ -340,4 +340,30 @@ subroutine load_from_pargr(NC)
   enddo
 endsubroutine load_from_pargr
 
+!---------------------------------------------------------------------------------------------------------
+!
+  ! After PARMOL (original routine of the package): Tc, Pc (atm), the
+  ! vapor-pressure point (Tsat, Psat) and dc of each component: dc as the
+  ! user gave it (estimated from Tc, Pc when 0), NOT the value PARMOL fitted
+  ! to (Tsat, Psat). paraest fits dc again at every evaluation starting from
+  ! this value: starting from an already fitted dc, fit_dc would do 0 or 1
+  ! iterations depending on the parameters, and its tolerance (1e-8 atm)
+  ! would show up as noise in the objective function (co2-phenols-fit went
+  ! from IER = 0 to IER = 39).
+!
+subroutine load_from_parmol(NC, Tc_out, Pc_out, Tsat_out, Psat_out, dc_out)
+  use parmol_export, only: pm_Tsat, pm_Psat, pm_dcIn
+  implicit none
+  integer, parameter :: NCM = 30     ! must match the GCA package (v1.14)
+  integer, intent(in) :: NC
+  double precision, intent(out) :: Tc_out(NC), Pc_out(NC), Tsat_out(NC), Psat_out(NC), dc_out(NC)
+  double precision :: TC, PC, omega
+  COMMON/CRIT/TC(NCM),PC(NCM),omega(NCM)
+
+  Tc_out = TC(:NC)
+  Pc_out = PC(:NC)
+  Tsat_out = pm_Tsat(:NC)
+  Psat_out = pm_Psat(:NC)
+  dc_out = pm_dcIn(:NC)
+endsubroutine load_from_parmol
 endmodule gca_bridge

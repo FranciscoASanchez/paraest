@@ -52,10 +52,6 @@ program paraest
   ! Read the input file paraest.dat
   CALL read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
 !
-  ! Initial dc from the critical point predicted by the GC-EoS (without
-  ! association), for every component whose dc was not given by the user.
-  CALL init_dc(NC,PRCRIT,TEMPCRIT,DC)
-!
   ! Spline temperatures of the initial parameters (for the output only: the
   ! model computes them in fakePARGR).
   do iGr = 1, NG
@@ -347,7 +343,7 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
 &                      ENASS, RKASS, NNP, NNQ, NALFA, NENASS, NRKASS, TSAT, PSAT, dc, IDG, ITEMP, NIDG, IDIDG, &
 &                      iDQ, IDALF, NIDALF, IDIDALF, IDENASS, NIDENASS, IDIDENASS, IDRKASS, NIDRKASS, &
 &                      IDIDRKASS, NUMDC, IDDC, numTc, idTc, check_group, check_assoc
-  use gca_bridge, only: load_from_pargr
+  use gca_bridge, only: load_from_pargr, load_from_parmol
   use scaling, only: dc_mean, error_Dc
   use utilities, only: i2s, rep, check_limit
   use model_output, only: keep_pargr_warnings
@@ -439,13 +435,20 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
 !-----------------------------------------------------------------------
 !
   write(*,'(//)')
-  ! Pure-component properties:
+  ! Pure-component properties of the GCA: read by PARMOL of the package
+  ! (v1.14): unit option, then for each component its name, "Tc Pc omega
+  ! Tsat Psat dc" and "M c A B C D E F G" (Peneloux, Passut-Danner). PARMOL
+  ! estimates dc from the critical point when it is 0 and fits it to
+  ! (Tsat, Psat) when Tsat > 0. What it writes is discarded (unit 32).
+  open(unit=32, status='scratch', form='formatted')
+  call PARMOL(NC, NG, NST, 1, 32)
+  close(32)
+  call load_from_parmol(NC, TEMPCRIT(:NC), PRCRIT(:NC), TSAT(:NC), PSAT(:NC), DC(:NC))
   DO I=1,NC
-
-    READ (1,*) TEMPCRIT(I), PRCRIT(I), TSAT(I), PSAT(I), DC(I), Tfu(i), DHfu(i), DCpfu(i), TtrSS(i), DHss(i), DVfu(i), Pfu(i)
     write(*,'(2(F7.2,2X,F12.6,2X),F9.5,2X,"! Comp. No.",I2)')TEMPCRIT(I),PRCRIT(I),TSAT(I),PSAT(I),DC(I),i
-
   END DO
+  write(*,'(//)')
+  call read_fusion(NC)
   write(*,'(//)')
 !
   ! (The group composition of each component was read by PARGR.)
@@ -788,6 +791,40 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
   CLOSE(UNIT=1)
 !
 ENDsubroutine read_input
+!
+!------------------------------------------------------------------------------------------------------------------------------------
+!
+  ! Melting and solid-solid transition properties of each component (any
+  ! model), as GCSLE 2.0.0 (option 0) takes them:
+  !    Tfus/K  Pfus/atm  DHfus/(J/mol)  DVfus/(cm3/mol)  ACpfus/(J/mol K)  BCpfus/(J/mol K2)  NTSS
+  ! followed by NTSS lines "Ttr/K  DHtr/(J/mol)". DCpfus = ACpfus + BCpfus*T.
+  ! For now paraest uses DCpfus = ACpfus and only the first transition.
+!
+subroutine read_fusion(NC)
+  use fit_data, only: Tfu, Pfu, DHfu, DVfu, DCpfu, TtrSS, DHss
+  implicit none
+  integer, intent(in) :: NC
+  integer :: i, k, NTSS
+  double precision :: BCpfu, Ttr, DHtr
+
+  do i = 1, NC
+    read(1,*) Tfu(i), Pfu(i), DHfu(i), DVfu(i), DCpfu(i), BCpfu, NTSS
+    write(*,'(F8.2,2X,G12.5,2X,G12.5,2X,G12.5,2X,G12.5,2X,G12.5,I3,2X,"! fusion, comp.",I3)') &
+      Tfu(i), Pfu(i), DHfu(i), DVfu(i), DCpfu(i), BCpfu, NTSS, i
+    if (BCpfu /= 0) write(*,'(" WARNING: BCpfus of component",I3," is not used yet (DCpfus = ACpfus)")') i
+    TtrSS(i) = 0D0
+    DHss(i) = 0D0
+    do k = 1, NTSS
+      read(1,*) Ttr, DHtr
+      if (k == 1) then
+        TtrSS(i) = Ttr
+        DHss(i) = DHtr
+      else
+        write(*,'(" WARNING: solid-solid transition",I2," of component",I3," is not used yet")') k, i
+      endif
+    enddo
+  enddo
+endsubroutine read_fusion
 !------------------------------------------------------------------------------------------------------------------------------------
 !
   ! Writes to paraest.out the data and parameters read by read_input (not
@@ -1001,28 +1038,6 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
 ENDsubroutine write_output_header
 !
-!------------------------------------------------------------------------------------------------------------------------------------
-!
-  ! Estimates dc from the critical point of each pure component (only for
-  ! the components whose dc was not given).
-!
-SUBROUTINE init_dc(NC,PRCRIT,TEMPCRIT,DC)
-  use dimensions
-
-  implicit none
-  integer :: I, NC
-  double precision :: R
-  double precision :: DC(NCM), TEMPCRIT(NCM), PRCRIT(NCM)
-!
-  R=82.05  !atm cm3/(mol K)
-  DO I=1,NC
-    if(DC(I).EQ.0)then ! Fran. 26/05/09
-      DC(I) = 0.4471866767D0*((R*TEMPCRIT(I)/PRCRIT(I)))**(1./3.)
-    end if
-  END DO
-!
-  return
-ENDsubroutine init_dc
 !------------------------------------------------------------------------------------------------------------------------------------
 !
   ! Sets the type of each fitted parameter (IDXX, see module scaling), in

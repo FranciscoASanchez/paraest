@@ -59,26 +59,85 @@
 
 
  
-647.13	217.56	373.15	1.0000	2.5763	273.15	0.0000	0	0	0	0	0	! 1  H2O
-591.90	57.047	0.0000	0.0000	3.6545	0.0000	0.0000	0	0	0	0	0	! 2  HAc
-600.81	45.566	406.56	0.7802	4.0750	252.45	0.0000	0	0	0	0	0	! 3 H.Pr
-507.60	29.854	341.88	1.0000	0.0000	0.0000	0.0000	0	0	0	0	0	! 4 nC6
-369.83	41.925	327.18	18.456	0.0000	0.0000	0.0000	0	0	0	0	0	! 5 C3
-615.70	40.108	425.92	7.108E-1	4.3830	267.95	11590.	0	0	0	0	0	! 6	nBuOOH	H.nBu	436.42	1.0000
-660.20	32.647	478.85	1.0000	5.0468	269.25	0000.0	0	0	0	0	0	! 7	nHxOOH	H.nHx
-716.15	53.78		319.98	1.58E-05	3.9702 	462.65	18578.	0	0	0	0	0	! 1	Et(OOH)2	H2.Oxa	DHfus estimada con DHsubl(beta) + DHvap(serie homóloga)
-831.55	77.760	357.49	2.517E-5	4.1141	407.50	23100.	0	0	0	0	0	! 9	Pr(OOH)2	H2.Mal
-851.00	65.000	0.0000	0.0000	4.4700	457.09	32400.	0	0	0	0	0	! 10	372.11	3.810E-5	4.4549	457.70	32700.	0	0	0	3	Bu(OOH)2	H2.Scc	460.65	32940.
-840.00	42.140	453.15	5.428E-3	4.7992	369.25	20800.	0	0	0	0	0	! 11	4	Pe(OOH)2	H2.Glu
-841.00	37.990	478.65	1.283E-2	5.0776	424.59	35600.	0	0	0	0	0	! 12	Hx(OOH)2	H2.Adi
-842.00	32.370	0.0000	0.00000	5.3600	376.26	27700.	0	0	0	0	0	! 13	371.66	6.670E-6	5.3458	376.30	28200.	0	0	0	6	He(OOH)2	H2.Pim	368.20	23700
-843.00	29.310	0.0000	0.00000	5.6100	414.39	29300.	0	405	8900	0	0	! 14	478.65	6.579E-3	5.6057	414.40	29300.	0	405	8900	7	Oc(OOH)2	H2.Sub
-844.00	26.840	0.0000	0.00000	5.8550	377.51	34800.	0	0	0	0	0	! 15	377.04	3.280E-6	5.8588	377.00	33700.	0	0	0	8	No(OOH)2	H2.Aze
-845.00	24.670	0.0000	0.00000	6.0950	405.12	43600.	0	0	0	0	0	! 16	505.15	1.316E-2	6.1056	404.90	45000.	0	0	0	9	De(OOH)2	H2.Seb
+1    ! PARMOL: units (1: atm)
+comp1    ! 1  H2O
+647.13  217.56  0.0  373.15  1.0  2.5763    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp2    ! 2  HAc
+591.9  57.047  0.0  0.0  0.0  3.6545    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp3    ! 3 H.Pr
+600.81  45.566  0.0  406.56  0.7802  4.075    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp4    ! 4 nC6
+507.6  29.854  0.0  341.88  1.0  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp5    ! 5 C3
+369.83  41.925  0.0  327.18  18.456  0.0    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp6    ! 6	nBuOOH	H.nBu	436.42	1.0000
+615.7  40.108  0.0  425.92  0.7108  4.383    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp7    ! 7	nHxOOH	H.nHx
+660.2  32.647  0.0  478.85  1.0  5.0468    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp8    ! 1	Et(OOH)2	H2.Oxa	DHfus estimada con DHsubl(beta) + DHvap(serie homóloga)
+716.15  53.78  0.0  319.98  1.58e-05  3.9702    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp9    ! 9	Pr(OOH)2	H2.Mal
+831.55  77.76  0.0  357.49  2.517e-05  4.1141    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp10    ! 10	372.11	3.810E-5	4.4549	457.70	32700.	0	0	0	3	Bu(OOH)2	H2.Scc	460.65	32940.
+851.0  65.0  0.0  0.0  0.0  4.47    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp11    ! 11	4	Pe(OOH)2	H2.Glu
+840.0  42.14  0.0  453.15  0.005428  4.7992    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp12    ! 12	Hx(OOH)2	H2.Adi
+841.0  37.99  0.0  478.65  0.01283  5.0776    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp13    ! 13	371.66	6.670E-6	5.3458	376.30	28200.	0	0	0	6	He(OOH)2	H2.Pim	368.20	23700
+842.0  32.37  0.0  0.0  0.0  5.36    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp14    ! 14	478.65	6.579E-3	5.6057	414.40	29300.	0	405	8900	7	Oc(OOH)2	H2.Sub
+843.0  29.31  0.0  0.0  0.0  5.61    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp15    ! 15	377.04	3.280E-6	5.8588	377.00	33700.	0	0	0	8	No(OOH)2	H2.Aze
+844.0  26.84  0.0  0.0  0.0  5.855    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp16    ! 16	505.15	1.316E-2	6.1056	404.90	45000.	0	0	0	9	De(OOH)2	H2.Seb
+845.0  24.67  0.0  0.0  0.0  6.095    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp17    ! 17	nOcOOH
+694.26  27.426  0.0  512.85  1.0  5.588    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp18    ! 18	nDoOOH	H.La
+743.0  19.05  0.0  529.75  0.3368  6.5    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
+comp19    ! 19	nOdOOH	H.St
+803.0  13.08  0.0  597.95  0.3368  7.635    ! Tc Pc omega Tsat Psat dc
+0 0 0 0 0 0 0 0 0    ! M c A B C D E F G
 
-694.26	27.426	512.85	1.0000	5.5880	289.65	0.0000	0	0	0	0	0	! 17	nOcOOH
-743.00	19.050	529.75	3.368E-1	6.5000	0.0000	0.0000	0	0	0	0	0	! 18	nDoOOH	H.La
-803.00	13.080	597.95	3.368E-1	7.63500	0.0000	0.0000	0	0	0	0	0	! 19	nOdOOH	H.St
+273.15  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp1)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp2)
+252.45  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp3)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp4)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp5)
+267.95  0.0  11590.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp6)
+269.25  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp7)
+462.65  0.0  18578.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp8)
+407.5  0.0  23100.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp9)
+457.09  0.0  32400.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp10)
+369.25  0.0  20800.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp11)
+424.59  0.0  35600.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp12)
+376.26  0.0  27700.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp13)
+414.39  0.0  29300.0  0.0  0.0  0.0  1    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp14)
+405.0  8900.0    ! Ttr DHtr
+377.51  0.0  34800.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp15)
+405.12  0.0  43600.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp16)
+289.65  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp17)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp18)
+0.0  0.0  0.0  0.0  0.0  0.0  0    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp19)
 
 
 

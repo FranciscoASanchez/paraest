@@ -6,8 +6,19 @@ format of GCA v1.14 (PARGR): groups identified by their number in the
 database (FOR010-FOR015), plus the parameters given by the user.
 
     tools/convert_input.py old.dat new.dat [database_dir]
+    tools/convert_input.py --components v114.dat new.dat
 
 database_dir holds FOR010.DAT-FOR015.DAT (default: the current directory).
+
+Second stage (applied always; alone with --components, for files already
+in the v1.14 format): the line of each component "Tc Pc Tsat Psat dc Tfu
+DHfu DCpfu TtrSS DHss DVfu Pfu" is replaced by the input of PARMOL (unit
+option 1 = atm; per component its name, "Tc Pc omega Tsat Psat dc" with
+omega = 0, "M c A B C D E F G" all 0) followed by the melting block, one
+line per component "Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS" (BCpfus = 0;
+NTSS = 1 when the old line had a solid-solid transition, followed by its
+line "Ttr DHtr"). Components are named comp1, comp2, ... (the comment of
+the old line, if any, goes to the line of the name).
 
 Each group of the old file is looked for in FOR010 by (Q, T*) (and g*, g',
 g" to break ties). When it is not found, or its database number is already
@@ -518,11 +529,75 @@ def convert(old, new, dbdir):
 
     result = (lines[:blockStart] + out + [''] + lines[blockEnd:nuStart] + lines[nuEnd:specStart]
               + spec + lines[specEnd:])
+    result = convert_components(result)
     open(new, 'w', encoding=enc, newline='').write(nl.join(result) + nl)
     return warnings, gid, aid
 
 
-if __name__ == '__main__':
+def convert_components(lines):
+    """v1.14 format -> PARMOL input + melting block (see the docstring)."""
+    R = Records(lines)
+    for n in (1, 6, 3, 2, 1, 3):
+        R.read(n)
+    NC, NG, NGA, NSIG = R.read(4, int)
+    ISAT, IGLE, IVE, IUNI, NPRED = R.read(5, int)
+    if ISAT:
+        idsat = R.read(ISAT, int)
+        nsat = R.read(ISAT, int)
+        iobj = R.read(ISAT, int)
+        for i in range(ISAT):
+            for _ in range(nsat[i]):
+                R.read(4 if iobj[i] == 81 else 3)
+    # PARGR block: attractive part, then (NGA > 0) associating part
+    nII, nIJ = R.read(2, int)
+    for _ in range(NC):
+        R.read(2 * NG)
+    for _ in range(nII):
+        R.skip_blank(); R.read_record()          # id, 5 values, name
+    for _ in range(nIJ):
+        R.read(6)
+    if NGA > 0:
+        nII, nIJ = R.read(2, int)
+        for _ in range(NC):
+            R.read(2 * NGA)
+        for _ in range(nII):
+            R.skip_blank(); R.read_record()      # id, sites, name
+        for _ in range(nIJ):
+            R.read(6)
+    start = R.skip_blank()
+    comp, note = [], []
+    for _ in range(NC):
+        comp.append(R.read(12))
+        c = lines[R.pos - 1].split('!', 1)
+        note.append('    !' + c[1].rstrip() if len(c) > 1 and c[1].strip() else '')
+    end = R.pos
+    out = ['1    ! PARMOL: units (1: atm)']
+    for i, (Tc, Pc, Tsat, Psat, dc, Tfu, DHfu, DCpfu, Ttr, DHss, DVfu, Pfu) in enumerate(comp):
+        out.append('comp%d' % (i + 1) + note[i])
+        out.append('  '.join(fmt(x) for x in (Tc, Pc, 0.0, Tsat, Psat, dc)) + '    ! Tc Pc omega Tsat Psat dc')
+        out.append('0 0 0 0 0 0 0 0 0    ! M c A B C D E F G')
+    out.append('')
+    for i, (Tc, Pc, Tsat, Psat, dc, Tfu, DHfu, DCpfu, Ttr, DHss, DVfu, Pfu) in enumerate(comp):
+        ntss = 1 if Ttr != 0 or DHss != 0 else 0
+        out.append('  '.join(fmt(x) for x in (Tfu, Pfu, DHfu, DVfu, DCpfu, 0.0)) + '  %d' % ntss
+                   + '    ! Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS (comp%d)' % (i + 1))
+        if ntss:
+            out.append('  '.join(fmt(x) for x in (Ttr, DHss)) + '    ! Ttr DHtr')
+    return lines[:start] + out + lines[end:]
+
+
+if __name__ == '__main__' and sys.argv[1] == '--components':
+    raw = open(sys.argv[2], 'rb').read()
+    try:
+        text, enc = raw.decode('utf-8'), 'utf-8'
+    except UnicodeDecodeError:
+        text, enc = raw.decode('latin-1'), 'latin-1'
+    nl = '\r\n' if '\r\n' in text else '\n'
+    lines = text.replace('\r\n', '\n').split('\n')
+    if lines and lines[-1] == '':
+        lines.pop()
+    open(sys.argv[3], 'w', encoding=enc, newline='').write(nl.join(convert_components(lines)) + nl)
+elif __name__ == '__main__':
     w, gid, aid = convert(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else '.')
     print('attractive groups ->', gid)
     if aid:
