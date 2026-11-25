@@ -130,3 +130,6 @@ test: paraest.x
 
 clean:
 	rm -rf obj debug paraest.x debug.paraest.x
+
+install:
+	cp *.x ~/.local/bin
