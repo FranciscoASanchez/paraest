@@ -79,8 +79,10 @@ package, right after the PARGR block, and are followed by the melting block
                                         K, atm, J/mol, cm3/mol, J/(mol K),
                                         J/(mol K2); DCpfus = ACpfus + BCpfus*T
     Ttr  DHtr                           NTSS lines (solid-solid transitions)
-  For now paraest uses DCpfus = ACpfus and only the first transition (it
-  warns otherwise).
+  The transitions go from the highest Ttr down. The solubility of solids
+  (GCSLE) uses all of it; the sublimation pressure of a pure component
+  (vapor-pressure data below Tfus) only ACpfus and the first transition
+  (it warns otherwise).
 
 Files with the earlier component line "Tc Pc Tsat Psat dc Tfu DHfu DCpfu
 TtrSS DHss DVfu Pfu" are converted with
@@ -161,6 +163,11 @@ Layout
     src/models/        thermodynamic model (GCA package) and its link with paraest
     src/equilibrium/   equilibrium calculations (flash, bubble point, isofugacity...);
                        tpf_flash.f90: flash at given V/F (bubble points)
+                       gc3_flash.f90, gcsle.f90: made from GC3 and GCSLE by
+                       tools/port_gc3.py and tools/port_gcsle.py
+    src/models/rkpr.f90, thermopack.f90: made by tools/port_rkpr.py
+    (to update one of these, run its script with the new version of the
+    original; do not edit the generated file)
     tests/             regression tests and reference outputs
     Archivos/          experimental data sets
     legacy/            old versions of the sources and makefiles

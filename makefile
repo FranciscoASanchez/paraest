@@ -124,6 +124,10 @@ $(OBJDIR)/tpf_flash.o: $(OBJDIR)/gca.o $(OBJDIR)/thermo_model.o
 $(DBGDIR)/tpf_flash.o: $(DBGDIR)/gca.o $(DBGDIR)/thermo_model.o
 $(OBJDIR)/fugacity.o: $(OBJDIR)/thermo_model.o
 $(DBGDIR)/fugacity.o: $(DBGDIR)/thermo_model.o
+$(OBJDIR)/gc3_flash.o: $(OBJDIR)/thermo_model.o
+$(DBGDIR)/gc3_flash.o: $(DBGDIR)/thermo_model.o
+$(OBJDIR)/gcsle.o: $(OBJDIR)/thermo_model.o
+$(DBGDIR)/gcsle.o: $(DBGDIR)/thermo_model.o
 RESDEPS = dimensions config fit_data gca_parameters gca_bridge scaling utilities tpf_flash
 $(OBJDIR)/residuals.o: $(call dep,$(OBJDIR),$(RESDEPS))
 $(DBGDIR)/residuals.o: $(call dep,$(DBGDIR),$(RESDEPS))

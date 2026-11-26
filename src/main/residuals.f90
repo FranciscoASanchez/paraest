@@ -468,7 +468,7 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
         if (badG) then
           iErr = 1
         else
-          call GC3Flash(NCw, NG, NST, TEMP, PRESS, feed(:NCMgca), zFrac, zVal, indF, iErr)
+          call GC3Flash(NCw, TEMP, PRESS, feed(:NCMgca), zFrac, zVal, indF, iErr)
         endif
         if (zFrac(1,1) > zFrac(1,2)) then
           X1 = zFrac(1,iOrder)
@@ -557,7 +557,7 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
         if (badG) then
           iErr = 1
         else
-          call GC3Flash(NCw, NG, NST, TEMP, PRESS, feed(:NCMgca), zFrac, zVal, indF, iErr)
+          call GC3Flash(NCw, TEMP, PRESS, feed(:NCMgca), zFrac, zVal, indF, iErr)
         endif
         if (minval(indF(:4)) > -1) then
           ! LLE: phases in the same order as the experimental data
@@ -731,19 +731,14 @@ subroutine sle_residuals(ks, NCw, FCION, numExp)
   double precision, intent(inout) :: FCION(*)
   integer, intent(inout) :: numExp
 
-  double precision :: feed(NCMgca), zFrac(NCMgca,2), Temp, Press, CZ
-  double precision :: wwDHfu, wwDVfu, wwTfu, wwPfu, wwDCpfu, wwTtrSS, wwDHss
+  double precision :: xLiq(NCMgca), x_free(1), Temp, Press, CZ, gamma
   integer :: i, n, i1, nFailure, iErrSol, numExp1, numExp2
 
-  ! Melting data of the solid (copies: GCSLE could change its arguments)
+  ! The solute is component 1 of the binary (IDC(ks,1)); the solvent-only
+  ! composition of the liquid is then x_free = 1. Newton starts from the
+  ! experimental solubility.
   i1 = IDC(ks,1)
-  wwDHfu = DHfu(i1)
-  wwDVfu = DVfu(i1)
-  wwTfu = Tfu(i1)
-  wwPfu = Pfu(i1)
-  wwDCpfu = DCpfu(i1)
-  wwTtrSS = TtrSS(i1)
-  wwDHss = DHss(i1)
+  x_free(1) = 1D0
   nFailure = 0
   STDVA(ks) = 0
   write(*,'(/,"Set (SLE) No. ",I2)') ks
@@ -751,22 +746,18 @@ subroutine sle_residuals(ks, NCw, FCION, numExp)
     n = numExp + 1
     Temp = TEXP(n)
     Press = PEXP(n)
-    feed(1) = XEXP(n)
-    feed(2) = 1D0 - feed(1)
     iErrSol = 0
-    ! zFrac(:,1) gets the liquid composition, zFrac(:,2) the fugacity (kept
-    ! only because the original program printed it).
     if (negative_cohesion(Temp, NCw, NG)) then
       iErrSol = 1
     else
-      call GCSLE(NCw, NG, NST, Temp, Press, feed(:NCMgca), wwDHfu, wwDVfu, wwTfu, wwPfu, wwDCpfu, &
-                 wwTtrSS, wwDHss, CZ, zFrac(:NCMgca,1), zFrac(:NCMgca,2), iErrSol)
+      call GCSLE(NCw, 1, Temp, Press, x_free, XEXP(n), DHfu(i1), DCpfu(i1), BCpfu(i1), DVfu(i1), Tfu(i1), Pfu(i1), &
+                 NTSS(i1), Ttr(:,i1), DHtr(:,i1), CZ, xLiq, gamma, iErrSol)
     endif
     if (iErrSol == 0) then
       zLiCalc(n) = CZ
-      XCALC(n) = zFrac(1,1)
-      YCALC(n) = zFrac(1,2)
-      FCAUX(n) = dabs(zFrac(1,1) - feed(1))
+      XCALC(n) = xLiq(1)
+      YCALC(n) = gamma
+      FCAUX(n) = dabs(xLiq(1) - XEXP(n))
       FCION(n) = wEx(n)*FCAUX(n)*W13
     else
       zLiCalc(n) = 0

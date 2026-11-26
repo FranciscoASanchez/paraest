@@ -16,8 +16,13 @@ module fit_data
   integer :: NC                                     ! number of components
   double precision :: PRCRIT(NCM), TEMPCRIT(NCM)
   integer :: NSAT(NCM), IDSAT(NCM), IOBJSAT(NCM)
-  ! Melting and solid-solid transition data (solid-liquid equilibrium)
-  double precision :: DHfu(NCM), Tfu(NCM), DCpfu(NCM), DVfu(NCM), Pfu(NCM), TtrSS(NCM), DHss(NCM)
+  ! Melting and solid-solid transition data (solid-liquid equilibrium):
+  ! DCpfus = DCpfu + BCpfu*T; NTSS transitions (Ttr, DHtr), from the
+  ! highest temperature down; TtrSS, DHss: the first one.
+  integer, parameter :: NTRM = 10
+  double precision :: DHfu(NCM), Tfu(NCM), DCpfu(NCM), BCpfu(NCM), DVfu(NCM), Pfu(NCM), TtrSS(NCM), DHss(NCM)
+  integer :: NTSS(NCM)
+  double precision :: Ttr(NTRM,NCM), DHtr(NTRM,NCM)
 
   ! --- Weights of the objective function ----------------------------------
   double precision :: W1, W2, W3, W4, W5, W6, W7, W8, W9, W10, W11, W12, W13

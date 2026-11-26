@@ -797,32 +797,34 @@ ENDsubroutine read_input
   ! Melting and solid-solid transition properties of each component (any
   ! model), as GCSLE 2.0.0 (option 0) takes them:
   !    Tfus/K  Pfus/atm  DHfus/(J/mol)  DVfus/(cm3/mol)  ACpfus/(J/mol K)  BCpfus/(J/mol K2)  NTSS
-  ! followed by NTSS lines "Ttr/K  DHtr/(J/mol)". DCpfus = ACpfus + BCpfus*T.
-  ! For now paraest uses DCpfus = ACpfus and only the first transition.
+  ! followed by NTSS lines "Ttr/K  DHtr/(J/mol)", from the highest Ttr down.
+  ! DCpfus = ACpfus + BCpfus*T. GCSLE uses all of them; the sublimation
+  ! pressure (pure-component data, solid) only ACpfus and the first
+  ! transition (it warns otherwise).
 !
 subroutine read_fusion(NC)
-  use fit_data, only: Tfu, Pfu, DHfu, DVfu, DCpfu, TtrSS, DHss
+  use fit_data, only: Tfu, Pfu, DHfu, DVfu, DCpfu, BCpfu, NTSS, Ttr, DHtr, NTRM, TtrSS, DHss
   implicit none
   integer, intent(in) :: NC
-  integer :: i, k, NTSS
-  double precision :: BCpfu, Ttr, DHtr
+  integer :: i, k
 
   do i = 1, NC
-    read(1,*) Tfu(i), Pfu(i), DHfu(i), DVfu(i), DCpfu(i), BCpfu, NTSS
+    read(1,*) Tfu(i), Pfu(i), DHfu(i), DVfu(i), DCpfu(i), BCpfu(i), NTSS(i)
     write(*,'(F8.2,2X,G12.5,2X,G12.5,2X,G12.5,2X,G12.5,2X,G12.5,I3,2X,"! fusion, comp.",I3)') &
-      Tfu(i), Pfu(i), DHfu(i), DVfu(i), DCpfu(i), BCpfu, NTSS, i
-    if (BCpfu /= 0) write(*,'(" WARNING: BCpfus of component",I3," is not used yet (DCpfus = ACpfus)")') i
-    TtrSS(i) = 0D0
-    DHss(i) = 0D0
-    do k = 1, NTSS
-      read(1,*) Ttr, DHtr
-      if (k == 1) then
-        TtrSS(i) = Ttr
-        DHss(i) = DHtr
-      else
-        write(*,'(" WARNING: solid-solid transition",I2," of component",I3," is not used yet")') k, i
-      endif
+      Tfu(i), Pfu(i), DHfu(i), DVfu(i), DCpfu(i), BCpfu(i), NTSS(i), i
+    if (NTSS(i) < 0 .or. NTSS(i) > NTRM) then
+      write(*,'(" ERROR: component",I3,": NTSS must be between 0 and",I3)') i, NTRM
+      stop 1
+    endif
+    Ttr(:,i) = 0D0
+    DHtr(:,i) = 0D0
+    do k = 1, NTSS(i)
+      read(1,*) Ttr(k,i), DHtr(k,i)
     enddo
+    TtrSS(i) = Ttr(1,i)
+    DHss(i) = DHtr(1,i)
+    if (BCpfu(i) /= 0 .or. NTSS(i) > 1) write(*,'(" WARNING: component",I3,": the sublimation pressure", &
+      & " uses only ACpfus and the first transition")') i
   enddo
 endsubroutine read_fusion
 !------------------------------------------------------------------------------------------------------------------------------------
