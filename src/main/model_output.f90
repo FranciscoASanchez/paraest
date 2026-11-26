@@ -13,10 +13,12 @@ module model_output
                             ENASS, RKASS, groupID, assocID, groupName, assocName
   implicit none
   private
-  public :: write_model_params, keep_pargr_warnings, write_pargr_warnings
+  public :: write_model_params, keep_pargr_warnings, write_pargr_warnings, keep_model_text, write_model_text
 
   ! Warnings that PARGR wrote (binary parameters not in the database)
   character(200), allocatable :: pargrWarning(:)
+  ! What ReadParameters wrote for a model other than the GCA (all of it)
+  character(300), allocatable :: modelText(:)
 
 contains
 
@@ -153,5 +155,39 @@ subroutine write_pargr_warnings(u)
     write(u,'(A)') trim(pargrWarning(i))
   enddo
 endsubroutine write_pargr_warnings
+
+!
+!  Keeps all that ReadParameters wrote to unit u (models other than the GCA)
+!  and closes it; write_model_text copies it to unit v.
+!
+subroutine keep_model_text(u)
+  integer, intent(in) :: u
+  character(300) :: line
+  integer :: ios, n, pass
+  do pass = 1, 2
+    rewind(u)
+    n = 0
+    do
+      read(u,'(A)',iostat=ios) line
+      if (ios /= 0) exit
+      n = n + 1
+      if (pass == 2) modelText(n) = line
+    enddo
+    if (pass == 1) then
+      if (allocated(modelText)) deallocate(modelText)
+      allocate(modelText(n))
+    endif
+  enddo
+  close(u)
+endsubroutine keep_model_text
+
+subroutine write_model_text(v)
+  integer, intent(in) :: v
+  integer :: i
+  if (.not. allocated(modelText)) return
+  do i = 1, size(modelText)
+    write(v,'(A)') trim(modelText(i))
+  enddo
+endsubroutine write_model_text
 
 endmodule model_output

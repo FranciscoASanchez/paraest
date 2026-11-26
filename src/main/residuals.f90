@@ -21,6 +21,8 @@ module residuals
   use fit_data
   use gca_parameters, PSATu => PSAT   ! PSAT is also a subroutine of the GCA package
   use gca_bridge, only: fakePARGR, fakePARMOL, negative_cohesion
+  use rkpr_bridge, only: rkpr_select
+  use thermo_model, only: model
   use config, only: PENALIZ, PENALIZNAN, bubble_solver
   use tpf_flash, only: flash_beta
   implicit none
@@ -171,6 +173,7 @@ subroutine fit_critical_diameters()
   integer :: i, iErrDc
   double precision :: dcFit, wDC(NCM)
 
+  if (model /= 1) return
   if (.not. any(TSAT(:NC) /= 0)) return
 
   if (nEval == 0) dcStart(:NC) = DC(:NC)
@@ -231,7 +234,7 @@ subroutine pure_component_residuals(FCION, numExp)
         ! Objective function: isofugacity
         write(6,'("Point ",I3," of component",I3)') j, i
         call load_component(i, WDC, WTEMPCRIT, WPRCRIT, NUW, ONUASOCW)
-        if (negative_cohesion(wTemp, 1, NG)) then
+        if (bad_temperature(wTemp, 1, NG)) then
           IERRYAF = 1
         else
           call isofug_pure(NG, NST, wTemp, wPsat, APART, WZFASL, WZFASV, IERRYAF)
@@ -261,7 +264,7 @@ subroutine pure_component_residuals(FCION, numExp)
         iGz = 0       ! could use the result of the dc fit...
         iErrPSat = 0
         iComp = 1
-        if (negative_cohesion(wTemp, 1, NG)) then
+        if (bad_temperature(wTemp, 1, NG)) then
           iErrPSat = -1
         elseif (wPsat > 1E-10) then
           ! Standard vapor pressure calculation
@@ -339,6 +342,10 @@ subroutine load_component(i, WDC, WTEMPCRIT, WPRCRIT, NUW, ONUASOCW)
   double precision, intent(in) :: WDC(1), WTEMPCRIT(1), WPRCRIT(1), ONUASOCW(NGAM,1)
   integer, intent(in) :: NUW(NGM,1)
 
+  if (model /= 1) then
+    call rkpr_select(1, [i])
+    return
+  endif
   call fakePARGR(1, NG, NGA, NST, NUW(:NG,1), QAREA(:NG), TSTR(:NG), GSTR(:NG), GDOT(:NG), GDDOT(:NG), &
                  RKIJ(:NG,:NG), RKTIJ(:NG,:NG), ALFAIJ(:NG,:NG), ONUASOCW(:NGA,1), MASSOC(:NGA),           &
                  ENASS(:2,:NGA,:2,:NGA), RKASS(:2,:NGA,:2,:NGA))
@@ -369,6 +376,10 @@ subroutine load_set_components(ks, NCw)
     ONUASOCWW(:NGA,k) = ONUASOC(:NGA,ic)
   enddo
 
+  if (model /= 1) then
+    call rkpr_select(NCw, IDC(ks,:NCw))
+    return
+  endif
   call fakePARGR(NCw, NG, NGA, NST, NUWW(:NG,:NCw), QAREA(:NG), TSTR(:NG), GSTR(:NG), GDOT(:NG), GDDOT(:NG), &
                  RKIJ(:NG,:NG), RKTIJ(:NG,:NG), ALFAIJ(:NG,:NG), ONUASOCWW(:NGA,:NCw), MASSOC(:NGA),             &
                  ENASS(:2,:NGA,:2,:NGA), RKASS(:2,:NGA,:2,:NGA))
@@ -411,7 +422,7 @@ subroutine phase_equilibrium_residuals(ks, NCw, FCION, numExp)
     Y1 = YEXP(n)
     ! g(T) <= 0 at the experimental T: not calculated (for bubble
     ! temperatures, IFL = 2, the check is at the experimental T)
-    badG = negative_cohesion(TEMP, NCw, NG)
+    badG = bad_temperature(TEMP, NCw, NG)
 
     if (IFL(ks) == -1 .or. IFL(ks) == -2) then
       ! Isofugacity
@@ -691,7 +702,7 @@ subroutine excess_property_residuals(ks, FCION, numExp)
     write(*,'("  Point No. ",I2)') i
     ! GCXS does not set iErrEx (its error exits are commented out)
     iErrEx = 0
-    if (negative_cohesion(Temp, 2, NG)) then
+    if (bad_temperature(Temp, 2, NG)) then
       iErrEx = 1
     else
       call GCXS(IFL(ks), NG, NST, Temp, Press, feed(:NCMgca), prop_E_calc(n), zLiCalc(n), iErrEx)
@@ -747,7 +758,7 @@ subroutine sle_residuals(ks, NCw, FCION, numExp)
     Temp = TEXP(n)
     Press = PEXP(n)
     iErrSol = 0
-    if (negative_cohesion(Temp, NCw, NG)) then
+    if (bad_temperature(Temp, NCw, NG)) then
       iErrSol = 1
     else
       call GCSLE(NCw, 1, Temp, Press, x_free, XEXP(n), DHfu(i1), DCpfu(i1), BCpfu(i1), DVfu(i1), Tfu(i1), Pfu(i1), &
@@ -797,7 +808,7 @@ subroutine critical_point_residuals(ks, NCw, FCION, numExp)
     Press = PEXP(n)
     feed(1) = XEXP(n)
     feed(2) = 1D0 - feed(1)
-    if (negative_cohesion(Temp, NCw, NG)) then
+    if (bad_temperature(Temp, NCw, NG)) then
       zLiCalc(n) = 0
       FCION(n) = PENALIZ
       nFailed = nFailed + 1
@@ -849,7 +860,7 @@ subroutine activity_coefficient_residuals(ks, NCw, FCION, numExp)
     iTyp = 1
     iGz = 0
     jTemp = 0
-    if (negative_cohesion(Temp, NCw, NG)) then
+    if (bad_temperature(Temp, NCw, NG)) then
       ! Not calculated: g(T) <= 0
       nFailure = nFailure - 1
       rGamCalc1(n) = 0
@@ -896,5 +907,17 @@ subroutine activity_coefficient_residuals(ks, NCw, FCION, numExp)
     STDVC(ks) = 0.
   endif
 endsubroutine activity_coefficient_residuals
+
+!--------------------------------------------------------------------------------------------------------------------------
+!
+!  The calculation at T is meaningless: with the GCA, when the attractive
+!  energy g(T) of a group of the loaded components is not positive.
+!
+logical function bad_temperature(T, NCw, NGw)
+  double precision, intent(in) :: T
+  integer, intent(in) :: NCw, NGw
+  bad_temperature = .false.
+  if (model == 1) bad_temperature = negative_cohesion(T, NCw, NGw)
+endfunction bad_temperature
 
 endmodule residuals

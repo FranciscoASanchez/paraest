@@ -4,7 +4,7 @@
 0.1	0.03003
 0.
 1.	2.	2.
-25	10	 7	 10			!Nc Ng NGA cifras significativas
+25  10    ! NC, NSIG
 0	18	 0	 0	0	 !ndatos: Pv, SET DE DATOSequil, EXCEO Y gama; -  otroS 2;  - 1: prediccion , 0: optimizacion
 
 
@@ -12,6 +12,8 @@
 
 
 
+1    ! model (1: GCA, 4: RK-PR)
+10  7    ! NG, NGA
 3  13    ! NownII, NownIJ (attractive groups)
 164 0  200 1  16*0    ! component 1
 163 6  18*0    ! component 2

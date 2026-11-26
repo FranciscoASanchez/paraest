@@ -38,6 +38,7 @@ MODELS       = src/models/thermo_model.f90               \
                src/models/thermopack.f90                 \
                src/models/spline_temperature.f90         \
                src/models/gca_bridge.f90                 \
+               src/models/rkpr_bridge.f90                \
                src/models/fugacity.f90                   \
                src/models/fit_dc.f90
 
@@ -106,7 +107,8 @@ $(OBJDIR) $(DBGDIR):
 
 # Module dependencies: when a module changes, whatever uses it is rebuilt
 # (and make builds the module first).
-MODULES = dimensions config fit_data gca_parameters statistics scaling utilities residuals pso model_output gca_bridge
+MODULES = dimensions config fit_data gca_parameters statistics scaling utilities residuals pso model_output gca_bridge \
+          rkpr_bridge thermo_model
 dep = $(addprefix $(1)/,$(addsuffix .o,$(2)))
 $(OBJDIR)/paraest.o: $(call dep,$(OBJDIR),$(MODULES))
 $(DBGDIR)/paraest.o: $(call dep,$(DBGDIR),$(MODULES))
@@ -128,7 +130,7 @@ $(OBJDIR)/gc3_flash.o: $(OBJDIR)/thermo_model.o
 $(DBGDIR)/gc3_flash.o: $(DBGDIR)/thermo_model.o
 $(OBJDIR)/gcsle.o: $(OBJDIR)/thermo_model.o
 $(DBGDIR)/gcsle.o: $(DBGDIR)/thermo_model.o
-RESDEPS = dimensions config fit_data gca_parameters gca_bridge scaling utilities tpf_flash
+RESDEPS = dimensions config fit_data gca_parameters gca_bridge rkpr_bridge thermo_model scaling utilities tpf_flash
 $(OBJDIR)/residuals.o: $(call dep,$(OBJDIR),$(RESDEPS))
 $(DBGDIR)/residuals.o: $(call dep,$(DBGDIR),$(RESDEPS))
 

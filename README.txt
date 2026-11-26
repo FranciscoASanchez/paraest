@@ -1,4 +1,4 @@
-paraest — Parameter fitting of thermodynamic models (GCA-EoS)
+paraest — Parameter fitting of thermodynamic models (GCA-EoS, RK-PR)
 =============================================================
 
 Build
@@ -16,8 +16,38 @@ Run
     ./paraest.x           reads paraest.dat and the database FOR010-FOR015.DAT
                           from the current directory
 
-Model parameters in paraest.dat (since 2026-11-23, as in the flash programs)
------------------------------------------------------------------------------
+Model and parameters in paraest.dat (since 2026-11-26)
+------------------------------------------------------
+The line after the weights is "NC NSIG" (before: "NC NG NGA NSIG"). After
+the vapor-pressure data comes the model, followed by what ReadParameters
+of thermopack reads for it, as in the flash programs:
+
+    model                               1: GCA, 4: RK-PR
+  model 1:
+    NG  NGA
+    (PARGR block, below)
+    (PARMOL block, below)
+  model 4: what readcomp of RKPR reads:
+    NComb  Tdep                         0: van der Waals; Tdep 1: k(T)
+    name  j                             for each component; j = 0: next line
+    Tc Pc omega vc Zrat  (j = 0)          is Tc/K Pc/bar omega vc/(L/mol)
+    ac b delta1 k        (j = 1)          Zrat; j = 1: ac/(bar L2/mol2)
+    M c A B C D E F G                     b/(L/mol) delta1 k
+    NownIJ
+    i j l_ij k_ij k'_ij T*_ij           NownIJ lines (Tdep = 0: i j l_ij k_ij)
+  Then, for any model, the melting block (below).
+
+With RK-PR paraest only predicts for now (no fitted parameters), and only
+with data calculated through THERMO: pure-component isofugacity
+(IOBJSAT = 50), phase equilibrium (IHEN = 0; bubble points with the 'tpf'
+solver) and solid solubility (IHEN = 2). Other data stop the program.
+
+Files in the earlier format are converted with
+    tools/convert_input.py --model file.dat new.dat
+(the conversions below already write the new format).
+
+GCA parameters (since 2026-11-23, as in the flash programs)
+-----------------------------------------------------------
 The attractive and associative parameters are read by PARGR of the GCA
 package (v1.14): the groups are identified by their number in the database
 (FOR010.DAT: attractive groups; FOR014.DAT: associating groups) and the
@@ -88,6 +118,9 @@ Files with the earlier component line "Tc Pc Tsat Psat dc Tfu DHfu DCpfu
 TtrSS DHss DVfu Pfu" are converted with
     tools/convert_input.py --components file.dat new.dat
 (tools/convert_input.py old.dat new.dat already writes the new format).
+
+Data sets: the title line is read with FORMAT(40A2) for 65 items, so it
+takes two records: leave a blank line after it.
 
 Options (optional file paraest.cfg in the current directory, a namelist):
     &options

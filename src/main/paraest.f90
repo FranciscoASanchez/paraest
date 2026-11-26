@@ -21,8 +21,9 @@ program paraest
   use gca_parameters
   use scaling, only: XXSCAL, XXUNSCAL, search_box
   use config, only: read_options, optimizer, pso_particles, pso_iterations, pso_seed, pso_starts, pso_ssq_factor, &
-                    pso_cluster_dist
+                    pso_cluster_dist, bubble_solver
   use pso_optimizer, only: PSO
+  use thermo_model, only: model
   use residuals, only: FUNC, write_failed_points, nFailed, nNaN, nFailedFirst, nNaNFirst   ! residuals of the objective function, for ZXSSQ
   implicit none
 !
@@ -63,6 +64,10 @@ program paraest
 !
   ! Options of the optional file paraest.cfg (e.g. the residual of failed points)
   CALL read_options()
+  if (model /= 1 .and. bubble_solver == 'gcadb') then
+    write(*,'(A)') " ERROR: bubble_solver = 'gcadb' is available only with the GCA (model 1)"
+    stop 1
+  endif
 !
   ! Type of each value in XX, to assign it the right scaling factor
   CALL set_param_types(NNP,IDG,ITEMP,NNQ,NALFA,NENASS,NRKASS,IDXX,numTc,NUMDC)
@@ -344,13 +349,19 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
 &                      iDQ, IDALF, NIDALF, IDIDALF, IDENASS, NIDENASS, IDIDENASS, IDRKASS, NIDRKASS, &
 &                      IDIDRKASS, NUMDC, IDDC, numTc, idTc, check_group, check_assoc
   use gca_bridge, only: load_from_pargr, load_from_parmol
+  use rkpr_bridge, only: load_from_readcomp
+  use thermo_model, only: model
   use scaling, only: dc_mean, error_Dc
   use utilities, only: i2s, rep, check_limit
-  use model_output, only: keep_pargr_warnings
+  use model_output, only: keep_pargr_warnings, keep_model_text
 !
   implicit none
   integer :: I, IOPT, J, K, L, NCXP, NPAR, NPRED, NSIG, NSSA, NSSE, NSSRK
-  integer :: NSSS, NST, NSUMK, NSUML
+  integer :: NSSS, NST, NSUMK, NSUML, ios, nWords
+  integer :: GCA_NG, GCA_NGA, GCA_NST
+  common /GCA/ GCA_NG, GCA_NGA, GCA_NST
+  character(500) :: line
+  integer :: lineInts(4)
   double precision :: aIOPT
 !
   double precision :: PARM(4)               ! ZXSSQ parameters
@@ -373,8 +384,27 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
 1  FORMAT(8F10.4)
 2  FORMAT(*(I3))
 !
-  READ(1,*) NC,NG,NGA,NSIG
-  write(*,'(4I3)')NC,NG,NGA,NSIG
+  ! "NC NSIG" (since 2026-11-26; before, "NC NG NGA NSIG": NG and NGA now
+  ! go with the parameters of the GCA, after the model line)
+  line = ''
+  do while (len_trim(line) == 0)        ! blank lines skipped, as by READ(1,*)
+    read(1,'(A)') line
+    if (index(line, '!') > 0) line = line(:index(line, '!') - 1)
+  enddo
+  nWords = 0
+  do i = 1, 4
+    read(line, *, iostat=ios) lineInts(:i)
+    if (ios /= 0) exit
+    nWords = i
+  enddo
+  if (nWords /= 2) then
+    write(*,'(A)') ' ERROR: the line after the weights must be "NC NSIG". Files with "NC NG NGA NSIG"', &
+                   ' are converted with:  tools/convert_input.py --model old.dat new.dat'
+    stop 1
+  endif
+  NC = lineInts(1)
+  NSIG = lineInts(2)
+  write(*,'(2I3)') NC, NSIG
   READ(1,*) ISAT,IGLE,IVE,IUNI,NPRED
   write(*,'(5I3,/)')ISAT,IGLE,IVE,Iuni,NPRED
 !
@@ -422,28 +452,40 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
 
   endif
   write(*,'(//)')
-  ! Attractive and associative parameters: read by PARGR of the GCA package
-  ! (v1.14), as in the flash programs: group composition of each component
-  ! as pairs (database number, number of groups), parameters from the
-  ! database FOR010-FOR015 plus those given by the user. What PARGR writes
-  ! goes to a scratch file (unit 31), closed at once; its warnings are kept
-  ! and write_output_header copies them to paraest.out.
+  ! Model and its parameters, read by ReadParameters of thermopack as in the
+  ! flash programs:
+  !   model 1, GCA:   "NG NGA", then what PARGR reads (groups: database
+  !                   FOR010-FOR015 plus the user's values) and what PARMOL
+  !                   reads (pure-component properties);
+  !   model 4, RK-PR: what readcomp reads.
+  ! What they write goes to a scratch file (unit 31); write_output_header
+  ! copies to paraest.out the PARGR warnings (GCA) or all of it (RK-PR).
+  read(1,*) model
+  if (model /= 1 .and. model /= 4) then
+    write(*,'(A,I0,A)') ' ERROR: model ', model, ' is not available (1: GCA, 4: RK-PR)'
+    stop 1
+  endif
   open(unit=31, status='scratch', form='formatted')
-  call PARGR(NC, NG, NGA, NST, 1, 31)
-  call keep_pargr_warnings(31)
-  call load_from_pargr(NC)
-!-----------------------------------------------------------------------
-!
-  write(*,'(//)')
-  ! Pure-component properties of the GCA: read by PARMOL of the package
-  ! (v1.14): unit option, then for each component its name, "Tc Pc omega
-  ! Tsat Psat dc" and "M c A B C D E F G" (Peneloux, Passut-Danner). PARMOL
-  ! estimates dc from the critical point when it is 0 and fits it to
-  ! (Tsat, Psat) when Tsat > 0. What it writes is discarded (unit 32).
-  open(unit=32, status='scratch', form='formatted')
-  call PARMOL(NC, NG, NST, 1, 32)
-  close(32)
-  call load_from_parmol(NC, TEMPCRIT(:NC), PRCRIT(:NC), TSAT(:NC), PSAT(:NC), DC(:NC))
+  call ReadParameters(1, 31, model, NC)
+  if (model == 1) then
+    NG = GCA_NG
+    NGA = GCA_NGA
+    NST = GCA_NST
+    write(*,'(2I3,"   ! NG, NGA")') NG, NGA
+    call keep_pargr_warnings(31)
+    call load_from_pargr(NC)
+    ! Tc, Pc, the vapor-pressure point and dc (PARMOL estimates dc from the
+    ! critical point when it is 0)
+    call load_from_parmol(NC, TEMPCRIT(:NC), PRCRIT(:NC), TSAT(:NC), PSAT(:NC), DC(:NC))
+  else
+    NG = 0
+    NGA = 0
+    call keep_model_text(31)
+    call load_from_readcomp(NC, TEMPCRIT(:NC), PRCRIT(:NC))
+    TSAT(:NC) = 0
+    PSAT(:NC) = 0
+    DC(:NC) = 0
+  endif
   DO I=1,NC
     write(*,'(2(F7.2,2X,F12.6,2X),F9.5,2X,"! Comp. No.",I2)')TEMPCRIT(I),PRCRIT(I),TSAT(I),PSAT(I),DC(I),i
   END DO
@@ -588,6 +630,11 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
   call check_limit(NRKASS, NPTIPOM, 'association volumes (NRKASS)')
   call check_limit(numTc,  NPTIPOM, 'critical temperatures (numTc)')
   call check_limit(NUMDC,  NPTIPOM, 'critical diameters (NUMDC)')
+  if (model /= 1 .and. NNP + NNQ + NALFA + NENASS + NRKASS + numTc + NUMDC > 0) then
+    write(*,'(A)') ' ERROR: fitting parameters of this model is not available yet (only predictions)'
+    stop 1
+  endif
+  if (model /= 1) call check_model_support()
 !
   if(NNP.NE.0) then
 !
@@ -794,6 +841,33 @@ ENDsubroutine read_input
 !
 !------------------------------------------------------------------------------------------------------------------------------------
 !
+  ! Models other than the GCA (model 1): data whose calculation still uses
+  ! routines of the GCA package stop the program.
+!
+subroutine check_model_support()
+  use fit_data, only: NC, NSAT, IOBJSAT, IGLE, IHEN
+  implicit none
+  integer :: i
+  logical :: bad
+
+  bad = .false.
+  do i = 1, NC
+    if (NSAT(i) > 0 .and. IOBJSAT(i) /= 50) then
+      write(*,'(A,I0,A)') ' ERROR: component ', i, ': with this model, pure-component data only with IOBJSAT = 50 (isofugacity)'
+      bad = .true.
+    endif
+  enddo
+  do i = 1, IGLE
+    if (IHEN(i) == 1 .or. IHEN(i) == 3 .or. IHEN(i) == 5) then
+      write(*,'(A,I0,A,I0,A)') ' ERROR: data set ', i, ': IHEN = ', IHEN(i), ' is available only with the GCA (model 1)'
+      bad = .true.
+    endif
+  enddo
+  if (bad) stop 1
+endsubroutine check_model_support
+!
+!------------------------------------------------------------------------------------------------------------------------------------
+!
   ! Melting and solid-solid transition properties of each component (any
   ! model), as GCSLE 2.0.0 (option 0) takes them:
   !    Tfus/K  Pfus/atm  DHfus/(J/mol)  DVfus/(cm3/mol)  ACpfus/(J/mol K)  BCpfus/(J/mol K2)  NTSS
@@ -841,7 +915,8 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 &                      IDQ, IDALF, NIDALF, IDIDALF, IDENASS, NIDENASS, IDIDENASS, IDRKASS, NIDRKASS, &
 &                      IDIDRKASS, DC, NUMDC, IDDC, TSPLINE, numtc, idtc
   use fit_data, only: DHfu, Tfu, DCpfu, DVfu, TtrSS, DHss, Pfu
-  use model_output, only: write_model_params, write_pargr_warnings
+  use model_output, only: write_model_params, write_pargr_warnings, write_model_text
+  use thermo_model, only: model
   use utilities, only: i2s, rep
 !
   implicit none
@@ -878,8 +953,12 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
   WRITE(1,'(/,X,"--------------------------------------------------",/,&
 &            X,"--------------- INITIAL PARAMETERS ---------------",/,  &
 &            X,"--------------------------------------------------")')
-  call write_pargr_warnings(1)
-  call write_model_params(1, NC)
+  if (model == 1) then
+    call write_pargr_warnings(1)
+    call write_model_params(1, NC)
+  else
+    call write_model_text(1)
+  endif
 !
   WRITE(1,18)
 18  FORMAT(/,X,'Pure-component data')
@@ -1198,6 +1277,8 @@ SUBROUTINE write_results(NTEXT)
   use gca_parameters, only: NG, NU, QAREA, TSTR, GSTR, GDOT, GDDOT, RKIJ, RKTIJ, ALFAIJ, NGA, ONUASOC, MASSOC, &
 &                      ENASS, RKASS, TSAT, PSAT, DC, numTc, idTc, NUMDC, IDDC, TSPLINE
   use model_output, only: write_model_params
+  use rkpr_bridge, only: write_rkpr_params
+  use thermo_model, only: model
   use utilities, only: i2s, rep
   use statistics, only: AAD, ARD, ASD, RSD
 !
@@ -1219,7 +1300,11 @@ SUBROUTINE write_results(NTEXT)
  47  FORMAT(/,X,'--------------------------------------------------',/, &
 &           X,' ---------------- FINAL PARAMETERS ----------------',/,   &
 &           X,'--------------------------------------------------')
-  call write_model_params(1, NC)
+  if (model == 1) then
+    call write_model_params(1, NC)
+  else
+    call write_rkpr_params(1)
+  endif
 !
 !
   ! Result of the dc fit

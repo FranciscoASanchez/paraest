@@ -7,6 +7,7 @@ database (FOR010-FOR015), plus the parameters given by the user.
 
     tools/convert_input.py old.dat new.dat [database_dir]
     tools/convert_input.py --components v114.dat new.dat
+    tools/convert_input.py --model parmol.dat new.dat
 
 database_dir holds FOR010.DAT-FOR015.DAT (default: the current directory).
 
@@ -19,6 +20,11 @@ line per component "Tfus Pfus DHfus DVfus ACpfus BCpfus NTSS" (BCpfus = 0;
 NTSS = 1 when the old line had a solid-solid transition, followed by its
 line "Ttr DHtr"). Components are named comp1, comp2, ... (the comment of
 the old line, if any, goes to the line of the name).
+
+Third stage (applied always; alone with --model, for files that already
+have the PARMOL input): the model line (since 2026-11-26). The line "NC NG
+NGA NSIG" becomes "NC NSIG", and the parameter block starts with the model
+(1: GCA) and "NG NGA", which is what ReadParameters of thermopack reads.
 
 Each group of the old file is looked for in FOR010 by (Q, T*) (and g*, g',
 g" to break ties). When it is not found, or its database number is already
@@ -529,7 +535,7 @@ def convert(old, new, dbdir):
 
     result = (lines[:blockStart] + out + [''] + lines[blockEnd:nuStart] + lines[nuEnd:specStart]
               + spec + lines[specEnd:])
-    result = convert_components(result)
+    result = convert_model(convert_components(result))
     open(new, 'w', encoding=enc, newline='').write(nl.join(result) + nl)
     return warnings, gid, aid
 
@@ -586,7 +592,29 @@ def convert_components(lines):
     return lines[:start] + out + lines[end:]
 
 
-if __name__ == '__main__' and sys.argv[1] == '--components':
+def convert_model(lines):
+    """'NC NG NGA NSIG' -> 'NC NSIG'; model line and 'NG NGA' before PARGR."""
+    R = Records(lines)
+    for n in (1, 6, 3, 2, 1, 3):
+        R.read(n)
+    head = R.skip_blank()
+    NC, NG, NGA, NSIG = R.read(4, int)
+    ISAT, IGLE, IVE, IUNI, NPRED = R.read(5, int)
+    if ISAT:
+        idsat = R.read(ISAT, int)
+        nsat = R.read(ISAT, int)
+        iobj = R.read(ISAT, int)
+        for i in range(ISAT):
+            for _ in range(nsat[i]):
+                R.read(4 if iobj[i] == 81 else 3)
+    start = R.skip_blank()
+    out = list(lines)
+    out[head] = '%d  %d    ! NC, NSIG' % (NC, NSIG)
+    return (out[:start] + ['1    ! model (1: GCA, 4: RK-PR)', '%d  %d    ! NG, NGA' % (NG, NGA)]
+            + out[start:])
+
+
+if __name__ == '__main__' and sys.argv[1] in ('--components', '--model'):
     raw = open(sys.argv[2], 'rb').read()
     try:
         text, enc = raw.decode('utf-8'), 'utf-8'
@@ -596,7 +624,9 @@ if __name__ == '__main__' and sys.argv[1] == '--components':
     lines = text.replace('\r\n', '\n').split('\n')
     if lines and lines[-1] == '':
         lines.pop()
-    open(sys.argv[3], 'w', encoding=enc, newline='').write(nl.join(convert_components(lines)) + nl)
+    if sys.argv[1] == '--components':
+        lines = convert_components(lines)
+    open(sys.argv[3], 'w', encoding=enc, newline='').write(nl.join(convert_model(lines)) + nl)
 elif __name__ == '__main__':
     w, gid, aid = convert(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else '.')
     print('attractive groups ->', gid)

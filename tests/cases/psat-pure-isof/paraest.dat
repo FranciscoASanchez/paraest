@@ -4,7 +4,7 @@
 0.01	0.1					!wve	whe
 1.						!w(solid)
 1.	2.	2.				!H2O reproduce el pto crít.
-4	3	1	8
+4  8    ! NC, NSIG
 1	0	0	0	1
 
 1
@@ -27,6 +27,8 @@
 597.27	1.177E+02	8.5E-03
 622.20	1.613E+02	16.2E-03
 
+1    ! model (1: GCA, 4: RK-PR)
+3  1    ! NG, NGA
 1  2    ! NownII, NownIJ (attractive groups)
 193 1  4*0    ! component 1
 1 2  2 2  2*0    ! component 2

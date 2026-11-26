@@ -4,7 +4,7 @@
 1	1
 1
 1	2	2   ! n-alcoholes
-6	5	1	10
+6  10    ! NC, NSIG
 6	0	0	0	1
 
 
@@ -79,6 +79,8 @@
 605.85	7.356E+00  0
 646.57	1.338E+01  0
 
+1    ! model (1: GCA, 4: RK-PR)
+5  1    ! NG, NGA
 1  2    ! NownII, NownIJ (attractive groups)
 21 1  8*0    ! component 1
 22 1  8*0    ! component 2
