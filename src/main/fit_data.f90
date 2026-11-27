@@ -35,7 +35,7 @@ module fit_data
 
   ! --- Experimental data --------------------------------------------------
   double precision :: TEXP(NDM), PEXP(NDM), XEXP(NDM), YEXP(NDM), xExp2(NDM), yExp2(NDM)
-  double precision :: rhoExp(NDM), rGamExp1(NDM), rGamExp2(NDM), rGamExp3(NDM), prop_E_exp(NDM)
+  double precision :: vSatExp(NDM), rGamExp1(NDM), rGamExp2(NDM), rGamExp3(NDM), prop_E_exp(NDM)
 
   ! --- Calculated values --------------------------------------------------
   double precision :: PCALC(NDM), DHVL(NDM), XCALC(NDM), YCALC(NDM), xCalc2(NDM), yCalc2(NDM)
@@ -46,4 +46,7 @@ module fit_data
   ! --- Type of each fitted parameter (see module scaling) ------------------
   integer :: IDXX(NPARM)
 
+  ! IOBJSAT = 81 (vSatExp above): molar volume (cm3/mol; of the solid below
+  ! Tfus), its weight and the calculated one
+  double precision :: wVSat(NDM), vSatCalc(NDM)
 endmodule fit_data

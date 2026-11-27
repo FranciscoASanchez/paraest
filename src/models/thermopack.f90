@@ -12,6 +12,8 @@
 !	  - Bcalc: COMMON /MOL/ with NCM components instead of 2.
 !	  - GCA_EoS: n_deriv and temp_deriv reset at each call (initialized in
 !	    the declaration, they kept the value of a previous call).
+!	  - VCALC: a starting zeta = B/V0 outside (0, 1) is replaced by 0.5, and
+!	    after 300 iterations it returns V = NaN (it looped forever).
 !
 
 !------------------------------------------------------------------------------------------
@@ -423,6 +425,7 @@ SUBROUTINE VCALC (ITYP, guess, NC, rn, T, P, V0, V, IC)
 !	             ZETA, the iteration variable, is *not* the compressibility
 !	             factor, but b/v. It represents the GREEK letter ZETA.
 !
+	use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
 	IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 	
 	integer, PARAMETER                  :: NCM = 30
@@ -439,6 +442,7 @@ SUBROUTINE VCALC (ITYP, guess, NC, rn, T, P, V0, V, IC)
 	real(8), dimension(NCM)             :: Arn, ArTN, ArVn, rn_common 
 	real(8), dimension(NCM,NCM)         :: Arn2, dBij
 	integer                             :: n_deriv, NC_common, t_deriv
+	integer                             :: iterTot
 
 	
 	common /fromVCALC_real/                rn_common, T_common, P_common
@@ -476,6 +480,8 @@ SUBROUTINE VCALC (ITYP, guess, NC, rn, T, P, V0, V, IC)
 	  IC = ITYP
 	  
 	ENDIF
+	IF (.NOT. (ZETA > 0D0 .AND. ZETA < 1D0)) ZETA = .5D0	! paraest: invalid guess (V0 <= B, NaN)
+	iterTot = 0
 
 !	Start volume convergence. Convergence variable is zeta = b/v, "zeta" being the greek 
 !	character, not related to the compressibility factor.
@@ -486,6 +492,12 @@ SUBROUTINE VCALC (ITYP, guess, NC, rn, T, P, V0, V, IC)
 
 	  V = CPV/ZETA
 	  ITER = ITER + 1
+	  iterTot = iterTot + 1
+	  if (iterTot > 300) then	! paraest: no convergence
+	    V = ieee_value(V, ieee_quiet_nan)
+	    IC = ITYP
+	    return
+	  endif
 	  call ArVnder (NDER, NTEMP, NC, rn, V, T, Ar, ArV, ArTV, ArV2, Arn, ArVn, ArTn, Arn2, ArT, ArTT)
 	  PCALC = TOTN*RGAS*T/V - ArV
 	  IF (PCALC .GT. P) THEN

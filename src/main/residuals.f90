@@ -21,7 +21,7 @@ module residuals
   use fit_data
   use gca_parameters, PSATu => PSAT   ! PSAT is also a subroutine of the GCA package
   use gca_bridge, only: fakePARGR, fakePARMOL, negative_cohesion
-  use rkpr_bridge, only: rkpr_select
+  use rkpr_bridge, only: rkpr_select, rkpr_set_params, rkpr_critical
   use thermo_model, only: model
   use config, only: PENALIZ, PENALIZNAN, bubble_solver
   use tpf_flash, only: flash_beta
@@ -68,7 +68,11 @@ subroutine FUNC(XX, NCXP, NPAR, FCION)
   nFailed = 0
   ! Model parameters from the unscaled optimizer variables
   call XXUNSCAL(NPAR, XX, IDXX, XXAUX)
-  call set_model_params(XXAUX, TEMPCRIT)
+  if (model == 1) then
+    call set_model_params(XXAUX, TEMPCRIT)
+  else
+    call rkpr_set_params(XXAUX, TEMPCRIT, PRCRIT)
+  endif
 
   call fit_critical_diameters()
 
@@ -213,7 +217,7 @@ subroutine pure_component_residuals(FCION, numExp)
   double precision :: WDC(1), WTEMPCRIT(1), WPRCRIT(1), ONUASOCW(NGAM,1), wZ(2)
   integer :: NUW(NGM,1)
   double precision :: feed(NCMgca), lnPhi(NCMgca), dLnPhi(NCMgca,NCMgca), dLnPhiT(NCMgca), dLnPhiP(NCMgca)
-  double precision :: wTemp, wPsat, APART, WZFASL, WZFASV, HRV, HRL, TR, Yu, DHSL
+  double precision :: wTemp, wPsat, APART, WZFASL, WZFASV, HRV, HRL, TR, Yu, DHSL, vCond, zCond, pLiq, rV
   integer :: i, j, n, IERRYAF, iGP, iGz, iErrPSat, iComp, iErr
 
   do i = 1, NC
@@ -259,35 +263,43 @@ subroutine pure_component_residuals(FCION, numExp)
         ! Objective function: vapor pressure (+ density if IOBJSAT = 81)
         write(6,'("Point ",I3," of component",I3)') j, i
         call load_component(i, WDC, WTEMPCRIT, WPRCRIT, NUW, ONUASOCW)
-        call paraGC(wTemp, 1, NG, NST, 1)
-        iGP = 1
-        iGz = 0       ! could use the result of the dc fit...
-        iErrPSat = 0
-        iComp = 1
-        if (bad_temperature(wTemp, 1, NG)) then
-          iErrPSat = -1
-        elseif (wPsat > 1E-10) then
-          ! Standard vapor pressure calculation
-          call PSAT(wTemp, wPsat, wZ, 1, NG, NST, iComp, iGP, iGz, iErrPSat)
+        if (model /= 1) then
+          ! Other models: psat_pure (module saturation) and THERMO
+          call pure_psat_thermo(i, wTemp, wPsat, wZ, HRV, HRL, iErrPSat)
         else
-          ! psat(T) = phiL(T)*(1 atm)
-          feed(1) = 1
-          feed(2:NCMgca) = 0
-          wPsat = 1
-          call GCEOS(1, NG, NST, 1, 0, wTemp, wPsat, feed, lnPhi, dLnPhi, dLnPhiT, dLnPhiP, wZ(2), 0, 1, iErr)
-          wPsat = dexp(lnPhi(1))
-          wZ(1) = 1
-          wZ(2) = wZ(2)*wPsat
+          call paraGC(wTemp, 1, NG, NST, 1)
+          iGP = 1
+          iGz = 0       ! could use the result of the dc fit...
+          iErrPSat = 0
+          iComp = 1
+          if (bad_temperature(wTemp, 1, NG)) then
+            iErrPSat = -1
+          elseif (wPsat > 1E-10) then
+            ! Standard vapor pressure calculation
+            call PSAT(wTemp, wPsat, wZ, 1, NG, NST, iComp, iGP, iGz, iErrPSat)
+          else
+            ! psat(T) = phiL(T)*(1 atm)
+            feed(1) = 1
+            feed(2:NCMgca) = 0
+            wPsat = 1
+            call GCEOS(1, NG, NST, 1, 0, wTemp, wPsat, feed, lnPhi, dLnPhi, dLnPhiT, dLnPhiP, wZ(2), 0, 1, iErr)
+            wPsat = dexp(lnPhi(1))
+            wZ(1) = 1
+            wZ(2) = wZ(2)*wPsat
+          endif
+          if (iErrPSat >= 0) then
+            ! Residual enthalpies of vapor and liquid, for the vaporization enthalpy
+            feed(1) = 1
+            feed(2:NCMgca) = 0
+            call NTLPY(1, NG, NST, wTemp, wPsat, feed, HRV, wZ(1), -1, -1, iErr)
+            call NTLPY(1, NG, NST, wTemp, wPsat, feed, HRL, wZ(2), 1, 1, iErr)
+          endif
         endif
-        if (iErrPSat >= 0) then
-          ! Residual enthalpies of vapor and liquid, for the vaporization enthalpy
-          feed(1) = 1
-          feed(2:NCMgca) = 0
-          call NTLPY(1, NG, NST, wTemp, wPsat, feed, HRV, wZ(1), -1, -1, iErr)
-          call NTLPY(1, NG, NST, wTemp, wPsat, feed, HRL, wZ(2), 1, 1, iErr)
-        endif
+        ! P of the liquid, for the Z of the solid (below)
+        pLiq = wPsat
         if (iErrPSat >= 0 .and. wTemp < Tfu(i)) then
-          ! Sublimation pressure
+          ! Sublimation pressure; the condensed phase is the solid, with
+          ! v_S = v_L - DVfus
           TR = (Tfu(i)/wTemp - 1)
           Yu = -DHfu(i)/Rgas_SI/Tfu(i) * TR
           DHSL = DHfu(i)
@@ -307,15 +319,35 @@ subroutine pure_component_residuals(FCION, numExp)
           wPsat = wPsat*dexp(Yu)
           HRL = HRL - DHSL/.101325D0    ! HRL is in atm cm3, and it is a solid, not a liquid
         endif
+        if (iErrPSat >= 0) then
+          ! Z and molar volume (cm3/mol) of the condensed phase. Below Tfus,
+          ! wZ(2) is the Z of the solid at the vapor pressure of the
+          ! subcooled liquid; with v_S constant, at the sublimation pressure
+          ! it is Z2 = Z1 P2/P1 (until 2026-11-27, Z1 was used). wZ is not
+          ! changed: PSAT of the GCA starts from it at the next point.
+          zCond = wZ(2)*wPsat/pLiq
+          vCond = zCond*82.05D0*wTemp/wPsat
+        endif
 
         if (iErrPSat >= 0) then
           PCALC(n) = wPsat
-          ZLCALC(n) = wZ(2)
+          ZLCALC(n) = zCond
           ZVCALC(n) = wZ(1)
           DHVL(n) = HRV - HRL
           FCAUX(n) = (PCALC(n)/PEXP(n) - 1)
           FCION(n) = W1 * FCAUX(n) * wSat(n)*PEXP(n)
-          if (IOBJSAT(i) == 81) FCION(n) = FCION(n) + abs(wPsat/82.05D0/wTemp/wZ(2)/rhoExp(n) - 1)
+          if (IOBJSAT(i) == 81) then
+            ! Also the molar volume: both deviations in one residual, as
+            ! for the other data (the square root of the sum of squares),
+            ! with its sign when only one of them has weight
+            vSatCalc(n) = vCond
+            rV = W1 * wVSat(n) * (vCond - vSatExp(n))
+            if (wSat(n) == 0) then
+              FCION(n) = rV
+            elseif (wVSat(n) /= 0) then
+              FCION(n) = sqrt(FCION(n)**2 + rV**2)
+            endif
+          endif
         else
           PCALC(n) = 0.
           ZLCALC(n) = 0.
@@ -324,6 +356,7 @@ subroutine pure_component_residuals(FCION, numExp)
           FCION(n) = PENALIZ
           nFailed = nFailed + 1
           DHVL(n) = 0
+          vSatCalc(n) = 0
         endif
       endif
 
@@ -351,6 +384,44 @@ subroutine load_component(i, WDC, WTEMPCRIT, WPRCRIT, NUW, ONUASOCW)
                  ENASS(:2,:NGA,:2,:NGA), RKASS(:2,:NGA,:2,:NGA))
   call fakePARMOL(1, NG, NST, WDC, WTEMPCRIT, WPRCRIT)
 endsubroutine load_component
+
+!--------------------------------------------------------------------------------------------------------------------------
+!
+!  Vapor pressure of component i (alone in the model) at T, with psat_pure
+!  (module saturation) for models other than the GCA: P (inout: initial
+!  guess, the experimental value; result in atm), Z of vapor and liquid, and
+!  enthalpies of vapor and liquid (atm cm3/mol; with the same ideal-gas
+!  part, so that their difference is the vaporization enthalpy).
+!  iErr = 0 converged, -1 not.
+!
+subroutine pure_psat_thermo(i, T, P, Z, HV, HL, iErr)
+  use saturation, only: psat_pure
+  integer, intent(in) :: i
+  double precision, intent(in) :: T
+  double precision, intent(inout) :: P
+  double precision, intent(out) :: Z(2), HV, HL
+  integer, intent(out) :: iErr
+
+  integer, parameter :: NCMt = 30           ! as thermopack
+  double precision :: Tc, Vc, xn(NCMt), lnPhi(NCMt), dLPhi(NCMt,NCMt), dLPhiT(NCMt), dLPhiP(NCMt), dHn(NCMt)
+  double precision :: Cp, B, Zw
+  integer :: info, nIt, ic
+
+  call rkpr_critical(i, Tc, Vc)
+  if (.not. (P > 0)) P = 1D0
+  call psat_pure(1, 1, T, P, Tc, Vc, info, Z, nIt)
+  HV = 0
+  HL = 0
+  iErr = -1
+  if (info /= 0) return
+  iErr = 0
+  xn = 0
+  xn(1) = 1
+  Zw = Z(1)
+  call THERMO(model, 1, -1, 2, 1, T, P, xn, Zw, lnPhi, dLPhi, dLPhiT, dLPhiP, HV, dHn, Cp, B, ic)
+  Zw = Z(2)
+  call THERMO(model, 1, 1, 2, 1, T, P, xn, Zw, lnPhi, dLPhi, dLPhiT, dLPhiP, HL, dHn, Cp, B, ic)
+endsubroutine pure_psat_thermo
 
 !--------------------------------------------------------------------------------------------------------------------------
 !

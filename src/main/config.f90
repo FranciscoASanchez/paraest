@@ -20,6 +20,7 @@ module config
   public :: optimizer, pso_particles, pso_iterations, pso_seed, pso_starts, pso_ssq_factor, pso_cluster_dist
   public :: range_gstr, range_kstr, range_alpha, range_gp, range_gdd, range_q, range_eps, range_tc
   public :: range_kappa
+  public :: range_pc, range_delta1, range_k, range_kp, lm_range_tc, lm_range_pc
   public :: bubble_solver
 
   ! --- Objective function ---------------------------------------------------
@@ -69,6 +70,22 @@ module config
   ! (not only the PSO box: LM cannot leave them either)
   double precision :: range_kappa(2) = [0D0, 20D0]
 
+  ! --- RK-PR (model 4) ----------------------------------------------------------
+  ! PSO box of Pc and k (times the initial value) and of k' (absolute);
+  ! Tc uses range_tc, k_ij(inf) and l_ij the values 1 - range_kstr. delta1:
+  ! its bounds, for LM and PSO. LM bounds of the others (module rkpr_bridge):
+  ! Tc and Pc lm_range_tc, lm_range_pc (below), k 0.1-10, k_ij(inf) and l_ij
+  ! 1 - (0.2-30), k' +-1, T* from 0.1 min(Tc_i, Tc_j) to 2 max(Tc_i, Tc_j)
+  ! (PSO: 0.5-2 times min(Tc_i, Tc_j)).
+  double precision :: range_pc(2)     = [0.8D0, 1.25D0]  ! Pc (times the initial value)
+  double precision :: range_k(2)      = [0.7D0, 1.3D0]   ! k (times the initial value)
+  double precision :: range_kp(2)     = [-0.15D0, 0.15D0] ! k'_ij (absolute)
+  double precision :: range_delta1(2) = [1D0, 6D0]       ! delta1 (bounds, LM and PSO)
+  ! LM bounds of Tc and Pc of RK-PR (times the initial value): to keep them
+  ! within physical values when the data do not determine them
+  double precision :: lm_range_tc(2)  = [0.5D0, 2D0]
+  double precision :: lm_range_pc(2)  = [0.5D0, 2D0]
+
   ! --- Bubble points of binary VLE data ----------------------------------------
   !   'tpf'    Newton-Raphson in ln K and ln P (or ln T), from TPfractionFlash
   !   'gcadb'  the old GCADB routine
@@ -77,7 +94,7 @@ module config
   namelist /options/ PENALIZ, PENALIZNAN, optimizer, pso_particles, pso_iterations, pso_seed, &
                      pso_starts, pso_ssq_factor, pso_cluster_dist, &
                      range_gstr, range_q, range_eps, range_tc, range_kstr, range_alpha, range_gp, range_gdd, &
-                     range_kappa, bubble_solver
+                     range_kappa, bubble_solver, range_pc, range_k, range_kp, range_delta1, lm_range_tc, lm_range_pc
 
 contains
 
@@ -115,6 +132,13 @@ subroutine read_options()
     write(*,*) 'paraest.cfg: range_kappa needs 0 <= minimum < maximum'
     stop 1
   endif
+  if (range_delta1(2) <= range_delta1(1) .or. range_pc(2) <= range_pc(1) .or. range_k(2) <= range_k(1) &
+      .or. range_kp(2) <= range_kp(1) .or. lm_range_tc(1) <= 0D0 .or. lm_range_tc(2) <= lm_range_tc(1) &
+      .or. lm_range_pc(1) <= 0D0 .or. lm_range_pc(2) <= lm_range_pc(1)) then
+    write(*,*) 'paraest.cfg: range_pc, range_k, range_kp, range_delta1, lm_range_tc and lm_range_pc need minimum < maximum', &
+               ' (and lm_range_tc, lm_range_pc > 0)'
+    stop 1
+  endif
   if (pso_starts < 1 .or. pso_ssq_factor < 1D0 .or. pso_cluster_dist < 0D0) then
     write(*,*) 'paraest.cfg: pso_starts >= 1, pso_ssq_factor >= 1 and pso_cluster_dist >= 0 are required'
     stop 1
@@ -126,6 +150,11 @@ subroutine read_options()
     'Residual replacing NaN/Inf (PENALIZNAN): ', PENALIZNAN
   if (any(range_kappa /= [0D0, 20D0])) &
     write(1,'(X,A,2F10.4)') 'Bounds of the association volume (range_kappa):', range_kappa
+  if (any(range_delta1 /= [1D0, 6D0])) &
+    write(1,'(X,A,2F10.4)') 'Bounds of delta1 of RK-PR (range_delta1):', range_delta1
+  if (any(lm_range_tc /= [0.5D0, 2D0]) .or. any(lm_range_pc /= [0.5D0, 2D0])) &
+    write(1,'(X,A,2F10.4,/,X,A,2F10.4)') 'LM bounds of Tc of RK-PR (lm_range_tc, times initial):', lm_range_tc, &
+                                         'LM bounds of Pc of RK-PR (lm_range_pc, times initial):', lm_range_pc
   if (bubble_solver /= 'tpf') write(1,'(X,2A)') 'Bubble points calculated with: ', trim(bubble_solver)
   if (optimizer /= 'lm') then
     write(1,'(X,2A)') 'Optimizer: ', trim(optimizer)
@@ -133,15 +162,20 @@ subroutine read_options()
       ', seed = ', pso_seed
     if (optimizer == 'pso+lm') write(1,'(X,A,I0,A,F6.2,A,F6.3)') 'LM starts: up to ', pso_starts, &
       ', SSQ <= ', pso_ssq_factor, ' x best, distance > ', pso_cluster_dist
-    write(1,'(X,A,8(/,X,A,2F10.4))') "PSO search box (k', association volume and dc: their bounds):", &
+    write(1,'(X,A,9(/,X,A,2F10.4))') "PSO search box (association volume and dc: their bounds):", &
       '  g*  (times the initial value): ', range_gstr, &
       '  Q   (times the initial value): ', range_q, &
       '  eps (times the initial value): ', range_eps, &
       '  Tc  (times the initial value): ', range_tc, &
       '  k*  (absolute):                ', range_kstr, &
+      "  k'  (absolute):                ", range_kp, &
       '  alpha (absolute):              ', range_alpha, &
       "  g'  (absolute):                ", range_gp, &
       '  g"  (absolute):                ', range_gdd
+    if (any(range_pc /= [0.8D0, 1.25D0]) .or. any(range_k /= [0.7D0, 1.3D0])) &
+      write(1,'(X,A,2(/,X,A,2F10.4))') 'PSO search box, RK-PR:', &
+      '  Pc  (times the initial value): ', range_pc, &
+      '  k   (times the initial value): ', range_k
   endif
   close(unit=1)
 endsubroutine read_options

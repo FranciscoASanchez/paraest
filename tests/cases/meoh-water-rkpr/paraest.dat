@@ -92,4 +92,4 @@ MeOH(1) + H2O(2), 333.15 K, Kurihara et al., J. Chem. Eng. Data 40 (1995) 679-68
 333.15  0.706607  0.7530  0.9039  1.0  1.0
 333.15  0.718796  0.7776  0.9141  1.0  1.0
 
-0 0 0 0 0 0 0    ! NNP NNQ NALFA NENASS NRKASS numTc NUMDC
+0 0 0 0 0 0    ! NTc NPc Ndelta Nk Nkij Nlij

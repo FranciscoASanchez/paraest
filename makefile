@@ -44,6 +44,7 @@ MODELS       = src/models/thermo_model.f90               \
 
 EQUILIBRIUM  = src/equilibrium/gc3_flash.f90             \
                src/equilibrium/isofugacity.f90           \
+               src/equilibrium/saturation.f90            \
                src/equilibrium/gcdba.f90                 \
                src/equilibrium/tpf_flash.f90             \
                src/equilibrium/gcxs.f90                  \
@@ -128,9 +129,11 @@ $(OBJDIR)/fugacity.o: $(OBJDIR)/thermo_model.o
 $(DBGDIR)/fugacity.o: $(DBGDIR)/thermo_model.o
 $(OBJDIR)/gc3_flash.o: $(OBJDIR)/thermo_model.o
 $(DBGDIR)/gc3_flash.o: $(DBGDIR)/thermo_model.o
-$(OBJDIR)/gcsle.o: $(OBJDIR)/thermo_model.o
-$(DBGDIR)/gcsle.o: $(DBGDIR)/thermo_model.o
-RESDEPS = dimensions config fit_data gca_parameters gca_bridge rkpr_bridge thermo_model scaling utilities tpf_flash
+$(OBJDIR)/gcsle.o $(OBJDIR)/saturation.o: $(OBJDIR)/thermo_model.o
+$(DBGDIR)/gcsle.o $(DBGDIR)/saturation.o: $(DBGDIR)/thermo_model.o
+$(OBJDIR)/rkpr_bridge.o: $(OBJDIR)/dimensions.o $(OBJDIR)/config.o $(OBJDIR)/scaling.o
+$(DBGDIR)/rkpr_bridge.o: $(DBGDIR)/dimensions.o $(DBGDIR)/config.o $(DBGDIR)/scaling.o
+RESDEPS = dimensions config fit_data gca_parameters gca_bridge rkpr_bridge thermo_model scaling utilities tpf_flash saturation
 $(OBJDIR)/residuals.o: $(call dep,$(OBJDIR),$(RESDEPS))
 $(DBGDIR)/residuals.o: $(call dep,$(DBGDIR),$(RESDEPS))
 

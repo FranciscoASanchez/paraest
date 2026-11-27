@@ -37,10 +37,73 @@ of thermopack reads for it, as in the flash programs:
     i j l_ij k_ij k'_ij T*_ij           NownIJ lines (Tdep = 0: i j l_ij k_ij)
   Then, for any model, the melting block (below).
 
-With RK-PR paraest only predicts for now (no fitted parameters), and only
-with data calculated through THERMO: pure-component isofugacity
-(IOBJSAT = 50), phase equilibrium (IHEN = 0; bubble points with the 'tpf'
-solver) and solid solubility (IHEN = 2). Other data stop the program.
+With RK-PR only data calculated through THERMO can be used: pure-component
+isofugacity (IOBJSAT = 50) and vapor pressure (IOBJSAT 80, 81 with liquid
+density), phase equilibrium (IHEN = 0; bubble points with the 'tpf' solver)
+and solid solubility (IHEN = 2). Other data stop the program.
+The vapor pressure is calculated by psat_pure (src/equilibrium/saturation.f90,
+from GCA-cape-open, with THERMO in place of lnphi_TP); the experimental
+value is the initial guess. The GCA still uses its PSAT.
+Example: tests/cases/meoh-water-rkpr-psat (k of water fitted to its vapor
+pressure, with the methanol + water data of meoh-water-rkpr).
+
+Pure-component data lines (any model): IOBJSAT = 50 and 80: "T  P  wP";
+IOBJSAT = 81 (since 2026-11-27): "T  P  v  wP  wv", with the molar volume
+v in cm3/mol (that of the solid below Tfus: v_S = v_L - DVfus) and the
+weights of P and v: residual wP (Pcalc - Pexp) and wv (vcalc - vexp), both
+times W1, combined as the square root of their sum of squares when both
+are nonzero. With wP = 0, P is only the initial guess (e.g. an extrapolated
+sublimation pressure). Earlier, IOBJSAT 81 read "T  P  rho  w" (rho in
+mol/cm3, unweighted).
+Example: tests/cases/rkpr-pure-fit (vanillin and ethyl levulinate: delta1 = 1 + sqrt(2)
+fixed, k fitted to the vapor pressure; k and delta1 fitted to the vapor
+pressure and the molar volume, of the solid for vanillin and of the liquid
+for ethyl levulinate; and the published parameters of ethyl levulinate).
+tests/cases/rkpr-pure-fit-tcpc: the same, with the estimated Tc and Pc of
+vanillin, fitted too (LM bounds lm_range_tc 0.9-1.1, lm_range_pc 0.75-1.25
+in paraest.cfg). With the vapor pressure only (VAN-PR), Tc, Pc and
+k are not determined: Pc ends at its bound.
+
+RK-PR fitted parameters (since 2026-11-27): after the data sets, in the
+format of those of the GCA:
+
+    NTc NPc Ndelta Nk Nkij Nlij
+    components whose Tc is fitted       (only if NTc > 0; the same, one line
+    ... Pc, delta1, k                    each, for Pc, delta1 and k)
+    i j  i j ...                        pairs of k_ij               } only if
+    T dependence of each pair:          0: k_inf; 1: k_inf, k';     } Nkij > 0
+                                        2: k_inf, k', T*            }
+    number of identical pairs of each   (pairs that copy its values)}
+    i j  i j ...                        one line per pair with identical ones
+    i j  i j ...                        pairs of l_ij               } only if
+    number of identical pairs of each                               } Nlij > 0
+    i j  i j ...                        one line per pair with identical ones
+    initial values                      Tc/K, Pc/bar, delta1, k (in the order
+                                        of the lists), then k_inf [k' [T*/K]]
+                                        of each pair, then l_ij
+
+  k_ij(T) = k_inf + k' exp(-T/T*). The pure-component parameters fitted
+  are Tc, Pc and delta1 (and k), not ac and b: these follow from them, as
+  readcomp does with input j = 0 (with delta1 fixed, ac and b only move the
+  critical point). Tc and Pc are those of the EoS (with j = 1 input, those
+  calculated from ac and b, written in paraest.out). An initial value 0 of
+  Tc, Pc, delta1, k or T* takes the value read with the model. A pair
+  fitted with T dependence 0 has k' = 0, whatever the input says. Fitting k'
+  turns on the temperature dependence (Tdep = 1) if the input did not have
+  it. The binary parameters are symmetric: (j,i) is the same parameter as
+  (i,j), it need not be listed as identical, and listing both as fitted
+  parameters is an error.
+  Bounds (Levenberg-Marquardt) and PSO box:
+    Tc, Pc       lm_range_tc, lm_range_pc (default 0.5-2 times the initial value); PSO range_tc, range_pc
+    delta1       range_delta1 (default 1-6), both
+    k            0.1-10; PSO range_k (times the initial value)
+    k_inf, l_ij  1 - (30 to 0.2), i.e. -29 to 0.8, as 1 - k* of the GCA;
+                 PSO 1 - range_kstr (-0.2 to 0.2)
+    k'           -1 to 1; PSO range_kp (default -0.15 to 0.15)
+    T*           0.1 min(Tc_i, Tc_j) to 2 max(Tc_i, Tc_j); PSO 0.5-2 times
+                 min(Tc_i, Tc_j)
+  An initial value outside its bounds widens them (with a warning).
+  Example: tests/cases/meoh-water-rkpr-fit.
 
 Files in the earlier format are converted with
     tools/convert_input.py --model file.dat new.dat
@@ -80,7 +143,9 @@ the lowest number, and so on (attractive and associating groups separately).
 The parameter tables of paraest.out show it in column Pos, next to the
 database number (ID). The association parameters are (site, group position,
 site, group position). k*, k', and the association energy and volume are
-symmetric: fitting (i,j) also sets (j,i).
+symmetric: fitting (i,j) also sets (j,i) (for the association parameters,
+(k,i,l,j) also sets (l,j,k,i)), so (j,i) need not be listed as identical
+(older files that do it give the same results).
 
 Old files (all the parameters written out, groups numbered 1..NG) are
 converted with
@@ -153,9 +218,9 @@ Options (optional file paraest.cfg in the current directory, a namelist):
   SSQ); the final parameters and statistics are those of the best.
   PSO search box: g*, Q, eps and Tc between multiples of the initial value;
   k*, alpha, g' and g" between absolute values, narrower than the bounds
-  used by Levenberg-Marquardt (k* 0.2-30, alpha +-29, g' +-2), widened to
-  include the initial value; k', association volume and dc between their
-  physical bounds:
+  used by Levenberg-Marquardt (k* 0.2-30, k' +-0.3, alpha +-29, g' +-2),
+  widened to include the initial value; association volume and dc between
+  their physical bounds:
   range_gstr      g*                    default 0.5, 1.5
   range_q         Q                     default 0.5, 2.0
   range_eps       association energy    default 0.5, 2.0
@@ -166,6 +231,14 @@ Options (optional file paraest.cfg in the current directory, a namelist):
   range_gdd       g" (absolute values)  default -1.0, 1.0
   range_kappa     association volume    default 0.0, 20.0 (cm3/mol): bounds
                   for both PSO and Levenberg-Marquardt, not only the box
+  range_kp        k' (absolute; GCA and RK-PR)  default -0.15, 0.15
+  RK-PR:
+  range_pc        Pc (times initial)    default 0.8, 1.25
+  range_k         k (times initial)     default 0.7, 1.3
+  range_delta1    delta1                default 1.0, 6.0: bounds for both
+                  PSO and Levenberg-Marquardt
+  lm_range_tc     Tc (times initial)    default 0.5, 2.0: Levenberg-Marquardt
+  lm_range_pc     Pc (times initial)    default 0.5, 2.0  bounds (not the box)
   bubble_solver   bubble points of binary VLE data (IFL = 1, 2):
                   'tpf'    Newton-Raphson in ln K and ln P (or ln T), adapted
                            from TPfractionFlash v0.5.3 (default)

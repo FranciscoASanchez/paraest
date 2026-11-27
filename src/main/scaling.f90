@@ -11,6 +11,12 @@
 !     4  Q (area)              5  alpha               6  association energy
 !     7  association volume    8  Tc                  9  dc
 !    10  g"
+!  RK-PR (model 4), set by read_rkpr_fit and rkpr_fit_bounds (module rkpr_bridge):
+!    11  Tc                  12  Pc                  13  delta1
+!    14  k                   15  k_ij(inf)           16  k'_ij
+!    17  T*_ij               18  l_ij
+!  Types 11-18 are bounded with bounds given for each parameter by the
+!  model (pMin, pMax; the PSO box within pLo, pHi), not by its type.
 !
 !  Bounded parameters are scaled with fScld: scl*log((x - vMin)/(vMax - x)).
 !
@@ -20,7 +26,7 @@ module scaling
   implicit none
   private
   public :: XXSCAL, XXUNSCAL, fScld, fUnscld, search_box
-  public :: inIJ, dc_mean, error_Dc
+  public :: inIJ, dc_mean, error_Dc, pMin, pMax, pLo, pHi
 
   ! Scaling factors (scl) of each parameter type.
   ! Note: since the step of ZXSSQ's numerical derivatives is almost fixed in
@@ -46,10 +52,13 @@ module scaling
   double precision, parameter :: fRkass = 4D-5
   double precision, parameter :: fTc    = 1D-8
   double precision, parameter :: fDc    = 4D-5
+  ! Types 11-18 (bounds per parameter): not studied yet; 4e-5 as the others
+  ! (du ~ 1e-5).
+  double precision, parameter :: fModel = 4D-5
 
   ! Bounds of the bounded parameters.
   double precision, parameter :: vMinKstr = 0.2D0, vMaxKstr = 30D0   ! k*
-  double precision, parameter :: vMaxKp   = 9D0                      ! k' between -vMaxKp and vMaxKp
+  double precision, parameter :: vMaxKp   = 0.3D0                    ! k' between -vMaxKp and vMaxKp
   double precision, parameter :: vMinGp   = -2D0, vMaxGp = 2D0       ! g' between -vMaxGp and -vMinGp
   double precision, parameter :: vMaxAlfa = 29D0                     ! alpha between -vMaxAlfa and vMaxAlfa
   ! Association volume: between range_kappa(1) and range_kappa(2) (module
@@ -63,6 +72,10 @@ module scaling
 
   ! dc: each one moves within dc_mean(i) +- error_Dc(i) (set by read_input).
   double precision :: dc_mean(NPARM) = 0D0, error_Dc(NPARM) = 0D0
+
+  ! Types 11-18: bounds of each parameter (LM) and its PSO box (narrowed to
+  ! pLo, pHi and widened to include the initial value), set by the model.
+  double precision :: pMin(NPARM) = 0D0, pMax(NPARM) = 0D0, pLo(NPARM) = 0D0, pHi(NPARM) = 0D0
 
 contains
 
@@ -113,6 +126,8 @@ subroutine XXSCAL(NPAR, XX, IDXX, boundFrac)
       XX(i) = fScld(XX(i), fDc, dc_mean(i) - error_Dc(i), dc_mean(i) + error_Dc(i), boundFrac)
     case (10)
       XX(i) = fTemp*XX(i)       ! g": no bounds for now
+    case (11:18)
+      XX(i) = fScld(XX(i), fModel, pMin(i), pMax(i), boundFrac)
     endselect
   enddo
 endsubroutine XXSCAL
@@ -159,6 +174,8 @@ subroutine XXUNSCAL(NPAR, XX, IDXX, XXAUX)
       XXAUX(i) = fUnscld(XX(i), fDc, dc_mean(i) - error_Dc(i), dc_mean(i) + error_Dc(i))
     case (10)
       XXAUX(i) = XX(i)/fTemp
+    case (11:18)
+      XXAUX(i) = fUnscld(XX(i), fModel, pMin(i), pMax(i))
     case default
       XXAUX(i) = XX(i)
     endselect
@@ -238,7 +255,7 @@ endfunction fUnscld
 !  limit of 1 K.
 !
 subroutine search_box(NPAR, IDXX, x0, boundFrac, lo, hi)
-  use config, only: range_gstr, range_kstr, range_alpha, range_gp, range_gdd, range_q, range_eps, range_tc, range_kappa
+  use config, only: range_gstr, range_kstr, range_alpha, range_gp, range_gdd, range_q, range_eps, range_tc, range_kappa, range_kp
   integer, intent(in) :: NPAR, IDXX(NPAR)
   double precision, intent(in) :: x0(NPAR), boundFrac
   double precision, intent(out) :: lo(NPAR), hi(NPAR)
@@ -254,6 +271,7 @@ subroutine search_box(NPAR, IDXX, x0, boundFrac, lo, hi)
     case (3)
       if (inIJ(i)) then
         call between(-vMaxKp, vMaxKp)
+        call absolute(range_kp)
       else
         call between(-vMaxGp, -vMinGp)
         call absolute(range_gp)
@@ -276,6 +294,9 @@ subroutine search_box(NPAR, IDXX, x0, boundFrac, lo, hi)
     case (10)
       lo(i) = min(range_gdd(1), x0(i))
       hi(i) = max(range_gdd(2), x0(i))
+    case (11:18)
+      call between(pMin(i), pMax(i))
+      call absolute([pLo(i), pHi(i)])
     case default
       lo(i) = x0(i)
       hi(i) = x0(i)

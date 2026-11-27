@@ -138,6 +138,33 @@ for m in ("DIAMET", "MTC_covolume"):
         sys.exit(f"port_rkpr: {m} left in Bcalc")
 parts["Bcalc"] = b
 
+# VCALC: (1) a guess volume V0 <= B (zeta = B/V0 >= 1; e.g. the volume of
+# another composition, or NaN) made ArVnder take the log of a negative number
+# and, with NaN, (2) the loop never ended: every 30 iterations it screened
+# again. A starting zeta outside (0, 1) is replaced by 0.5, and after 300
+# iterations in all V is NaN (the caller's result is NaN: in paraest a point
+# that could not be calculated).
+v = parts["VCALC"]
+v = replace(v, "\tIMPLICIT DOUBLE PRECISION (A-H,O-Z)\n",
+            "\tuse, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan\n"
+            "\tIMPLICIT DOUBLE PRECISION (A-H,O-Z)\n")
+v = replace(v, "\tinteger                             :: n_deriv, NC_common, t_deriv\n",
+            "\tinteger                             :: n_deriv, NC_common, t_deriv\n"
+            "\tinteger                             :: iterTot\n")
+v = replace(v, "\t  ZETA = B/V0\n\t  IC = ITYP\n\t  \n\tENDIF\n",
+            "\t  ZETA = B/V0\n\t  IC = ITYP\n\t  \n\tENDIF\n"
+            "\tIF (.NOT. (ZETA > 0D0 .AND. ZETA < 1D0)) ZETA = .5D0\t! paraest: invalid guess (V0 <= B, NaN)\n"
+            "\titerTot = 0\n")
+v = replace(v, "\t  V = CPV/ZETA\n\t  ITER = ITER + 1\n",
+            "\t  V = CPV/ZETA\n\t  ITER = ITER + 1\n"
+            "\t  iterTot = iterTot + 1\n"
+            "\t  if (iterTot > 300) then\t! paraest: no convergence\n"
+            "\t    V = ieee_value(V, ieee_quiet_nan)\n"
+            "\t    IC = ITYP\n"
+            "\t    return\n"
+            "\t  endif\n")
+parts["VCALC"] = v
+
 body = "\n!" + "-" * 90 + "\n".join([""] + [parts[n] for _, n in keep])
 write(ROOT / "src/models/thermopack.f90", f"""!
 !	paraest copy of thermopack-v{vTPack}.f90 (TPfractionFlash/src), made by
@@ -153,5 +180,7 @@ write(ROOT / "src/models/thermopack.f90", f"""!
 !	  - Bcalc: COMMON /MOL/ with NCM components instead of 2.
 !	  - GCA_EoS: n_deriv and temp_deriv reset at each call (initialized in
 !	    the declaration, they kept the value of a previous call).
+!	  - VCALC: a starting zeta = B/V0 outside (0, 1) is replaced by 0.5, and
+!	    after 300 iterations it returns V = NaN (it looped forever).
 !
 """, body)

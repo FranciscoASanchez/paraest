@@ -24,6 +24,7 @@ program paraest
                     pso_cluster_dist, bubble_solver
   use pso_optimizer, only: PSO
   use thermo_model, only: model
+  use rkpr_bridge, only: rkpr_fit_bounds
   use residuals, only: FUNC, write_failed_points, nFailed, nNaN, nFailedFirst, nNaNFirst   ! residuals of the objective function, for ZXSSQ
   implicit none
 !
@@ -69,8 +70,11 @@ program paraest
     stop 1
   endif
 !
-  ! Type of each value in XX, to assign it the right scaling factor
-  CALL set_param_types(NNP,IDG,ITEMP,NNQ,NALFA,NENASS,NRKASS,IDXX,numTc,NUMDC)
+  ! Type of each value in XX, to assign it the right scaling factor (RK-PR:
+  ! set by read_rkpr_fit)
+  if (model == 1) CALL set_param_types(NNP,IDG,ITEMP,NNQ,NALFA,NENASS,NRKASS,IDXX,numTc,NUMDC)
+  ! RK-PR: bounds and PSO box of each parameter (some come from paraest.cfg)
+  if (model /= 1) call rkpr_fit_bounds(NPAR, XX, IDXX)
 !
   ! Scale the values of XX. In a fit, initial values on a bound (or very
   ! close) are moved 0.1 % of the interval away, so the optimizer can move
@@ -342,14 +346,14 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
   use dimensions
   use fit_data, only: NC, W1, W2, W3, W4, W5, w6, W7, W8, W9, W10, W11, W12, w13, ISAT, IGLE, IVE, IUNI, &
 &                      PRCRIT, TEMPCRIT, NSAT, IDC, NOBS, iHEN, mez, IFL, rGamExp1, rGamExp2, rGamExp3, &
-&                      prop_E_calc, prop_E_exp, TEXP, PEXP, XEXP, xexp2, YEXP, yExp2, rhoExp, IDSAT, IOBJSAT, &
-&                      wSat, wBin, wTer, wEx, wGam, DHfu, Tfu, DCpfu, Dvfu, TtrSS, DHss, Pfu
+&                      prop_E_calc, prop_E_exp, TEXP, PEXP, XEXP, xexp2, YEXP, yExp2, vSatExp, wVSat, IDSAT, IOBJSAT, &
+&                      wSat, wBin, wTer, wEx, wGam, DHfu, Tfu, DCpfu, Dvfu, TtrSS, DHss, Pfu, IDXX
   use gca_parameters, only: NG, NU, QAREA, TSTR, GSTR, GDOT, GDDOT, RKIJ, RKTIJ, ALFAIJ, NGA, ONUASOC, MASSOC, &
 &                      ENASS, RKASS, NNP, NNQ, NALFA, NENASS, NRKASS, TSAT, PSAT, dc, IDG, ITEMP, NIDG, IDIDG, &
 &                      iDQ, IDALF, NIDALF, IDIDALF, IDENASS, NIDENASS, IDIDENASS, IDRKASS, NIDRKASS, &
 &                      IDIDRKASS, NUMDC, IDDC, numTc, idTc, check_group, check_assoc
   use gca_bridge, only: load_from_pargr, load_from_parmol
-  use rkpr_bridge, only: load_from_readcomp
+  use rkpr_bridge, only: load_from_readcomp, read_rkpr_fit
   use thermo_model, only: model
   use scaling, only: dc_mean, error_Dc
   use utilities, only: i2s, rep, check_limit
@@ -440,8 +444,9 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
           READ(1,*) TEXP(J),PEXP(J),wSat(j)
           write(*,'(F7.2,F12.8,I12)') TEXP(J),PEXP(J), j
         else
-          READ(1,*) TEXP(J),PEXP(J),rhoExp(j),wSat(j)
-          write(*,'(F7.2,2(F12.8,X))') TEXP(J),PEXP(J),rhoExp(j)
+          ! T, P, molar volume (cm3/mol), weights of P and of v
+          READ(1,*) TEXP(J),PEXP(J),vSatExp(j),wSat(j),wVSat(j)
+          write(*,'(F7.2,X,G14.6,X,F10.4,2(X,G12.5))') TEXP(J),PEXP(J),vSatExp(j),wSat(j),wVSat(j)
       endif
 
       END DO
@@ -621,6 +626,15 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
   END DO
 !
   write(*,'(//)')
+  ! Fitted parameters. RK-PR: "NTc NPc Ndelta Nk Nkij Nlij" and their lists
+  ! (module rkpr_bridge)
+  if (model /= 1) then
+    call check_model_support()
+    NNP = 0; NNQ = 0; NALFA = 0; NENASS = 0; NRKASS = 0; numTc = 0; NUMDC = 0
+    call read_rkpr_fit(1, NPAR, XX, IDXX)
+    CLOSE(UNIT=1)
+    return
+  endif
   READ(1,*) NNP,NNQ,NALFA,NENASS,NRKASS,numTc, NUMDC
   write(*,'(7(I2,4X),"! Interaction - Area - Non-random. - Assoc. energy - Assoc. volume - Crit. temp. - Crit. diameters")') NNP,NNQ,NALFA,NENASS,NRKASS,numTc, NUMDC
   call check_limit(NNP,    NPTIPOM, 'g/k interaction parameters (NNP)')
@@ -630,11 +644,6 @@ SUBROUTINE read_input(NSIG,NPRED,NPAR,PARM,NTEXT,XX,NCXP,IOPT)
   call check_limit(NRKASS, NPTIPOM, 'association volumes (NRKASS)')
   call check_limit(numTc,  NPTIPOM, 'critical temperatures (numTc)')
   call check_limit(NUMDC,  NPTIPOM, 'critical diameters (NUMDC)')
-  if (model /= 1 .and. NNP + NNQ + NALFA + NENASS + NRKASS + numTc + NUMDC > 0) then
-    write(*,'(A)') ' ERROR: fitting parameters of this model is not available yet (only predictions)'
-    stop 1
-  endif
-  if (model /= 1) call check_model_support()
 !
   if(NNP.NE.0) then
 !
@@ -852,8 +861,8 @@ subroutine check_model_support()
 
   bad = .false.
   do i = 1, NC
-    if (NSAT(i) > 0 .and. IOBJSAT(i) /= 50) then
-      write(*,'(A,I0,A)') ' ERROR: component ', i, ': with this model, pure-component data only with IOBJSAT = 50 (isofugacity)'
+    if (NSAT(i) > 0 .and. IOBJSAT(i) /= 50 .and. IOBJSAT(i) < 80) then
+      write(*,'(A,I0,A)') ' ERROR: component ', i, ': with this model, pure-component data only with IOBJSAT = 50 or >= 80'
       bad = .true.
     endif
   enddo
@@ -916,6 +925,7 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 &                      IDIDRKASS, DC, NUMDC, IDDC, TSPLINE, numtc, idtc
   use fit_data, only: DHfu, Tfu, DCpfu, DVfu, TtrSS, DHss, Pfu
   use model_output, only: write_model_params, write_pargr_warnings, write_model_text
+  use rkpr_bridge, only: write_rkpr_fit_spec
   use thermo_model, only: model
   use utilities, only: i2s, rep
 !
@@ -973,7 +983,8 @@ SUBROUTINE write_output_header(NSIG,NPRED,NPAR,PARM,NTEXT,XX,IOPT)
 
   END DO
 !
-  WRITE(1,201)
+  if (model /= 1) call write_rkpr_fit_spec(1)
+  if (model == 1) WRITE(1,201)
 201  FORMAT(/,X,' Parameters to estimate (groups by their position, column Pos of the tables)',/)
 !
   if(NNP.NE.0) then
@@ -1273,7 +1284,7 @@ SUBROUTINE write_results(NTEXT)
   use fit_data, only: NC, ISAT, IGLE, IVE, IUNI, NSAT, IDC, NOBS, IHEN, mez, IFL, TEXP, PEXP, XEXP, xexp2, &
 &                      YEXP, yExp2, IDSAT, tempcrit, XCALC, YCALC, xCalc2, yCalc2, ZLCALC, ZVCalc, FCAUX, &
 &                      PCALC, IOBJSAT, FCAUX2, fcaux3, STDVA, STDVB, stdvc, rgamcalc1, rgamcalc2, rgamcalc3, &
-&                      rgamexp1, rgamexp2, rgamexp3, zLicalc, prop_E_calc, prop_E_exp, DHVL
+&                      rgamexp1, rgamexp2, rgamexp3, zLicalc, prop_E_calc, prop_E_exp, DHVL, vSatExp, vSatCalc
   use gca_parameters, only: NG, NU, QAREA, TSTR, GSTR, GDOT, GDDOT, RKIJ, RKTIJ, ALFAIJ, NGA, ONUASOC, MASSOC, &
 &                      ENASS, RKASS, TSAT, PSAT, DC, numTc, idTc, NUMDC, IDDC, TSPLINE
   use model_output, only: write_model_params
@@ -1285,7 +1296,7 @@ SUBROUTINE write_results(NTEXT)
   implicit none
   integer :: I, iDim, iDim1, iDim2, iDim3, iDim4, J, JAMO, k, KS, L, mm
   integer :: N1, NCXP, NCXPy, NFOLI, No
-  double precision :: E1, E2, E3, E4, E5, E6, E7, E8, er2, er4, Pmax, Pmin
+  double precision :: E1, E2, E3, E4, E5, E6, E7, E8, er2, er4, Pmax, Pmin, dvRel
 !
   character(1) :: tab = achar(9)
   integer :: NTEXT(NSetM,65)                ! title of each data set
@@ -1376,13 +1387,33 @@ SUBROUTINE write_results(NTEXT)
 3331          FORMAT(/,X,'Comp,Texp(K),Pexp(atm),Pcalc(atm),Zliq,Zvap,DP%,DH_LV(J/mol)',/)
 
         END IF
+        IF(IOBJSAT(I).EQ.81) THEN
+
+          WRITE(1,3332)
+          write(10,3333)
+3332          FORMAT(/,X,'  Comp   Texp(K)    Pexp(atm)    Pcalc(atm)     Zcond     Zvap        DP%     DH(J/mol)  ', &
+                   '  vexp(cm3/mol) vcalc(cm3/mol)   Dv%',/)
+3333          FORMAT(/,X,'Comp,Texp(K),Pexp(atm),Pcalc(atm),Zcond,Zvap,DP%,DH(J/mol),vexp(cm3/mol),vcalc(cm3/mol),Dv%',/)
+
+        END IF
 !
         NFOLI=NSAT(I)
         STDVSAT(I)=0D0
         DO J=1,NSAT(I)
 
+          IF(IOBJSAT(I).EQ.81) THEN
+            dvRel = 0
+            if (vSatExp(NCXP+1) /= 0 .and. vSatCalc(NCXP+1) /= 0) dvRel = 100*(vSatCalc(NCXP+1)/vSatExp(NCXP+1) - 1)
+            WRITE(1,3342) I,TEXP(NCXP+1),PEXP(NCXP+1),PCALC(NCXP+1), ZLCALC(NCXP+1), ZVCALC(NCXP+1),FCAUX(NCXP+1)*100, &
+                          DHVL(NCXP+1)*.101325D0, vSatExp(NCXP+1), vSatCalc(NCXP+1), dvRel
+            WRITE(10,3343) I,TEXP(NCXP+1),PEXP(NCXP+1),PCALC(NCXP+1), ZLCALC(NCXP+1), ZVCALC(NCXP+1),FCAUX(NCXP+1)*100, &
+                          DHVL(NCXP+1)*.101325D0, vSatExp(NCXP+1), vSatCalc(NCXP+1), dvRel
+3342          FORMAT(X,I3,4X,F10.4,X,G12.5,X,G12.5,X,G11.4,X,G11.4,X,G10.3,G11.4,2(X,F12.4),X,F9.3)
+3343          FORMAT(I3,",",F10.4,",",G12.5,",",G12.5,",",G11.4,",",G11.4,",",G10.3,",",G11.4,2(",",F12.4),",",F9.3)
+          ELSE
           WRITE(1,334) I,TEXP(NCXP+1),PEXP(NCXP+1),PCALC(NCXP+1), ZLCALC(NCXP+1), ZVCALC(NCXP+1),FCAUX(NCXP+1)*100, DHVL(NCXP+1)*.101325D0
           WRITE(10,3341) I,TEXP(NCXP+1),PEXP(NCXP+1),PCALC(NCXP+1), ZLCALC(NCXP+1), ZVCALC(NCXP+1),FCAUX(NCXP+1)*100, DHVL(NCXP+1)*.101325D0
+          ENDIF
 334          FORMAT(X,I3,4X,F10.4,X,G12.5,X,G12.5,X,G11.4,X,G11.4,X,G10.3,G11.4)
 3341          FORMAT(I3,",",F10.4,",",G12.5,",",G12.5,",",G11.4,",",G11.4,",",G10.3,",",G11.4)
           NCXP = NCXP + 1
